@@ -1,10 +1,11 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Calculator, History, Newspaper, User, Shield, TrendingUp } from "lucide-react";
+import { LayoutDashboard, Calculator, History, Newspaper, User, Shield, TrendingUp, CalendarDays } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { label: "Calculadora", icon: Calculator, path: "/calculator" },
   { label: "Histórico", icon: History, path: "/history" },
+  { label: "Agenda", icon: CalendarDays, path: "/agenda" },
   { label: "Notícias", icon: Newspaper, path: "/news" },
   { label: "Minha Conta", icon: User, path: "/account" },
 ];
