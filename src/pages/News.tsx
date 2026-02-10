@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ExternalLink, Newspaper, RefreshCw, Search } from "lucide-react";
+import { ExternalLink, Newspaper, RefreshCw, Search, DollarSign, Euro, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,7 +11,16 @@ interface NewsItem {
   link: string;
   pubDate: string;
   source: string;
+  currency: "USD" | "EUR" | "general";
 }
+
+type CurrencyFilter = "all" | "USD" | "EUR" | "general";
+
+const filters: { value: CurrencyFilter; label: string; icon: React.ElementType }[] = [
+  { value: "all", label: "Tudo", icon: Globe },
+  { value: "USD", label: "Dólar", icon: DollarSign },
+  { value: "EUR", label: "Euro", icon: Euro },
+];
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -32,6 +41,7 @@ const NewsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currencyFilter, setCurrencyFilter] = useState<CurrencyFilter>("all");
 
   const fetchNews = async () => {
     setLoading(true);
@@ -50,17 +60,25 @@ const NewsPage = () => {
 
   useEffect(() => {
     fetchNews();
-    // Auto-refresh every 5 minutes
     const interval = setInterval(fetchNews, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const filtered = searchQuery.trim()
-    ? news.filter((n) =>
-        n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        n.source.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : news;
+  const filtered = news
+    .filter((n) => currencyFilter === "all" || n.currency === currencyFilter)
+    .filter((n) =>
+      !searchQuery.trim() ||
+      n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      n.source.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+  const handleNewsClick = (e: React.MouseEvent<HTMLAnchorElement>, link: string) => {
+    if (!link || link.includes("news.google.com/rss/articles")) {
+      e.preventDefault();
+      // Fallback: try opening anyway
+      window.open(link, "_blank", "noopener,noreferrer");
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 pb-10">
@@ -70,6 +88,29 @@ const NewsPage = () => {
         <p className="text-sm text-muted-foreground">
           Feed em tempo real de câmbio, dólar e euro
         </p>
+      </div>
+
+      {/* Currency Filters */}
+      <div className="flex items-center gap-2 justify-center">
+        {filters.map((f) => {
+          const Icon = f.icon;
+          const active = currencyFilter === f.value;
+          return (
+            <button
+              key={f.value}
+              onClick={() => setCurrencyFilter(f.value)}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                active
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Search + Refresh */}
@@ -99,8 +140,8 @@ const NewsPage = () => {
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="rounded-2xl bg-card border border-border/40 p-4 space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/3" />
+              <div className="h-4 w-3/4 rounded-md bg-muted animate-pulse" />
+              <div className="h-3 w-1/3 rounded-md bg-muted animate-pulse" />
             </div>
           ))}
         </div>
@@ -116,13 +157,14 @@ const NewsPage = () => {
         </div>
       )}
 
-      {/* News Feed */}
+      {/* Empty state */}
       {!loading && !error && filtered.length === 0 && (
         <div className="text-center py-10 text-muted-foreground text-sm">
           Nenhuma notícia encontrada.
         </div>
       )}
 
+      {/* News Feed */}
       <div className="space-y-2">
         {filtered.map((item, idx) => (
           <a
@@ -130,10 +172,17 @@ const NewsPage = () => {
             href={item.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-start gap-3 rounded-2xl bg-card border border-border/40 p-4 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
+            onClick={(e) => handleNewsClick(e, item.link)}
+            className="group flex items-start gap-3 rounded-2xl bg-card border border-border/40 p-4 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary mt-0.5">
-              <Newspaper className="h-4 w-4" />
+              {item.currency === "USD" ? (
+                <DollarSign className="h-4 w-4" />
+              ) : item.currency === "EUR" ? (
+                <Euro className="h-4 w-4" />
+              ) : (
+                <Newspaper className="h-4 w-4" />
+              )}
             </div>
             <div className="min-w-0 flex-1 space-y-1">
               <p className="text-sm font-medium text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
