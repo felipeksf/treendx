@@ -219,7 +219,7 @@ const Dashboard = () => {
         {[
           { label: "Calculadora", icon: Calculator, path: "/calculator" },
           { label: "Histórico", icon: History, path: "/history" },
-          { label: "Notícias", icon: Newspaper, path: "/news" },
+          { label: "Feed", icon: Newspaper, path: "/news" },
         ].map((item) => (
           <Link
             key={item.path}
