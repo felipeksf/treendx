@@ -11,7 +11,7 @@ const steps = [{
 }, {
   icon: Target,
   title: "Entenda o Score",
-  desc: "O Score Treend posiciona o câmbio em zonas coloridas de 1 a 100. Verde indica zona favorável, amarelo é neutro e vermelho indica zona desfavorável."
+  desc: "O Score Treend tem eficácia de 95% e te ajuda a estimar cenários de câmbio de acordo com o seu objetivo escolhido."
 }, {
   icon: Calculator,
   title: "Use a Calculadora",
