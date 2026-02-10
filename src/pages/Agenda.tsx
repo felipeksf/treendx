@@ -173,7 +173,12 @@ const Agenda = () => {
 
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-4 px-4 py-3 border-t border-border/40">
-          {Object.entries(categoryConfig).map(([key, val]) => {})}
+          {Object.entries(categoryConfig).map(([key, val]) => (
+            <div key={key} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className={`w-2 h-2 rounded-full ${val.dot}`} />
+              <span>{val.label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
