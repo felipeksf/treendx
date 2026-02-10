@@ -9,6 +9,7 @@ const CATEGORIES = [
   { value: "introducao", label: "Introdução" },
   { value: "importadores", label: "Para Importadores" },
   { value: "exportadores", label: "Para Exportadores" },
+  { value: "agentes_turismo", label: "Para Agentes de Turismo" },
   { value: "turistas", label: "Para Turistas" },
   { value: "freelancers", label: "Para Freelancers" },
 ] as const;
