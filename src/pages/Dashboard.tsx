@@ -4,7 +4,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ScoreGauge from "@/components/ScoreGauge";
 import TrialBanner from "@/components/TrialBanner";
-import { Calculator, History, Newspaper, DollarSign, Euro, TrendingUp, TrendingDown, ArrowRight, MessageSquare } from "lucide-react";
+import {
+  Calculator, History, Newspaper, DollarSign, Euro, TrendingUp, TrendingDown,
+  ArrowRight, MessageSquare, CalendarDays, BarChart3, ArrowUpRight, ArrowDownRight,
+  Activity, Wallet, Clock, Target,
+} from "lucide-react";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltip,
+  ResponsiveContainer, Line, ComposedChart,
+} from "recharts";
 
 type Scenario = "buy" | "sell";
 type Frequency = "weekly" | "biweekly" | "monthly";
@@ -38,6 +46,24 @@ const mockData = {
     },
   },
 };
+
+// Mock chart data — exchange rate throughout the week
+const chartData = [
+  { day: "Seg", usd: 5.08, eur: 5.52 },
+  { day: "Ter", usd: 5.14, eur: 5.55 },
+  { day: "Qua", usd: 5.10, eur: 5.60 },
+  { day: "Qui", usd: 5.18, eur: 5.58 },
+  { day: "Sex", usd: 5.12, eur: 5.54 },
+  { day: "Sáb", usd: 5.15, eur: 5.62 },
+  { day: "Dom", usd: 5.12, eur: 5.58 },
+];
+
+// Mock recent decisions
+const recentDecisions = [
+  { currency: "USD", amount: 25000, rate: 5.08, date: "09/02/2026", type: "buy" as const },
+  { currency: "EUR", amount: 15000, rate: 5.55, date: "07/02/2026", type: "buy" as const },
+  { currency: "USD", amount: 40000, rate: 5.14, date: "05/02/2026", type: "sell" as const },
+];
 
 const getZoneLabel = (score: number, scenario: Scenario) => {
   const isInverted = scenario === "sell";
@@ -85,8 +111,11 @@ const Dashboard = () => {
 
   const usdCalc = calcSavings(mockData.usd.rate, mockData.usd.score);
 
+  const usdChange = ((chartData[chartData.length - 1].usd - chartData[0].usd) / chartData[0].usd * 100);
+  const eurChange = ((chartData[chartData.length - 1].eur - chartData[0].eur) / chartData[0].eur * 100);
+
   return (
-    <div className="space-y-5 max-w-5xl mx-auto">
+    <div className="space-y-5 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -99,7 +128,7 @@ const Dashboard = () => {
 
       <TrialBanner daysLeft={mockData.trialDays} />
 
-      {/* Filters - compact inline */}
+      {/* Filters */}
       <div className="flex items-center gap-2">
         <Tabs value={scenario} onValueChange={(v) => setScenario(v as Scenario)} className="w-auto">
           <TabsList className="h-8 bg-muted/60 p-0.5">
@@ -126,7 +155,158 @@ const Dashboard = () => {
         </Select>
       </div>
 
-      {/* Score Cards - clean panels */}
+      {/* === TOP ACTION CARDS — 4 cards like the reference === */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: "Calculadora", desc: "Simular câmbio", icon: Calculator, path: "/calculator" },
+          { label: "Histórico", desc: "Decisões passadas", icon: History, path: "/history" },
+          { label: "Feed", desc: "Comunidade", icon: Newspaper, path: "/news" },
+          { label: "Agenda", desc: "Próximos eventos", icon: CalendarDays, path: "/agenda" },
+        ].map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className="group relative flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/40 hover:border-primary/40 transition-all duration-300"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-foreground tracking-tight">{item.label}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{item.desc}</p>
+            </div>
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl border border-primary/30 bg-primary/5 group-hover:bg-primary/10 transition-colors shrink-0">
+              <item.icon className="h-5 w-5 text-primary" />
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* === MAIN SECTION: Chart + Side Metrics === */}
+      <div className="grid lg:grid-cols-[1fr_280px] gap-4">
+        {/* Chart Card */}
+        <div className="rounded-2xl bg-card p-5 border border-border/40">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Cotação Semanal</p>
+              <p className="text-2xl font-bold text-foreground tracking-tight tabular-nums">
+                R$ {mockData.usd.rate.toFixed(3)}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+                <span className="text-[11px] text-muted-foreground">USD</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(var(--treend-warning))" }} />
+                <span className="text-[11px] text-muted-foreground">EUR</span>
+              </div>
+              <Select defaultValue="weekly">
+                <SelectTrigger className="w-[90px] h-7 text-[11px] bg-muted/60 border-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="weekly">Semana</SelectItem>
+                  <SelectItem value="monthly">Mês</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={240}>
+            <ComposedChart data={chartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+              <defs>
+                <linearGradient id="usdGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="eurGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--treend-warning))" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="hsl(var(--treend-warning))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+              <YAxis domain={["dataMin - 0.1", "dataMax + 0.1"]} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `R$${v.toFixed(2)}`} />
+              <ReTooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--popover))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "12px",
+                  fontSize: "12px",
+                  color: "hsl(var(--foreground))",
+                }}
+                formatter={(value: number, name: string) => [`R$ ${value.toFixed(2)}`, name === "usd" ? "USD" : "EUR"]}
+              />
+              <Area type="monotone" dataKey="usd" stroke="hsl(var(--primary))" fill="url(#usdGrad)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} />
+              <Line type="monotone" dataKey="eur" stroke="hsl(var(--treend-warning))" strokeWidth={2} strokeDasharray="6 3" dot={{ r: 3, fill: "hsl(var(--treend-warning))" }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Side Panel — Key Metrics */}
+        <div className="flex flex-col gap-3">
+          {/* USD variation */}
+          <div className="rounded-2xl bg-card p-4 border border-border/40 flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl border border-primary/20 bg-primary/5">
+              <DollarSign className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">USD / BRL</p>
+              <p className="text-sm font-bold text-foreground tabular-nums">R$ {mockData.usd.rate.toFixed(2)}</p>
+            </div>
+            <div className={`flex items-center gap-0.5 text-xs font-semibold ${usdChange >= 0 ? "text-treend-danger" : "text-treend-success"}`}>
+              {usdChange >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+              {Math.abs(usdChange).toFixed(2)}%
+            </div>
+          </div>
+
+          {/* EUR variation */}
+          <div className="rounded-2xl bg-card p-4 border border-border/40 flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl border border-primary/20 bg-primary/5">
+              <Euro className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">EUR / BRL</p>
+              <p className="text-sm font-bold text-foreground tabular-nums">R$ {mockData.eur.rate.toFixed(2)}</p>
+            </div>
+            <div className={`flex items-center gap-0.5 text-xs font-semibold ${eurChange >= 0 ? "text-treend-danger" : "text-treend-success"}`}>
+              {eurChange >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+              {Math.abs(eurChange).toFixed(2)}%
+            </div>
+          </div>
+
+          {/* Savings snapshot */}
+          <div className="rounded-2xl bg-card p-4 border border-border/40">
+            <div className="flex items-center gap-2 mb-2">
+              <Wallet className="h-4 w-4 text-primary" />
+              <p className="text-xs font-semibold text-foreground">Economia estimada</p>
+            </div>
+            <p className="text-2xl font-bold text-primary tabular-nums">
+              R$ {usdCalc.savings.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-1">em USD 10.000 · com a Treend</p>
+          </div>
+
+          {/* Score snapshot */}
+          <div className="rounded-2xl bg-card p-4 border border-border/40">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="h-4 w-4 text-primary" />
+              <p className="text-xs font-semibold text-foreground">Score do dia</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-center">
+                <p className="text-lg font-bold text-foreground">{mockData.usd.score}</p>
+                <p className="text-[10px] text-muted-foreground">USD</p>
+              </div>
+              <div className="h-8 w-px bg-border/60" />
+              <div className="text-center">
+                <p className="text-lg font-bold text-foreground">{mockData.eur.score}</p>
+                <p className="text-[10px] text-muted-foreground">EUR</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* === SCORE GAUGES === */}
       <div className="grid md:grid-cols-2 gap-4">
         {/* USD */}
         <div className="rounded-2xl bg-card p-5 border border-border/40">
@@ -163,21 +343,54 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Comment - minimal */}
-      <div className="rounded-2xl bg-card p-4 border border-border/40">
-        <div className="flex items-start gap-3">
-          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 shrink-0 mt-0.5">
-            <MessageSquare className="h-4 w-4 text-primary" />
+      {/* === BOTTOM ROW: Comment + Recent Decisions === */}
+      <div className="grid lg:grid-cols-[1fr_1fr] gap-4">
+        {/* Comment */}
+        <div className="rounded-2xl bg-card p-4 border border-border/40">
+          <div className="flex items-start gap-3">
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 shrink-0 mt-0.5">
+              <MessageSquare className="h-4 w-4 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-foreground mb-1">
+                Análise do dia
+                <span className="font-normal text-muted-foreground ml-2">
+                  {scenarioLabel} · {frequencyLabels[frequency]}
+                </span>
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{comment}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-foreground mb-1">
-              Análise do dia
-              <span className="font-normal text-muted-foreground ml-2">
-                {scenarioLabel} · {frequencyLabels[frequency]}
-              </span>
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">{comment}</p>
+        </div>
+
+        {/* Recent Decisions */}
+        <div className="rounded-2xl bg-card p-4 border border-border/40">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+              <Clock className="h-4 w-4 text-primary" />
+            </div>
+            <span className="text-xs font-semibold text-foreground">Decisões Recentes</span>
           </div>
+          <div className="space-y-2.5">
+            {recentDecisions.map((d, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full shrink-0 ${d.type === "buy" ? "bg-treend-success" : "bg-treend-warning"}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground">
+                    {d.currency} {d.amount.toLocaleString("pt-BR")}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">{d.date}</p>
+                </div>
+                <p className={`text-xs font-bold tabular-nums ${d.type === "buy" ? "text-treend-danger" : "text-treend-success"}`}>
+                  {d.type === "buy" ? "-" : "+"} R$ {(d.amount * d.rate).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+                </p>
+              </div>
+            ))}
+          </div>
+          <Link to="/history" className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-border/40 text-xs text-primary hover:text-primary/80 transition-colors">
+            Ver histórico completo
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         </div>
       </div>
 
@@ -212,25 +425,6 @@ const Dashboard = () => {
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Quick actions - subtle, no cards */}
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          { label: "Calculadora", icon: Calculator, path: "/calculator" },
-          { label: "Histórico", icon: History, path: "/history" },
-          { label: "Feed", icon: Newspaper, path: "/news" },
-        ].map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className="group flex items-center justify-center gap-2 py-3 rounded-xl bg-muted/40 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors duration-200"
-          >
-            <item.icon className="h-4 w-4" />
-            <span className="text-xs font-medium">{item.label}</span>
-            <ArrowRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
-          </Link>
-        ))}
       </div>
     </div>
   );
