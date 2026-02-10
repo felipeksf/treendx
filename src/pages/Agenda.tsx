@@ -1,72 +1,71 @@
 import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  addDays,
-  addMonths,
-  subMonths,
-  isSameMonth,
-  isSameDay,
-  addWeeks,
-  subWeeks,
-  isToday,
-} from "date-fns";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, addWeeks, subWeeks, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-
 type AgendaEvent = Tables<"agenda_events">;
-
-const categoryConfig: Record<string, { label: string; dot: string; className: string }> = {
-  mentoria: { label: "Live de Mentoria", dot: "bg-primary", className: "bg-primary/15 text-primary" },
-  relatorio: { label: "Relatório Semanal", dot: "bg-treend-success", className: "bg-treend-success/15 text-treend-success" },
-  macroeconomico: { label: "Evento Macro", dot: "bg-treend-warning", className: "bg-treend-warning/15 text-treend-warning" },
+const categoryConfig: Record<string, {
+  label: string;
+  dot: string;
+  className: string;
+}> = {
+  mentoria: {
+    label: "Live de Mentoria",
+    dot: "bg-primary",
+    className: "bg-primary/15 text-primary"
+  },
+  relatorio: {
+    label: "Relatório Semanal",
+    dot: "bg-treend-success",
+    className: "bg-treend-success/15 text-treend-success"
+  },
+  macroeconomico: {
+    label: "Evento Macro",
+    dot: "bg-treend-warning",
+    className: "bg-treend-warning/15 text-treend-warning"
+  }
 };
-
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-
 type ViewMode = "monthly" | "weekly";
-
 const Agenda = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [view, setView] = useState<ViewMode>("monthly");
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const fetchEvents = async () => {
-      const { data, error } = await supabase
-        .from("agenda_events")
-        .select("*")
-        .order("event_date", { ascending: true });
-      if (error) console.error(error);
-      else setEvents(data || []);
+      const {
+        data,
+        error
+      } = await supabase.from("agenda_events").select("*").order("event_date", {
+        ascending: true
+      });
+      if (error) console.error(error);else setEvents(data || []);
       setLoading(false);
     };
     fetchEvents();
   }, []);
-
   const eventsByDate = useMemo(() => {
     const map: Record<string, AgendaEvent[]> = {};
-    events.forEach((e) => {
+    events.forEach(e => {
       if (!map[e.event_date]) map[e.event_date] = [];
       map[e.event_date].push(e);
     });
     return map;
   }, [events]);
-
   const calendarDays = useMemo(() => {
     if (view === "monthly") {
       const monthStart = startOfMonth(currentDate);
       const monthEnd = endOfMonth(currentDate);
-      const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-      const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+      const gridStart = startOfWeek(monthStart, {
+        weekStartsOn: 0
+      });
+      const gridEnd = endOfWeek(monthEnd, {
+        weekStartsOn: 0
+      });
       const days: Date[] = [];
       let day = gridStart;
       while (day <= gridEnd) {
@@ -75,7 +74,9 @@ const Agenda = () => {
       }
       return days;
     } else {
-      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      const weekStart = startOfWeek(currentDate, {
+        weekStartsOn: 0
+      });
       const days: Date[] = [];
       for (let i = 0; i < 7; i++) {
         days.push(addDays(weekStart, i));
@@ -83,24 +84,17 @@ const Agenda = () => {
       return days;
     }
   }, [currentDate, view]);
-
-  const handlePrev = () => setCurrentDate((d) => (view === "monthly" ? subMonths(d, 1) : subWeeks(d, 1)));
-  const handleNext = () => setCurrentDate((d) => (view === "monthly" ? addMonths(d, 1) : addWeeks(d, 1)));
+  const handlePrev = () => setCurrentDate(d => view === "monthly" ? subMonths(d, 1) : subWeeks(d, 1));
+  const handleNext = () => setCurrentDate(d => view === "monthly" ? addMonths(d, 1) : addWeeks(d, 1));
   const handleToday = () => setCurrentDate(new Date());
-
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
-  const selectedEvents = selectedDateStr ? (eventsByDate[selectedDateStr] || []) : [];
-
+  const selectedEvents = selectedDateStr ? eventsByDate[selectedDateStr] || [] : [];
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
+    return <div className="flex items-center justify-center py-20">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="max-w-full mx-auto space-y-5">
+  return <div className="max-w-full mx-auto space-y-5">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -108,22 +102,10 @@ const Agenda = () => {
           <p className="text-xs text-muted-foreground mt-0.5">Eventos e encontros da comunidade</p>
         </div>
         <div className="flex items-center gap-0.5 rounded-lg bg-muted/60 p-0.5">
-          <button
-            onClick={() => setView("monthly")}
-            className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-medium transition-all",
-              view === "monthly" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
+          <button onClick={() => setView("monthly")} className={cn("px-3 py-1.5 rounded-md text-xs font-medium transition-all", view === "monthly" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
             Mensal
           </button>
-          <button
-            onClick={() => setView("weekly")}
-            className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-medium transition-all",
-              view === "weekly" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
+          <button onClick={() => setView("weekly")} className={cn("px-3 py-1.5 rounded-md text-xs font-medium transition-all", view === "weekly" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
             Semanal
           </button>
         </div>
@@ -145,100 +127,68 @@ const Agenda = () => {
             </button>
           </div>
           <h2 className="text-sm font-semibold text-foreground capitalize">
-            {view === "monthly"
-              ? format(currentDate, "MMMM yyyy", { locale: ptBR })
-              : `Semana de ${format(startOfWeek(currentDate, { weekStartsOn: 0 }), "dd MMM", { locale: ptBR })}`}
+            {view === "monthly" ? format(currentDate, "MMMM yyyy", {
+            locale: ptBR
+          }) : `Semana de ${format(startOfWeek(currentDate, {
+            weekStartsOn: 0
+          }), "dd MMM", {
+            locale: ptBR
+          })}`}
           </h2>
         </div>
 
         {/* Weekday headers */}
         <div className="grid grid-cols-7 border-b border-border/40">
-          {WEEKDAYS.map((d) => (
-            <div key={d} className="py-2 text-center text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          {WEEKDAYS.map(d => <div key={d} className="py-2 text-center text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
               {d}
-            </div>
-          ))}
+            </div>)}
         </div>
 
         {/* Days grid */}
         <div className="grid grid-cols-7">
           {calendarDays.map((day, i) => {
-            const dateStr = format(day, "yyyy-MM-dd");
-            const dayEvents = eventsByDate[dateStr] || [];
-            const inMonth = isSameMonth(day, currentDate);
-            const today = isToday(day);
-            const selected = selectedDate && isSameDay(day, selectedDate);
-
-            return (
-              <button
-                key={i}
-                onClick={() => setSelectedDate(day)}
-                className={cn(
-                  "relative flex flex-col items-start p-2 sm:p-3 border-b border-r border-border/30 transition-colors duration-150 text-left",
-                  view === "monthly" ? "min-h-[80px] sm:min-h-[100px]" : "min-h-[120px] sm:min-h-[160px]",
-                  !inMonth && view === "monthly" && "opacity-25",
-                  selected && "bg-primary/5",
-                  "hover:bg-muted/40"
-                )}
-              >
-                <span
-                  className={cn(
-                    "inline-flex items-center justify-center text-xs font-medium w-6 h-6 rounded-full",
-                    today && "bg-primary text-primary-foreground",
-                    selected && !today && "ring-1.5 ring-primary"
-                  )}
-                >
+          const dateStr = format(day, "yyyy-MM-dd");
+          const dayEvents = eventsByDate[dateStr] || [];
+          const inMonth = isSameMonth(day, currentDate);
+          const today = isToday(day);
+          const selected = selectedDate && isSameDay(day, selectedDate);
+          return <button key={i} onClick={() => setSelectedDate(day)} className={cn("relative flex flex-col items-start p-2 sm:p-3 border-b border-r border-border/30 transition-colors duration-150 text-left", view === "monthly" ? "min-h-[80px] sm:min-h-[100px]" : "min-h-[120px] sm:min-h-[160px]", !inMonth && view === "monthly" && "opacity-25", selected && "bg-primary/5", "hover:bg-muted/40")}>
+                <span className={cn("inline-flex items-center justify-center text-xs font-medium w-6 h-6 rounded-full", today && "bg-primary text-primary-foreground", selected && !today && "ring-1.5 ring-primary")}>
                   {format(day, "d")}
                 </span>
 
                 <div className="mt-1 space-y-0.5 w-full overflow-hidden">
-                  {dayEvents.slice(0, view === "weekly" ? 4 : 2).map((ev) => {
-                    const cat = categoryConfig[ev.category];
-                    return (
-                      <div
-                        key={ev.id}
-                        className={cn("flex items-center gap-1 rounded px-1 py-0.5 text-[10px] truncate", cat?.className)}
-                      >
+                  {dayEvents.slice(0, view === "weekly" ? 4 : 2).map(ev => {
+                const cat = categoryConfig[ev.category];
+                return <div key={ev.id} className={cn("flex items-center gap-1 rounded px-1 py-0.5 text-[10px] truncate", cat?.className)}>
                         <span className={cn("w-1 h-1 rounded-full shrink-0", cat?.dot)} />
                         <span className="truncate">{ev.title}</span>
-                      </div>
-                    );
-                  })}
-                  {dayEvents.length > (view === "weekly" ? 4 : 2) && (
-                    <span className="text-[10px] text-muted-foreground">+{dayEvents.length - (view === "weekly" ? 4 : 2)} mais</span>
-                  )}
+                      </div>;
+              })}
+                  {dayEvents.length > (view === "weekly" ? 4 : 2) && <span className="text-[10px] text-muted-foreground">+{dayEvents.length - (view === "weekly" ? 4 : 2)} mais</span>}
                 </div>
-              </button>
-            );
-          })}
+              </button>;
+        })}
         </div>
 
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-4 px-4 py-3 border-t border-border/40">
-          {Object.entries(categoryConfig).map(([key, val]) => (
-            <div key={key} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className={cn("w-2 h-2 rounded-full", val.dot)} />
-              {val.label}
-            </div>
-          ))}
+          {Object.entries(categoryConfig).map(([key, val]) => {})}
         </div>
       </div>
 
       {/* Selected date events */}
-      {selectedDate && (
-        <div className="space-y-3">
+      {selectedDate && <div className="space-y-3">
           <h3 className="text-sm font-semibold text-foreground">
-            {format(selectedDate, "dd 'de' MMMM, yyyy", { locale: ptBR })}
+            {format(selectedDate, "dd 'de' MMMM, yyyy", {
+          locale: ptBR
+        })}
           </h3>
-          {selectedEvents.length === 0 ? (
-            <div className="rounded-2xl bg-card border border-border/40 py-8 text-center text-sm text-muted-foreground">
+          {selectedEvents.length === 0 ? <div className="rounded-2xl bg-card border border-border/40 py-8 text-center text-sm text-muted-foreground">
               Nenhum evento para esta data.
-            </div>
-          ) : (
-            selectedEvents.map((event) => {
-              const cat = categoryConfig[event.category];
-              return (
-                <div key={event.id} className="rounded-2xl bg-card border border-border/40 p-4 space-y-2">
+            </div> : selectedEvents.map(event => {
+        const cat = categoryConfig[event.category];
+        return <div key={event.id} className="rounded-2xl bg-card border border-border/40 p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <h4 className="text-sm font-semibold text-foreground">{event.title}</h4>
                     <span className={cn("shrink-0 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-md", cat?.className)}>
@@ -249,17 +199,10 @@ const Agenda = () => {
                     <Clock className="h-3.5 w-3.5" />
                     <span>{event.event_time}</span>
                   </div>
-                  {event.description && (
-                    <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
-    </div>
-  );
+                  {event.description && <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>}
+                </div>;
+      })}
+        </div>}
+    </div>;
 };
-
 export default Agenda;
