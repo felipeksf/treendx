@@ -15,6 +15,8 @@ import News from "./pages/News";
 import Account from "./pages/Account";
 import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
+import Agenda from "./pages/Agenda";
+import AdminAgenda from "./pages/AdminAgenda";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 
@@ -38,8 +40,10 @@ const App = () => (
             <Route path="/calculator" element={<Calculator />} />
             <Route path="/history" element={<History />} />
             <Route path="/news" element={<News />} />
+            <Route path="/agenda" element={<Agenda />} />
             <Route path="/account" element={<Account />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/agenda" element={<AdminAgenda />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
