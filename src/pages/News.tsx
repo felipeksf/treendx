@@ -1,204 +1,157 @@
-import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { ExternalLink, Newspaper, RefreshCw, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Heart, BadgeCheck, Send, Image as ImageIcon, Search, Pin, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 
-interface Post {
-  id: number;
-  author: string;
-  avatar: string;
-  body: string;
-  image?: string;
-  currency: "USD" | "EUR" | "general";
-  createdAt: string;
-  likes: number;
-  pinned?: boolean;
+interface NewsItem {
+  title: string;
+  link: string;
+  pubDate: string;
+  source: string;
 }
 
-const mockPosts: Post[] = [
-  {
-    id: 1,
-    author: "Treend Admin",
-    avatar: "",
-    body: "🎉 Bem-vindo ao Treend!\n\nA plataforma de inteligência cambial que te ajuda a decidir o melhor momento para comprar ou vender moeda estrangeira.\n\n💡 O que você encontra aqui?\n\n✅ Score diário para USD e EUR\n✅ Calculadora de economia potencial\n✅ Agenda de eventos macroeconômicos\n✅ Histórico completo de decisões\n✅ Tutoriais e análises exclusivas\n\n🧠 Dica: Acompanhe o Score Treend diariamente e tome decisões com mais confiança.\n\nSeja muito bem-vindo(a). Bora otimizar seu câmbio! 🚀",
-    currency: "general",
-    createdAt: "2026-02-10T10:30:00Z",
-    likes: 24,
-    pinned: true,
-  },
-  {
-    id: 2,
-    author: "Treend Admin",
-    avatar: "",
-    body: "Fed mantém juros e dólar recua frente ao real. A decisão do Federal Reserve manteve a taxa entre 4,25% e 4,50%, gerando alívio nos mercados emergentes. Para importadores, esse é um momento de atenção: a zona está se aproximando de 'Favorável' para compra.",
-    currency: "USD",
-    createdAt: "2026-02-09T15:00:00Z",
-    likes: 18,
-  },
-  {
-    id: 3,
-    author: "Treend Admin",
-    avatar: "",
-    body: "BCE sinaliza possível corte de juros em março. O Banco Central Europeu indicou que as condições econômicas podem justificar uma redução nas taxas de referência. O euro pode perder força nas próximas semanas — fique atento ao Score Treend para EUR.",
-    image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&h=400&fit=crop",
-    currency: "EUR",
-    createdAt: "2026-02-08T09:15:00Z",
-    likes: 31,
-  },
-  {
-    id: 4,
-    author: "Treend Admin",
-    avatar: "",
-    body: "Exportações brasileiras batem recorde em janeiro! A balança comercial favorável pressiona o câmbio para baixo e favorece importadores. Se você opera com dólar, o cenário atual é de atenção para quem quer comprar.",
-    currency: "USD",
-    createdAt: "2026-02-07T14:45:00Z",
-    likes: 12,
-  },
-  {
-    id: 5,
-    author: "Treend Admin",
-    avatar: "",
-    body: "Copom mantém Selic em 13,25% ao ano. A decisão unânime do comitê reforça a atratividade do real frente a moedas estrangeiras. Isso pode significar que o dólar continue em zonas mais baixas nos próximos dias. Acompanhe o Score diário para tomar a melhor decisão.",
-    currency: "USD",
-    createdAt: "2026-02-06T18:00:00Z",
-    likes: 45,
-  },
-];
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }) + ", " + date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  if (isNaN(then)) return "";
+  const diffMs = now - then;
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "agora";
+  if (mins < 60) return `${mins}min atrás`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h atrás`;
+  const days = Math.floor(hours / 24);
+  return `${days}d atrás`;
 }
 
 const NewsPage = () => {
-  const { user } = useAuth();
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
-  const [likeCounts, setLikeCounts] = useState<Record<number, number>>(
-    () => Object.fromEntries(mockPosts.map((p) => [p.id, p.likes]))
-  );
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuário";
+  const fetchNews = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("fetch-news");
+      if (fnError) throw fnError;
+      setNews(data?.news || []);
+    } catch (e: any) {
+      setError("Não foi possível carregar as notícias. Tente novamente.");
+      console.error("fetch-news error:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNews();
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(fetchNews, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filtered = searchQuery.trim()
-    ? mockPosts.filter((p) => p.body.toLowerCase().includes(searchQuery.toLowerCase()))
-    : mockPosts;
-
-  const toggleLike = (id: number) => {
-    setLikedPosts((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        setLikeCounts((c) => ({ ...c, [id]: (c[id] ?? 0) - 1 }));
-      } else {
-        next.add(id);
-        setLikeCounts((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
-      }
-      return next;
-    });
-  };
+    ? news.filter((n) =>
+        n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        n.source.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : news;
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 pb-10">
       {/* Header */}
       <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Feed da Comunidade</h1>
-        <p className="text-sm text-muted-foreground">Compartilhe ideias e descubra análises cambiais</p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Notícias</h1>
+        <p className="text-sm text-muted-foreground">
+          Feed em tempo real de câmbio, dólar e euro
+        </p>
       </div>
 
-      {/* Search */}
+      {/* Search + Refresh */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar posts..."
+            placeholder="Buscar notícias..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-9 bg-muted/50 border-border/40 text-sm"
           />
         </div>
-        <Button size="sm" className="h-9 px-4 text-sm">
-          Buscar
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-9 px-3"
+          onClick={fetchNews}
+          disabled={loading}
+        >
+          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
         </Button>
       </div>
 
-      {/* Composer placeholder */}
-      <div className="rounded-2xl bg-card border border-border/40 p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-muted">
-            <User className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="flex-1 rounded-xl bg-muted/50 border border-border/30 px-4 py-2.5">
-            <span className="text-sm text-muted-foreground">No que você está pensando, {displayName}?</span>
-          </div>
+      {/* Loading skeletons */}
+      {loading && news.length === 0 && (
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl bg-card border border-border/40 p-4 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
-      {/* Posts */}
-      <div className="space-y-4">
-        {filtered.map((post) => {
-          const liked = likedPosts.has(post.id);
-          return (
-            <div key={post.id} className="rounded-2xl bg-card border border-border/40 overflow-hidden">
-              {/* Pinned label */}
-              {post.pinned && (
-                <div className="flex items-center gap-1.5 px-5 py-2 bg-primary/10 border-b border-primary/10">
-                  <Pin className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs font-semibold text-primary">Post Fixado</span>
-                </div>
-              )}
+      {/* Error */}
+      {error && !loading && (
+        <div className="rounded-2xl bg-destructive/10 border border-destructive/20 p-4 text-center">
+          <p className="text-sm text-destructive">{error}</p>
+          <Button size="sm" variant="outline" className="mt-2" onClick={fetchNews}>
+            Tentar novamente
+          </Button>
+        </div>
+      )}
 
-              <div className="p-5 space-y-4">
-                {/* Author header */}
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={post.avatar} />
-                    <AvatarFallback className="bg-primary/15 text-primary text-sm font-bold">TA</AvatarFallback>
-                  </Avatar>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-foreground">{post.author.split(" ")[0]} {post.author.split(" ")[1]?.charAt(0)}.</span>
-                    <span className="text-xs text-muted-foreground">{formatDate(post.createdAt)}</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground bg-primary px-2 py-0.5 rounded-md">
-                      Admin
-                    </span>
-                  </div>
-                </div>
+      {/* News Feed */}
+      {!loading && !error && filtered.length === 0 && (
+        <div className="text-center py-10 text-muted-foreground text-sm">
+          Nenhuma notícia encontrada.
+        </div>
+      )}
 
-                {/* Body */}
-                <p className="text-sm text-foreground/85 leading-relaxed whitespace-pre-line">{post.body}</p>
-
-                {/* Image */}
-                {post.image && (
-                  <div className="rounded-xl overflow-hidden">
-                    <img src={post.image} alt="" className="w-full h-auto object-cover max-h-80" loading="lazy" />
-                  </div>
+      <div className="space-y-2">
+        {filtered.map((item, idx) => (
+          <a
+            key={idx}
+            href={item.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-start gap-3 rounded-2xl bg-card border border-border/40 p-4 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary mt-0.5">
+              <Newspaper className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="text-sm font-medium text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                {item.title}
+              </p>
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <span className="truncate max-w-[160px]">{item.source}</span>
+                {item.pubDate && (
+                  <>
+                    <span>·</span>
+                    <span>{timeAgo(item.pubDate)}</span>
+                  </>
                 )}
-
-                {/* Actions */}
-                <div className="flex items-center pt-2">
-                  <button
-                    className={cn(
-                      "flex items-center gap-1.5 text-sm transition-colors",
-                      liked ? "text-red-500" : "text-muted-foreground hover:text-red-400"
-                    )}
-                    onClick={() => toggleLike(post.id)}
-                  >
-                    <Heart className={cn("h-4 w-4", liked && "fill-current")} />
-                    <span className="text-xs font-medium">{likeCounts[post.id] ?? 0}</span>
-                  </button>
-                </div>
               </div>
             </div>
-          );
-        })}
+            <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50 group-hover:text-primary mt-1 transition-colors" />
+          </a>
+        ))}
       </div>
     </div>
   );
