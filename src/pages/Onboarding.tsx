@@ -4,33 +4,25 @@ import { Button } from "@/components/ui/button";
 import { TrendingUp, Target, Calculator, ArrowRight, ArrowLeft } from "lucide-react";
 import treendLogo from "@/assets/treend-logo.png";
 import loginMarketVideo from "@/assets/login-market-video.mp4";
-
-const steps = [
-  {
-    icon: TrendingUp,
-    title: "Bem-vindo à Treend!",
-    desc: "Somos seu consultor de timing cambial. Ajudamos você a entender se o momento é favorável ou desfavorável para operar com dólar e euro.",
-  },
-  {
-    icon: Target,
-    title: "Entenda o Score",
-    desc: "O Score Treend posiciona o câmbio em zonas coloridas de 1 a 100. Verde indica zona favorável, amarelo é neutro e vermelho indica zona desfavorável.",
-  },
-  {
-    icon: Calculator,
-    title: "Use a Calculadora",
-    desc: "Simule quanto você pode economizar operando no timing certo. Registre suas decisões e acompanhe a economia acumulada ao longo do tempo.",
-  },
-];
-
+const steps = [{
+  icon: TrendingUp,
+  title: "Bem-vindo à Treend!",
+  desc: "Somos seu consultor de timing cambial. Ajudamos você a entender se o momento é favorável ou desfavorável para operar com dólar e euro."
+}, {
+  icon: Target,
+  title: "Entenda o Score",
+  desc: "O Score Treend posiciona o câmbio em zonas coloridas de 1 a 100. Verde indica zona favorável, amarelo é neutro e vermelho indica zona desfavorável."
+}, {
+  icon: Calculator,
+  title: "Use a Calculadora",
+  desc: "Simule quanto você pode economizar operando no timing certo. Registre suas decisões e acompanhe a economia acumulada ao longo do tempo."
+}];
 const Onboarding = () => {
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
   const current = steps[step];
   const isLast = step === steps.length - 1;
-
-  return (
-    <div className="min-h-screen flex">
+  return <div className="min-h-screen flex">
       {/* Left Panel - Content */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-16 xl:px-24 bg-background">
         <div className="w-full max-w-md mx-auto">
@@ -41,15 +33,11 @@ const Onboarding = () => {
 
           {/* Progress dots */}
           <div className="flex items-center gap-2 mb-8">
-            {steps.map((_, i) => (
-              <div key={i} className={`h-2 rounded-full transition-all ${i === step ? "w-8 bg-primary" : "w-2 bg-muted"}`} />
-            ))}
+            {steps.map((_, i) => <div key={i} className={`h-2 rounded-full transition-all ${i === step ? "w-8 bg-primary" : "w-2 bg-muted"}`} />)}
           </div>
 
           {/* Icon */}
-          <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
-            <current.icon className="h-8 w-8 text-primary" />
-          </div>
+          
 
           {/* Title & Description */}
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground mb-4">
@@ -61,23 +49,17 @@ const Onboarding = () => {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            {step > 0 && (
-              <Button variant="outline" className="h-12" onClick={() => setStep(step - 1)}>
+            {step > 0 && <Button variant="outline" className="h-12" onClick={() => setStep(step - 1)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar
-              </Button>
-            )}
-            {isLast ? (
-              <Button className="h-12 text-base font-semibold" onClick={() => navigate("/dashboard")}>
+              </Button>}
+            {isLast ? <Button className="h-12 text-base font-semibold" onClick={() => navigate("/dashboard")}>
                 Ir para o Dashboard
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <Button className="h-12 text-base font-semibold" onClick={() => setStep(step + 1)}>
+              </Button> : <Button className="h-12 text-base font-semibold" onClick={() => setStep(step + 1)}>
                 Próximo
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
       </div>
@@ -89,8 +71,6 @@ const Onboarding = () => {
         </video>
         <div className="absolute inset-0 bg-primary/60" />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Onboarding;
