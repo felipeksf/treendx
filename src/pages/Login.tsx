@@ -54,8 +54,8 @@ const Login = () => {
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-16 xl:px-24 bg-background">
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
-          <Link to="/" className="inline-block mb-8">
-            <img src={treendLogo} alt="Treend" className="h-16 w-auto" />
+          <Link to="/" className="inline-block mb-4 -my-4">
+            <img src={treendLogo} alt="Treend" className="h-32 w-auto" />
           </Link>
 
           {/* Title */}
