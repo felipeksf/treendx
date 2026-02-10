@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Play, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,26 +41,26 @@ const Tutorials = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="max-w-6xl mx-auto space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Tutoriais</h1>
-          <p className="text-muted-foreground text-sm mt-1">Aprenda a usar a plataforma com nossos vídeos</p>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Tutoriais</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Aprenda a usar a plataforma com nossos vídeos</p>
         </div>
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar tutorial..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9 text-sm bg-muted/40 border-border/40"
           />
         </div>
       </div>
 
       {/* Selected video player */}
       {selectedVideo && (
-        <Card className="bg-card border-border overflow-hidden animate-fade-in">
+        <div className="rounded-2xl bg-card border border-border/40 overflow-hidden animate-fade-in">
           <div className="aspect-video w-full">
             <iframe
               src={`https://www.youtube.com/embed/${extractYouTubeId(selectedVideo.youtube_url)}?autoplay=1`}
@@ -71,61 +70,57 @@ const Tutorials = () => {
               className="w-full h-full"
             />
           </div>
-          <CardContent className="p-4">
-            <h2 className="text-lg font-display font-semibold text-foreground">{selectedVideo.title}</h2>
+          <div className="p-4">
+            <h2 className="text-sm font-semibold text-foreground">{selectedVideo.title}</h2>
             {selectedVideo.description && (
-              <p className="text-sm text-muted-foreground mt-1">{selectedVideo.description}</p>
+              <p className="text-xs text-muted-foreground mt-1">{selectedVideo.description}</p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="bg-card border-border animate-pulse">
-              <div className="aspect-video bg-muted" />
-              <CardContent className="p-4 space-y-2">
+            <div key={i} className="rounded-2xl bg-card border border-border/40 animate-pulse">
+              <div className="aspect-video bg-muted rounded-t-2xl" />
+              <div className="p-4 space-y-2">
                 <div className="h-4 bg-muted rounded w-3/4" />
                 <div className="h-3 bg-muted rounded w-1/2" />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="bg-card border-border">
-          <CardContent className="py-12 text-center text-muted-foreground">
-            {tutorials.length === 0 ? "Nenhum tutorial disponível ainda." : "Nenhum tutorial encontrado."}
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl bg-card border border-border/40 py-12 text-center text-sm text-muted-foreground">
+          {tutorials.length === 0 ? "Nenhum tutorial disponível ainda." : "Nenhum tutorial encontrado."}
+        </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((tutorial) => {
             const ytId = extractYouTubeId(tutorial.youtube_url);
             const thumb = tutorial.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
 
             return (
-              <Card
+              <div
                 key={tutorial.id}
-                className="bg-card border-border hover:border-primary/40 transition-colors cursor-pointer group"
+                className="rounded-2xl bg-card border border-border/40 hover:border-primary/30 transition-colors cursor-pointer group overflow-hidden"
                 onClick={() => setSelectedVideo(tutorial)}
               >
-                <div className="relative aspect-video bg-muted overflow-hidden rounded-t-lg">
-                  {thumb && (
-                    <img src={thumb} alt={tutorial.title} className="w-full h-full object-cover" />
-                  )}
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <Play className="h-10 w-10 text-white fill-white" />
+                <div className="relative aspect-video bg-muted overflow-hidden">
+                  {thumb && <img src={thumb} alt={tutorial.title} className="w-full h-full object-cover" loading="lazy" />}
+                  <div className="absolute inset-0 bg-background/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <Play className="h-10 w-10 text-foreground fill-foreground" />
                   </div>
                 </div>
-                <CardContent className="p-4">
-                  <h3 className="text-sm font-display font-semibold text-foreground line-clamp-2">{tutorial.title}</h3>
+                <div className="p-4">
+                  <h3 className="text-sm font-semibold text-foreground line-clamp-2">{tutorial.title}</h3>
                   {tutorial.description && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{tutorial.description}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{tutorial.description}</p>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>

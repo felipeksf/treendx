@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -33,103 +32,100 @@ const AdminScores = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-        <BarChart3 className="h-6 w-6 text-primary" />
-        Scores & Cotações
-      </h1>
+    <div className="space-y-5 max-w-4xl mx-auto">
+      <div>
+        <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-primary" />
+          Scores & Cotações
+        </h1>
+      </div>
 
-      {/* Daily Input Form */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base font-display">Dados do dia</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Score USD (1-100)</Label>
-                <Input type="number" min="1" max="100" value={scoreUSD} onChange={(e) => setScoreUSD(e.target.value)} placeholder="35" className="bg-secondary border-border" />
-              </div>
-              <div className="space-y-2">
-                <Label>Score EUR (1-100)</Label>
-                <Input type="number" min="1" max="100" value={scoreEUR} onChange={(e) => setScoreEUR(e.target.value)} placeholder="62" className="bg-secondary border-border" />
-              </div>
+      {/* Form */}
+      <div className="rounded-2xl bg-card border border-border/40 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+            <Send className="h-4 w-4 text-primary" />
+          </div>
+          <span className="text-sm font-semibold text-foreground">Dados do dia</span>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Score USD (1-100)</Label>
+              <Input type="number" min="1" max="100" value={scoreUSD} onChange={(e) => setScoreUSD(e.target.value)} placeholder="35" className="h-9 text-sm bg-muted/40 border-border/40" />
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Zona USD</Label>
-                <Select value={zoneUSD} onValueChange={setZoneUSD}>
-                  <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {zones.map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Zona EUR</Label>
-                <Select value={zoneEUR} onValueChange={setZoneEUR}>
-                  <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {zones.map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Score EUR (1-100)</Label>
+              <Input type="number" min="1" max="100" value={scoreEUR} onChange={(e) => setScoreEUR(e.target.value)} placeholder="62" className="h-9 text-sm bg-muted/40 border-border/40" />
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Cotação USD/BRL</Label>
-                <Input type="number" step="0.01" value={rateUSD} onChange={(e) => setRateUSD(e.target.value)} placeholder="5.12" className="bg-secondary border-border" />
-              </div>
-              <div className="space-y-2">
-                <Label>Cotação EUR/BRL</Label>
-                <Input type="number" step="0.01" value={rateEUR} onChange={(e) => setRateEUR(e.target.value)} placeholder="5.58" className="bg-secondary border-border" />
-              </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Zona USD</Label>
+              <Select value={zoneUSD} onValueChange={setZoneUSD}>
+                <SelectTrigger className="h-9 text-sm bg-muted/40 border-border/40"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>{zones.map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}</SelectContent>
+              </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Comentário do dia</Label>
-              <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Análise do mercado cambial de hoje..." rows={3} className="bg-secondary border-border" />
+            <div className="space-y-1.5">
+              <Label className="text-xs">Zona EUR</Label>
+              <Select value={zoneEUR} onValueChange={setZoneEUR}>
+                <SelectTrigger className="h-9 text-sm bg-muted/40 border-border/40"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>{zones.map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}</SelectContent>
+              </Select>
             </div>
-            <Button type="submit">
-              <Send className="mr-2 h-4 w-4" />
-              Publicar dados do dia
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Cotação USD/BRL</Label>
+              <Input type="number" step="0.01" value={rateUSD} onChange={(e) => setRateUSD(e.target.value)} placeholder="5.12" className="h-9 text-sm bg-muted/40 border-border/40" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Cotação EUR/BRL</Label>
+              <Input type="number" step="0.01" value={rateEUR} onChange={(e) => setRateEUR(e.target.value)} placeholder="5.58" className="h-9 text-sm bg-muted/40 border-border/40" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Comentário do dia</Label>
+            <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Análise do mercado cambial de hoje..." rows={3} className="text-sm bg-muted/40 border-border/40" />
+          </div>
+          <Button type="submit" size="sm" className="h-8 text-xs">
+            <Send className="mr-1.5 h-3.5 w-3.5" />
+            Publicar dados do dia
+          </Button>
+        </form>
+      </div>
 
       {/* History */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base font-display">Histórico de inputs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>USD</TableHead>
-                  <TableHead>EUR</TableHead>
-                  <TableHead>Cotação USD</TableHead>
-                  <TableHead>Cotação EUR</TableHead>
+      <div className="rounded-2xl bg-card border border-border/40 overflow-hidden">
+        <div className="px-5 py-3 border-b border-border/40">
+          <span className="text-sm font-semibold text-foreground">Histórico de inputs</span>
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border/40">
+                <TableHead className="text-xs">Data</TableHead>
+                <TableHead className="text-xs">USD</TableHead>
+                <TableHead className="text-xs">EUR</TableHead>
+                <TableHead className="text-xs">Cotação USD</TableHead>
+                <TableHead className="text-xs">Cotação EUR</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockHistory.map((h) => (
+                <TableRow key={h.date} className="border-border/40">
+                  <TableCell className="text-sm">{h.date}</TableCell>
+                  <TableCell className="text-sm">{h.scoreUSD} ({h.zoneUSD})</TableCell>
+                  <TableCell className="text-sm">{h.scoreEUR} ({h.zoneEUR})</TableCell>
+                  <TableCell className="text-sm">{h.rateUSD.toFixed(2)}</TableCell>
+                  <TableCell className="text-sm">{h.rateEUR.toFixed(2)}</TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockHistory.map((h) => (
-                  <TableRow key={h.date}>
-                    <TableCell className="text-sm">{h.date}</TableCell>
-                    <TableCell className="text-sm">{h.scoreUSD} ({h.zoneUSD})</TableCell>
-                    <TableCell className="text-sm">{h.scoreEUR} ({h.zoneEUR})</TableCell>
-                    <TableCell className="text-sm">{h.rateUSD.toFixed(2)}</TableCell>
-                    <TableCell className="text-sm">{h.rateEUR.toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </div>
   );
 };

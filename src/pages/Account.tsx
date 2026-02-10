@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ const AccountPage = () => {
   useEffect(() => {
     if (!user) return;
     setEmail(user.email || "");
-
     const fetchProfile = async () => {
       const { data } = await supabase
         .from("profiles")
@@ -46,11 +44,7 @@ const AccountPage = () => {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ full_name: name })
-      .eq("user_id", user.id);
-
+    const { error } = await supabase.from("profiles").update({ full_name: name }).eq("user_id", user.id);
     if (error) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } else {
@@ -77,65 +71,65 @@ const AccountPage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-display font-bold text-foreground">Minha Conta</h1>
+    <div className="space-y-5 max-w-2xl mx-auto">
+      <div>
+        <h1 className="text-xl font-bold text-foreground tracking-tight">Minha Conta</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">Gerencie seus dados e assinatura</p>
+      </div>
 
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base font-display">
-            <User className="h-5 w-5 text-primary" />
-            Dados pessoais
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
+      {/* Personal data */}
+      <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+            <User className="h-4 w-4 text-primary" />
           </div>
-          <div className="space-y-2">
-            <Label>E-mail</Label>
-            <Input value={email} readOnly className="bg-muted" />
-          </div>
-          <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Salvar alterações
-          </Button>
-        </CardContent>
-      </Card>
+          <span className="text-sm font-semibold text-foreground">Dados pessoais</span>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Nome</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-9 text-sm bg-muted/40 border-border/40" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">E-mail</Label>
+          <Input value={email} readOnly className="h-9 text-sm bg-muted/60 border-border/40" />
+        </div>
+        <Button size="sm" onClick={handleSave} disabled={saving} className="h-8 text-xs">
+          {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+          Salvar alterações
+        </Button>
+      </div>
 
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base font-display">
-            <CreditCard className="h-5 w-5 text-primary" />
-            Assinatura
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className={statusColors[subStatus] || ""}>
-              {statusLabels[subStatus] || subStatus}
-            </Badge>
-            {subStatus === "trial" && (
-              <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                {daysLeft} dias restantes
-              </span>
-            )}
+      {/* Subscription */}
+      <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+            <CreditCard className="h-4 w-4 text-primary" />
           </div>
-          <Button variant="outline" onClick={() => navigate("/pricing")}>
-            Gerenciar Assinatura
-          </Button>
-        </CardContent>
-      </Card>
+          <span className="text-sm font-semibold text-foreground">Assinatura</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className={statusColors[subStatus] || ""}>
+            {statusLabels[subStatus] || subStatus}
+          </Badge>
+          {subStatus === "trial" && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              {daysLeft} dias restantes
+            </span>
+          )}
+        </div>
+        <Button variant="outline" size="sm" onClick={() => navigate("/pricing")} className="h-8 text-xs">
+          Gerenciar Assinatura
+        </Button>
+      </div>
 
-      <Button
-        variant="outline"
-        className="w-full text-treend-danger border-treend-danger/20 hover:bg-treend-danger/10"
+      <button
         onClick={handleLogout}
+        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-treend-danger bg-treend-danger/5 border border-treend-danger/15 hover:bg-treend-danger/10 transition-colors"
       >
-        <LogOut className="mr-2 h-4 w-4" />
+        <LogOut className="h-4 w-4" />
         Sair
-      </Button>
+      </button>
     </div>
   );
 };

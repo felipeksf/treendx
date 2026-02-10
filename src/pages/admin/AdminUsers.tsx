@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Users, BarChart3 } from "lucide-react";
@@ -14,8 +13,8 @@ const mockUsers = [
 const statusBadge = (status: string) => {
   const map: Record<string, string> = {
     trial: "bg-primary/10 text-primary border-primary/20",
-    ativo: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    expirado: "bg-red-500/10 text-red-400 border-red-500/20",
+    ativo: "bg-treend-success/10 text-treend-success border-treend-success/20",
+    expirado: "bg-treend-danger/10 text-treend-danger border-treend-danger/20",
   };
   return map[status] || "";
 };
@@ -25,71 +24,69 @@ const AdminUsers = () => {
   const trials = mockUsers.filter((u) => u.status === "trial").length;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-        <Users className="h-6 w-6 text-primary" />
-        Gestão de Usuários
-      </h1>
+    <div className="space-y-5 max-w-4xl mx-auto">
+      <div>
+        <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <Users className="h-5 w-5 text-primary" />
+          Gestão de Usuários
+        </h1>
+      </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="bg-card border-border">
-          <CardContent className="pt-4 pb-4 text-center">
-            <Users className="h-5 w-5 text-primary mx-auto mb-1" />
-            <p className="text-2xl font-display font-bold text-foreground">{mockUsers.length}</p>
-            <p className="text-xs text-muted-foreground">Total</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border">
-          <CardContent className="pt-4 pb-4 text-center">
-            <BarChart3 className="h-5 w-5 text-emerald-400 mx-auto mb-1" />
-            <p className="text-2xl font-display font-bold text-foreground">{active}</p>
-            <p className="text-xs text-muted-foreground">Ativos</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border">
-          <CardContent className="pt-4 pb-4 text-center">
-            <BarChart3 className="h-5 w-5 text-amber-400 mx-auto mb-1" />
-            <p className="text-2xl font-display font-bold text-foreground">{trials}</p>
-            <p className="text-xs text-muted-foreground">Em trial</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl bg-card border border-border/40 p-4 text-center">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 mx-auto mb-2">
+            <Users className="h-4 w-4 text-primary" />
+          </div>
+          <p className="text-xl font-bold text-foreground tabular-nums">{mockUsers.length}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</p>
+        </div>
+        <div className="rounded-2xl bg-card border border-border/40 p-4 text-center">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-treend-success/10 mx-auto mb-2">
+            <BarChart3 className="h-4 w-4 text-treend-success" />
+          </div>
+          <p className="text-xl font-bold text-foreground tabular-nums">{active}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Ativos</p>
+        </div>
+        <div className="rounded-2xl bg-card border border-border/40 p-4 text-center">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-treend-warning/10 mx-auto mb-2">
+            <BarChart3 className="h-4 w-4 text-treend-warning" />
+          </div>
+          <p className="text-xl font-bold text-foreground tabular-nums">{trials}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Em trial</p>
+        </div>
       </div>
 
       {/* Users Table */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base font-display">Usuários cadastrados</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>E-mail</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Expiração</TableHead>
+      <div className="rounded-2xl bg-card border border-border/40 overflow-hidden">
+        <div className="px-5 py-3 border-b border-border/40">
+          <span className="text-sm font-semibold text-foreground">Usuários cadastrados</span>
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border/40">
+                <TableHead className="text-xs">Nome</TableHead>
+                <TableHead className="text-xs">E-mail</TableHead>
+                <TableHead className="text-xs">Status</TableHead>
+                <TableHead className="text-xs">Expiração</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockUsers.map((u) => (
+                <TableRow key={u.email} className="border-border/40">
+                  <TableCell className="text-sm font-medium text-foreground">{u.name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{u.email}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={statusBadge(u.status)}>{u.status}</Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{u.expiresAt}</TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockUsers.map((u) => (
-                  <TableRow key={u.email}>
-                    <TableCell className="text-sm font-medium text-foreground">{u.name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{u.email}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={statusBadge(u.status)}>
-                        {u.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{u.expiresAt}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </div>
   );
 };

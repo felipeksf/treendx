@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,10 +36,7 @@ const AdminTutorials = () => {
   const { data: tutorials = [], isLoading } = useQuery({
     queryKey: ["admin-tutorials"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tutorials")
-        .select("*")
-        .order("sort_order", { ascending: true });
+      const { data, error } = await supabase.from("tutorials").select("*").order("sort_order", { ascending: true });
       if (error) throw error;
       return data as Tutorial[];
     },
@@ -58,7 +54,6 @@ const AdminTutorials = () => {
         sort_order: parseInt(form.sort_order) || 0,
         admin_id: user.id,
       };
-
       if (editingId) {
         const { error } = await supabase.from("tutorials").update(payload).eq("id", editingId);
         if (error) throw error;
@@ -95,12 +90,7 @@ const AdminTutorials = () => {
   };
 
   const openEdit = (t: Tutorial) => {
-    setForm({
-      title: t.title,
-      description: t.description || "",
-      youtube_url: t.youtube_url,
-      sort_order: String(t.sort_order),
-    });
+    setForm({ title: t.title, description: t.description || "", youtube_url: t.youtube_url, sort_order: String(t.sort_order) });
     setEditingId(t.id);
     setDialogOpen(true);
   };
@@ -108,54 +98,49 @@ const AdminTutorials = () => {
   const isValid = form.title.trim().length > 0 && extractYouTubeId(form.youtube_url) !== null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Tutoriais</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gerencie os vídeos tutoriais da plataforma</p>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Tutoriais</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Gerencie os vídeos tutoriais da plataforma</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={(v) => { if (!v) resetForm(); setDialogOpen(v); }}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button size="sm" className="h-8 text-xs">
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
               Novo Tutorial
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle className="font-display">{editingId ? "Editar Tutorial" : "Novo Tutorial"}</DialogTitle>
+              <DialogTitle>{editingId ? "Editar Tutorial" : "Novo Tutorial"}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-2">
-              <div className="space-y-2">
-                <Label>Título *</Label>
-                <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Ex: Como usar o Dashboard" maxLength={200} />
+            <div className="space-y-3 mt-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Título *</Label>
+                <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Ex: Como usar o Dashboard" className="h-9 text-sm" maxLength={200} />
               </div>
-              <div className="space-y-2">
-                <Label>URL do YouTube *</Label>
-                <Input value={form.youtube_url} onChange={(e) => setForm((f) => ({ ...f, youtube_url: e.target.value }))} placeholder="https://www.youtube.com/watch?v=..." />
+              <div className="space-y-1.5">
+                <Label className="text-xs">URL do YouTube *</Label>
+                <Input value={form.youtube_url} onChange={(e) => setForm((f) => ({ ...f, youtube_url: e.target.value }))} placeholder="https://www.youtube.com/watch?v=..." className="h-9 text-sm" />
                 {form.youtube_url && !extractYouTubeId(form.youtube_url) && (
                   <p className="text-xs text-destructive">URL do YouTube inválida</p>
                 )}
                 {extractYouTubeId(form.youtube_url) && (
-                  <div className="aspect-video rounded-lg overflow-hidden bg-muted mt-2">
-                    <iframe
-                      src={`https://www.youtube.com/embed/${extractYouTubeId(form.youtube_url)}`}
-                      title="Preview"
-                      className="w-full h-full"
-                      allowFullScreen
-                    />
+                  <div className="aspect-video rounded-xl overflow-hidden bg-muted mt-2">
+                    <iframe src={`https://www.youtube.com/embed/${extractYouTubeId(form.youtube_url)}`} title="Preview" className="w-full h-full" allowFullScreen />
                   </div>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label>Descrição</Label>
-                <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Breve descrição do vídeo..." maxLength={500} rows={3} />
+              <div className="space-y-1.5">
+                <Label className="text-xs">Descrição</Label>
+                <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Breve descrição do vídeo..." maxLength={500} rows={3} className="text-sm" />
               </div>
-              <div className="space-y-2">
-                <Label>Ordem de exibição</Label>
-                <Input type="number" value={form.sort_order} onChange={(e) => setForm((f) => ({ ...f, sort_order: e.target.value }))} min="0" />
+              <div className="space-y-1.5">
+                <Label className="text-xs">Ordem de exibição</Label>
+                <Input type="number" value={form.sort_order} onChange={(e) => setForm((f) => ({ ...f, sort_order: e.target.value }))} min="0" className="h-9 text-sm" />
               </div>
-              <Button className="w-full" onClick={() => saveMutation.mutate()} disabled={!isValid || saveMutation.isPending}>
+              <Button className="w-full" size="sm" onClick={() => saveMutation.mutate()} disabled={!isValid || saveMutation.isPending}>
                 {saveMutation.isPending ? "Salvando..." : editingId ? "Salvar alterações" : "Adicionar tutorial"}
               </Button>
             </div>
@@ -164,47 +149,39 @@ const AdminTutorials = () => {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {[1, 2].map((i) => (
-            <Card key={i} className="bg-card border-border animate-pulse">
-              <CardContent className="h-20" />
-            </Card>
+            <div key={i} className="rounded-2xl bg-card border border-border/40 h-20 animate-pulse" />
           ))}
         </div>
       ) : tutorials.length === 0 ? (
-        <Card className="bg-card border-border">
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <Video className="h-10 w-10 mx-auto mb-3 opacity-50" />
-            Nenhum tutorial cadastrado ainda.
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl bg-card border border-border/40 py-12 text-center text-sm text-muted-foreground">
+          <Video className="h-10 w-10 mx-auto mb-3 opacity-50" />
+          Nenhum tutorial cadastrado ainda.
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {tutorials.map((t) => {
             const ytId = extractYouTubeId(t.youtube_url);
             const thumb = t.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
             return (
-              <Card key={t.id} className="bg-card border-border">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <GripVertical className="h-5 w-5 text-muted-foreground shrink-0" />
-                  {thumb && (
-                    <img src={thumb} alt={t.title} className="w-24 h-14 rounded object-cover shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-display font-semibold text-foreground truncate">{t.title}</p>
-                    {t.description && <p className="text-xs text-muted-foreground truncate">{t.description}</p>}
-                    <p className="text-xs text-muted-foreground mt-0.5">Ordem: {t.sort_order}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(t)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => deleteMutation.mutate(t.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div key={t.id} className="rounded-2xl bg-card border border-border/40 p-4 flex items-center gap-4">
+                <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+                {thumb && <img src={thumb} alt={t.title} className="w-20 h-12 rounded-lg object-cover shrink-0" loading="lazy" />}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">{t.title}</p>
+                  {t.description && <p className="text-[11px] text-muted-foreground truncate">{t.description}</p>}
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Ordem: {t.sort_order}</p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => openEdit(t)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => deleteMutation.mutate(t.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             );
           })}
         </div>
