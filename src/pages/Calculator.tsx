@@ -32,6 +32,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const RATE_RANGES: Record<string, { min: number; max: number; default: number }> = {
   USD: { min: 4.00, max: 6.50, default: 5.12 },
   EUR: { min: 4.50, max: 7.00, default: 5.58 },
+  BRL: { min: 0.15, max: 0.30, default: 0.20 },
 };
 
 const fmt = (v: number) =>
@@ -165,13 +166,13 @@ const CalculatorPage = () => {
     const range = RATE_RANGES[val];
     setCurrentRate(range.default.toFixed(2));
     setSliderRate([range.default]);
-    setTreendRate(val === "USD" ? "4.95" : "5.72");
+    setTreendRate(val === "USD" ? "4.95" : val === "EUR" ? "5.72" : "0.18");
   };
 
   const handleReset = () => {
     setMonthlyVolume("50000");
     setCurrentRate(rateRange.default.toFixed(2));
-    setTreendRate(currency === "USD" ? "4.95" : "5.72");
+    setTreendRate(currency === "USD" ? "4.95" : currency === "EUR" ? "5.72" : "0.18");
     setOpsPerMonth("10");
     setBankSpread("2.5");
     setProjectionMonths("12");
@@ -242,11 +243,11 @@ const CalculatorPage = () => {
   }, [volume, curRate, trdRate, ops, spread, sliderRateNum, rateRange]);
 
   const getZoneLabel = (pct: number) => {
-    if (pct <= 20) return { label: "Muito Barato", color: "text-treend-success" };
-    if (pct <= 40) return { label: "Barato", color: "text-treend-success" };
+    if (pct <= 20) return { label: "Muito Saudável", color: "text-treend-success" };
+    if (pct <= 40) return { label: "Saudável", color: "text-treend-success" };
     if (pct <= 60) return { label: "Neutro", color: "text-treend-warning" };
-    if (pct <= 80) return { label: "Caro", color: "text-treend-danger" };
-    return { label: "Muito Caro", color: "text-treend-danger" };
+    if (pct <= 80) return { label: "Ruim", color: "text-treend-danger" };
+    return { label: "Muito Ruim", color: "text-treend-danger" };
   };
 
   const zoneInfo = getZoneLabel(metrics.pct);
@@ -278,6 +279,7 @@ const CalculatorPage = () => {
                 <SelectContent>
                   <SelectItem value="USD">USD — Dólar</SelectItem>
                   <SelectItem value="EUR">EUR — Euro</SelectItem>
+                  <SelectItem value="BRL">BRL — Real</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -292,7 +294,7 @@ const CalculatorPage = () => {
           </div>
           <div className="grid sm:grid-cols-2 gap-3 mt-3">
             <div className="space-y-1.5">
-              <TooltipLabel label="Taxa Atual (R$)" tip="Taxa de câmbio do mercado/banco atual" />
+              <TooltipLabel label="Taxa Atual (R$)" tip="Insira a taxa de câmbio comercial do dia abaixo" />
               <Input
                 type="number"
                 value={currentRate}
@@ -302,7 +304,7 @@ const CalculatorPage = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <TooltipLabel label="Taxa Treend (R$)" tip="Taxa recomendada pela Treend" />
+              <TooltipLabel label="Taxa Treend (R$)" tip="Taxa Comercial mapeada pela Treend" />
               <Input type="number" value={treendRate} onChange={(e) => setTreendRate(e.target.value)} step="0.01" className="h-10 text-sm bg-muted/40 border-border/40" />
             </div>
           </div>
@@ -495,10 +497,10 @@ const CalculatorPage = () => {
               value={`${metrics.roi.toFixed(0)}%`}
               description={
                 metrics.roiHealthStatus === "good"
-                  ? "Retorno excelente sobre o investimento"
+                  ? "Excelente retorno sobre o investimento ao assinar a Treend"
                   : metrics.roiHealthStatus === "warning"
-                  ? "Retorno moderado da assinatura"
-                  : "Retorno baixo, aumente o volume"
+                  ? "Retorno moderado ao assinar a Treend"
+                  : "Retorno baixo ao assinar a Treend, aumente o volume"
               }
               benchmark=">= 200% (ideal: 500%)"
               status={metrics.roiHealthStatus}
