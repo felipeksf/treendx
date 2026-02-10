@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import Calculator from "./pages/Calculator";
 import History from "./pages/History";
 import News from "./pages/News";
+import Feed from "./pages/Feed";
 import Account from "./pages/Account";
 import Pricing from "./pages/Pricing";
 import Agenda from "./pages/Agenda";
@@ -51,6 +52,7 @@ const App = () => (
                 <Route path="/calculator" element={<Calculator />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/news" element={<News />} />
+                <Route path="/feed" element={<Feed />} />
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/tutorials" element={<Tutorials />} />
                 <Route path="/account" element={<Account />} />
