@@ -1,0 +1,16 @@
+INSERT INTO tutorials (admin_id, category, title, sort_order, youtube_url) VALUES
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'introducao', 'Comece por aqui', 1, 'https://www.youtube.com/watch?v=placeholder1'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'introducao', 'Não Fazemos Recomendação Financeira', 2, 'https://www.youtube.com/watch?v=placeholder2'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'introducao', 'Visão Geral do Sistema', 3, 'https://www.youtube.com/watch?v=placeholder3'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'introducao', 'O Custo-benefício da Treend', 4, 'https://www.youtube.com/watch?v=placeholder4'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'importadores', 'Como Negociar com Fornecedores', 1, 'https://www.youtube.com/watch?v=placeholder5'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'importadores', 'Como precificar seus produtos', 2, 'https://www.youtube.com/watch?v=placeholder6'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'exportadores', 'Fechando Câmbio com a Treend', 1, 'https://www.youtube.com/watch?v=placeholder7'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'exportadores', 'Hedge Cambial', 2, 'https://www.youtube.com/watch?v=placeholder8'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'exportadores', 'Como "eliminar taxas de spread"', 3, 'https://www.youtube.com/watch?v=placeholder9'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'agentes_turismo', 'Os benefícios da Treend no seu planejamento', 1, 'https://www.youtube.com/watch?v=placeholder10'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'agentes_turismo', 'Precificando Pacotes', 2, 'https://www.youtube.com/watch?v=placeholder11'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'turistas', 'Como Economizar com taxas + IOF', 1, 'https://www.youtube.com/watch?v=placeholder12'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'turistas', 'Planejando a sua viagem com a Treend', 2, 'https://www.youtube.com/watch?v=placeholder13'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'freelancers', 'Recebe $ na Giringa?', 1, 'https://www.youtube.com/watch?v=placeholder14'),
+('5cd23da6-8689-42e4-968d-40ba47bc51dc', 'freelancers', 'Simulação de Economia', 2, 'https://www.youtube.com/watch?v=placeholder15');
