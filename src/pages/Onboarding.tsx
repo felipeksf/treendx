@@ -7,7 +7,7 @@ import loginMarketVideo from "@/assets/login-market-video.mp4";
 const steps = [{
   icon: TrendingUp,
   title: "Bem-vindo à Treend!",
-  desc: "Somos seu consultor de timing cambial. Ajudamos você a entender se o momento é favorável ou desfavorável para operar com dólar e euro."
+  desc: "Somos seu consultor de timing cambial. Trazemos estatísticas de cenários de câmbio para apoio nas suas decisões.\nImportante: não fazemos nenhuma espécie de recomendação financeira."
 }, {
   icon: Target,
   title: "Entenda o Score",
