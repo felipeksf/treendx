@@ -1,8 +1,17 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Play, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+
+const CATEGORIES = [
+  { value: "introducao", label: "Introdução" },
+  { value: "importadores", label: "Para Importadores" },
+  { value: "exportadores", label: "Para Exportadores" },
+  { value: "turistas", label: "Para Turistas" },
+  { value: "freelancers", label: "Para Freelancers" },
+] as const;
 
 interface Tutorial {
   id: string;
@@ -11,12 +20,15 @@ interface Tutorial {
   youtube_url: string;
   thumbnail_url: string | null;
   sort_order: number;
+  category: string;
 }
 
 const extractYouTubeId = (url: string): string | null => {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([\w-]{11})/);
   return match ? match[1] : null;
 };
+
+const getCategoryLabel = (val: string) => CATEGORIES.find((c) => c.value === val)?.label ?? val;
 
 const Tutorials = () => {
   const [search, setSearch] = useState("");
@@ -39,6 +51,11 @@ const Tutorials = () => {
       t.title.toLowerCase().includes(search.toLowerCase()) ||
       (t.description && t.description.toLowerCase().includes(search.toLowerCase()))
   );
+
+  const grouped = CATEGORIES.map((cat) => ({
+    ...cat,
+    tutorials: filtered.filter((t) => t.category === cat.value),
+  })).filter((g) => g.tutorials.length > 0);
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
@@ -71,6 +88,9 @@ const Tutorials = () => {
             />
           </div>
           <div className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="secondary" className="text-[10px] h-5">{getCategoryLabel(selectedVideo.category)}</Badge>
+            </div>
             <h2 className="text-sm font-semibold text-foreground">{selectedVideo.title}</h2>
             {selectedVideo.description && (
               <p className="text-xs text-muted-foreground mt-1">{selectedVideo.description}</p>
@@ -79,7 +99,7 @@ const Tutorials = () => {
         </div>
       )}
 
-      {/* Grid */}
+      {/* Grouped by category */}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[1, 2, 3].map((i) => (
@@ -92,37 +112,47 @@ const Tutorials = () => {
             </div>
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : grouped.length === 0 ? (
         <div className="rounded-2xl bg-card border border-border/40 py-12 text-center text-sm text-muted-foreground">
           {tutorials.length === 0 ? "Nenhum tutorial disponível ainda." : "Nenhum tutorial encontrado."}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((tutorial) => {
-            const ytId = extractYouTubeId(tutorial.youtube_url);
-            const thumb = tutorial.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
-
-            return (
-              <div
-                key={tutorial.id}
-                className="rounded-2xl bg-card border border-border/40 hover:border-primary/30 transition-colors cursor-pointer group overflow-hidden"
-                onClick={() => setSelectedVideo(tutorial)}
-              >
-                <div className="relative aspect-video bg-muted overflow-hidden">
-                  {thumb && <img src={thumb} alt={tutorial.title} className="w-full h-full object-cover" loading="lazy" />}
-                  <div className="absolute inset-0 bg-background/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <Play className="h-10 w-10 text-foreground fill-foreground" />
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-sm font-semibold text-foreground line-clamp-2">{tutorial.title}</h3>
-                  {tutorial.description && (
-                    <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{tutorial.description}</p>
-                  )}
-                </div>
+        <div className="space-y-6">
+          {grouped.map((group) => (
+            <div key={group.value} className="space-y-3">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-foreground">{group.label}</h2>
+                <Badge variant="secondary" className="text-[10px] h-5">{group.tutorials.length}</Badge>
               </div>
-            );
-          })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {group.tutorials.map((tutorial) => {
+                  const ytId = extractYouTubeId(tutorial.youtube_url);
+                  const thumb = tutorial.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
+
+                  return (
+                    <div
+                      key={tutorial.id}
+                      className="rounded-2xl bg-card border border-border/40 hover:border-primary/30 transition-colors cursor-pointer group overflow-hidden"
+                      onClick={() => setSelectedVideo(tutorial)}
+                    >
+                      <div className="relative aspect-video bg-muted overflow-hidden">
+                        {thumb && <img src={thumb} alt={tutorial.title} className="w-full h-full object-cover" loading="lazy" />}
+                        <div className="absolute inset-0 bg-background/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Play className="h-10 w-10 text-foreground fill-foreground" />
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-sm font-semibold text-foreground line-clamp-2">{tutorial.title}</h3>
+                        {tutorial.description && (
+                          <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{tutorial.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

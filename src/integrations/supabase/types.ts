@@ -193,6 +193,7 @@ export type Database = {
       tutorials: {
         Row: {
           admin_id: string
+          category: Database["public"]["Enums"]["tutorial_category"]
           created_at: string
           description: string | null
           id: string
@@ -204,6 +205,7 @@ export type Database = {
         }
         Insert: {
           admin_id: string
+          category?: Database["public"]["Enums"]["tutorial_category"]
           created_at?: string
           description?: string | null
           id?: string
@@ -215,6 +217,7 @@ export type Database = {
         }
         Update: {
           admin_id?: string
+          category?: Database["public"]["Enums"]["tutorial_category"]
           created_at?: string
           description?: string | null
           id?: string
@@ -296,6 +299,12 @@ export type Database = {
       event_category: "mentoria" | "relatorio" | "macroeconomico"
       score_frequency: "weekly" | "biweekly" | "monthly"
       subscription_status: "trial" | "active" | "expired"
+      tutorial_category:
+        | "introducao"
+        | "importadores"
+        | "exportadores"
+        | "turistas"
+        | "freelancers"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -428,6 +437,13 @@ export const Constants = {
       event_category: ["mentoria", "relatorio", "macroeconomico"],
       score_frequency: ["weekly", "biweekly", "monthly"],
       subscription_status: ["trial", "active", "expired"],
+      tutorial_category: [
+        "introducao",
+        "importadores",
+        "exportadores",
+        "turistas",
+        "freelancers",
+      ],
     },
   },
 } as const
