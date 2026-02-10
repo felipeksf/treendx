@@ -1,42 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Send, Trash2, Image as ImageIcon, BadgeCheck } from "lucide-react";
+import { MessageSquare, Send, Trash2, BadgeCheck, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface FeedPost {
-  id: number;
-  body: string;
-  currency: string;
-  createdAt: string;
-}
-
-const initialPosts: FeedPost[] = [
-  { id: 1, body: "Fed mantém juros e dólar recua frente ao real. A decisão do Federal Reserve manteve a taxa entre 4,25% e 4,50%.", currency: "USD", createdAt: "2026-02-10T10:30:00Z" },
-  { id: 2, body: "BCE sinaliza possível corte de juros em março. O euro pode perder força nas próximas semanas.", currency: "EUR", createdAt: "2026-02-09T15:00:00Z" },
-  { id: 3, body: "Copom mantém Selic em 13,25% ao ano. Isso pode significar que o dólar continue em zonas mais baixas.", currency: "USD", createdAt: "2026-02-06T18:00:00Z" },
-];
+type FeedPost = Tables<"feed_posts">;
 
 const AdminFeed = () => {
   const { toast } = useToast();
-  const [posts, setPosts] = useState<FeedPost[]>(initialPosts);
+  const { user } = useAuth();
+  const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [newText, setNewText] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState<"USD" | "EUR" | "general">("USD");
 
-  const handlePost = () => {
-    if (!newText.trim()) return;
-    const post: FeedPost = { id: Date.now(), body: newText.trim(), currency, createdAt: new Date().toISOString() };
-    setPosts((prev) => [post, ...prev]);
-    setNewText("");
-    toast({ title: "Publicação criada com sucesso!" });
+  const fetchPosts = async () => {
+    const { data, error } = await supabase
+      .from("feed_posts")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error(error);
+    } else {
+      setPosts(data || []);
+    }
+    setLoading(false);
   };
 
-  const handleDelete = (id: number) => {
-    setPosts((prev) => prev.filter((p) => p.id !== id));
-    toast({ title: "Publicação removida." });
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const handlePost = async () => {
+    if (!newText.trim() || !user) return;
+    setSubmitting(true);
+    const { error } = await supabase.from("feed_posts").insert({
+      body: newText.trim(),
+      currency,
+      admin_id: user.id,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Erro ao publicar.", description: error.message, variant: "destructive" });
+    } else {
+      setNewText("");
+      toast({ title: "Publicação criada com sucesso!" });
+      fetchPosts();
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("feed_posts").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao remover.", variant: "destructive" });
+    } else {
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+      toast({ title: "Publicação removida." });
+    }
   };
 
   return (
@@ -67,12 +94,9 @@ const AdminFeed = () => {
         />
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="text-muted-foreground gap-1.5 h-8 text-xs">
-              <ImageIcon className="h-3.5 w-3.5" /> Imagem
-            </Button>
             <div className="flex items-center gap-2">
               <Label className="text-[11px] text-muted-foreground">Moeda:</Label>
-              <Select value={currency} onValueChange={setCurrency}>
+              <Select value={currency} onValueChange={(v) => setCurrency(v as "USD" | "EUR" | "general")}>
                 <SelectTrigger className="h-7 w-20 text-xs bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="USD">Dólar</SelectItem>
@@ -82,8 +106,9 @@ const AdminFeed = () => {
               </Select>
             </div>
           </div>
-          <Button size="sm" onClick={handlePost} disabled={!newText.trim()} className="gap-1.5 h-8 text-xs">
-            <Send className="h-3.5 w-3.5" /> Publicar
+          <Button size="sm" onClick={handlePost} disabled={!newText.trim() || submitting} className="gap-1.5 h-8 text-xs">
+            {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+            Publicar
           </Button>
         </div>
       </div>
@@ -94,7 +119,11 @@ const AdminFeed = () => {
           <span className="text-sm font-semibold text-foreground">Publicações anteriores</span>
         </div>
         <div className="divide-y divide-border/30">
-          {posts.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : posts.length === 0 ? (
             <p className="text-muted-foreground text-center py-8 text-sm">Nenhuma publicação.</p>
           ) : (
             posts.map((post) => (
@@ -105,7 +134,7 @@ const AdminFeed = () => {
                       {post.currency === "general" ? "Geral" : post.currency}
                     </span>
                     <span className="text-[11px] text-muted-foreground">
-                      {new Date(post.createdAt).toLocaleDateString("pt-BR")}
+                      {new Date(post.created_at).toLocaleDateString("pt-BR")}
                     </span>
                   </div>
                   <p className="text-sm text-foreground/85 line-clamp-2">{post.body}</p>

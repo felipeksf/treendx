@@ -1,6 +1,5 @@
-import { useState, useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Clock, Tag } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
 import {
   format,
   startOfMonth,
@@ -18,29 +17,16 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface AgendaEvent {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  category: "mentoria" | "relatorio" | "macroeconomico";
-  description: string;
-}
+type AgendaEvent = Tables<"agenda_events">;
 
 const categoryConfig: Record<string, { label: string; dot: string; className: string }> = {
   mentoria: { label: "Live de Mentoria", dot: "bg-primary", className: "bg-primary/15 text-primary" },
   relatorio: { label: "Relatório Semanal", dot: "bg-treend-success", className: "bg-treend-success/15 text-treend-success" },
   macroeconomico: { label: "Evento Macro", dot: "bg-treend-warning", className: "bg-treend-warning/15 text-treend-warning" },
 };
-
-const mockEvents: AgendaEvent[] = [
-  { id: "1", title: "Live: Cenário do Dólar em Fevereiro", date: "2026-02-10", time: "19:00", category: "mentoria", description: "Análise ao vivo do cenário cambial com projeções para importadores e exportadores." },
-  { id: "2", title: "Relatório Semanal USD/BRL", date: "2026-02-10", time: "08:00", category: "relatorio", description: "Resumo da semana com principais movimentações e zonas de score." },
-  { id: "3", title: "Decisão de Juros – FOMC", date: "2026-02-12", time: "15:00", category: "macroeconomico", description: "Reunião do Federal Reserve com potencial impacto direto nas cotações." },
-  { id: "4", title: "Live: Estratégias para Exportadores", date: "2026-02-14", time: "20:00", category: "mentoria", description: "Como usar o Score Treend para identificar momentos ideais de venda." },
-  { id: "5", title: "IPCA – Inflação Brasileira", date: "2026-02-12", time: "09:00", category: "macroeconomico", description: "Divulgação do índice de inflação com reflexos no câmbio." },
-];
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -50,15 +36,30 @@ const Agenda = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [view, setView] = useState<ViewMode>("monthly");
+  const [events, setEvents] = useState<AgendaEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const { data, error } = await supabase
+        .from("agenda_events")
+        .select("*")
+        .order("event_date", { ascending: true });
+      if (error) console.error(error);
+      else setEvents(data || []);
+      setLoading(false);
+    };
+    fetchEvents();
+  }, []);
 
   const eventsByDate = useMemo(() => {
     const map: Record<string, AgendaEvent[]> = {};
-    mockEvents.forEach((e) => {
-      if (!map[e.date]) map[e.date] = [];
-      map[e.date].push(e);
+    events.forEach((e) => {
+      if (!map[e.event_date]) map[e.event_date] = [];
+      map[e.event_date].push(e);
     });
     return map;
-  }, []);
+  }, [events]);
 
   const calendarDays = useMemo(() => {
     if (view === "monthly") {
@@ -89,6 +90,14 @@ const Agenda = () => {
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
   const selectedEvents = selectedDateStr ? (eventsByDate[selectedDateStr] || []) : [];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-full mx-auto space-y-5">
@@ -188,9 +197,9 @@ const Agenda = () => {
                     return (
                       <div
                         key={ev.id}
-                        className={cn("flex items-center gap-1 rounded px-1 py-0.5 text-[10px] truncate", cat.className)}
+                        className={cn("flex items-center gap-1 rounded px-1 py-0.5 text-[10px] truncate", cat?.className)}
                       >
-                        <span className={cn("w-1 h-1 rounded-full shrink-0", cat.dot)} />
+                        <span className={cn("w-1 h-1 rounded-full shrink-0", cat?.dot)} />
                         <span className="truncate">{ev.title}</span>
                       </div>
                     );
@@ -232,15 +241,17 @@ const Agenda = () => {
                 <div key={event.id} className="rounded-2xl bg-card border border-border/40 p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <h4 className="text-sm font-semibold text-foreground">{event.title}</h4>
-                    <span className={cn("shrink-0 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-md", cat.className)}>
-                      {cat.label}
+                    <span className={cn("shrink-0 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-md", cat?.className)}>
+                      {cat?.label}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" />
-                    <span>{event.time}</span>
+                    <span>{event.event_time}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>
+                  {event.description && (
+                    <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>
+                  )}
                 </div>
               );
             })
