@@ -6,15 +6,24 @@ import { Heart, BadgeCheck, Search, Pin, User, DollarSign, Euro, Globe } from "l
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-
 type CurrencyFilter = "all" | "USD" | "EUR" | "general";
-
-const filters: { value: CurrencyFilter; label: string; icon: React.ElementType }[] = [
-  { value: "all", label: "Tudo", icon: Globe },
-  { value: "USD", label: "Dólar", icon: DollarSign },
-  { value: "EUR", label: "Euro", icon: Euro },
-];
-
+const filters: {
+  value: CurrencyFilter;
+  label: string;
+  icon: React.ElementType;
+}[] = [{
+  value: "all",
+  label: "Tudo",
+  icon: Globe
+}, {
+  value: "USD",
+  label: "Dólar",
+  icon: DollarSign
+}, {
+  value: "EUR",
+  label: "Euro",
+  icon: Euro
+}];
 interface FeedPost {
   id: string;
   admin_id: string;
@@ -24,53 +33,47 @@ interface FeedPost {
   created_at: string;
   like_count: number;
 }
-
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return (
-    date.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }) +
-    ", " +
-    date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
-  );
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }) + ", " + date.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
-
 const FeedPage = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currencyFilter, setCurrencyFilter] = useState<CurrencyFilter>("all");
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-
-  const displayName =
-    user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuário";
-
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuário";
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const { data: postsData, error: postsError } = await supabase
-        .from("feed_posts")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data: postsData,
+        error: postsError
+      } = await supabase.from("feed_posts").select("*").order("created_at", {
+        ascending: false
+      });
       if (postsError) throw postsError;
 
       // Fetch like counts
-      const postIds = (postsData || []).map((p) => p.id);
+      const postIds = (postsData || []).map(p => p.id);
       let likeCounts: Record<string, number> = {};
       let userLikes: Set<string> = new Set();
-
       if (postIds.length > 0) {
         // Get counts
-        const { data: likesData } = await supabase
-          .from("feed_likes")
-          .select("post_id")
-          .in("post_id", postIds);
-
+        const {
+          data: likesData
+        } = await supabase.from("feed_likes").select("post_id").in("post_id", postIds);
         if (likesData) {
           for (const like of likesData) {
             likeCounts[like.post_id] = (likeCounts[like.post_id] || 0) + 1;
@@ -79,28 +82,23 @@ const FeedPage = () => {
 
         // Get user's likes
         if (user) {
-          const { data: userLikesData } = await supabase
-            .from("feed_likes")
-            .select("post_id")
-            .eq("user_id", user.id)
-            .in("post_id", postIds);
-
+          const {
+            data: userLikesData
+          } = await supabase.from("feed_likes").select("post_id").eq("user_id", user.id).in("post_id", postIds);
           if (userLikesData) {
-            userLikes = new Set(userLikesData.map((l) => l.post_id));
+            userLikes = new Set(userLikesData.map(l => l.post_id));
           }
         }
       }
-
-      const enriched: FeedPost[] = (postsData || []).map((p) => ({
+      const enriched: FeedPost[] = (postsData || []).map(p => ({
         id: p.id,
         admin_id: p.admin_id,
         body: p.body,
         image_url: p.image_url,
         currency: p.currency,
         created_at: p.created_at,
-        like_count: likeCounts[p.id] || 0,
+        like_count: likeCounts[p.id] || 0
       }));
-
       setPosts(enriched);
       setLikedPosts(userLikes);
     } catch (e) {
@@ -109,74 +107,51 @@ const FeedPage = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchPosts();
   }, []);
-
   const toggleLike = async (postId: string) => {
     if (!user) return;
     const isLiked = likedPosts.has(postId);
 
     // Optimistic update
-    setLikedPosts((prev) => {
+    setLikedPosts(prev => {
       const next = new Set(prev);
-      if (isLiked) next.delete(postId);
-      else next.add(postId);
+      if (isLiked) next.delete(postId);else next.add(postId);
       return next;
     });
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId
-          ? { ...p, like_count: p.like_count + (isLiked ? -1 : 1) }
-          : p
-      )
-    );
-
+    setPosts(prev => prev.map(p => p.id === postId ? {
+      ...p,
+      like_count: p.like_count + (isLiked ? -1 : 1)
+    } : p));
     try {
       if (isLiked) {
-        await supabase
-          .from("feed_likes")
-          .delete()
-          .eq("post_id", postId)
-          .eq("user_id", user.id);
+        await supabase.from("feed_likes").delete().eq("post_id", postId).eq("user_id", user.id);
       } else {
-        await supabase
-          .from("feed_likes")
-          .insert({ post_id: postId, user_id: user.id });
+        await supabase.from("feed_likes").insert({
+          post_id: postId,
+          user_id: user.id
+        });
       }
     } catch (e) {
       // Revert on error
-      setLikedPosts((prev) => {
+      setLikedPosts(prev => {
         const next = new Set(prev);
-        if (isLiked) next.add(postId);
-        else next.delete(postId);
+        if (isLiked) next.add(postId);else next.delete(postId);
         return next;
       });
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === postId
-            ? { ...p, like_count: p.like_count + (isLiked ? 1 : -1) }
-            : p
-        )
-      );
+      setPosts(prev => prev.map(p => p.id === postId ? {
+        ...p,
+        like_count: p.like_count + (isLiked ? 1 : -1)
+      } : p));
     }
   };
-
-  const filtered = posts
-    .filter((p) => currencyFilter === "all" || p.currency === currencyFilter)
-    .filter(
-      (p) =>
-        !searchQuery.trim() ||
-        p.body.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  const filtered = posts.filter(p => currencyFilter === "all" || p.currency === currencyFilter).filter(p => !searchQuery.trim() || p.body.toLowerCase().includes(searchQuery.toLowerCase()));
 
   // First post is always "pinned"
   const pinnedPost = filtered.length > 0 ? filtered[0] : null;
   const restPosts = filtered.slice(1);
-
-  return (
-    <div className="max-w-2xl mx-auto space-y-5 pb-10">
+  return <div className="max-w-2xl mx-auto space-y-5 pb-10">
       {/* Header */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">
@@ -188,38 +163,13 @@ const FeedPage = () => {
       </div>
 
       {/* Currency Filters */}
-      <div className="flex items-center gap-2 justify-center">
-        {filters.map((f) => {
-          const Icon = f.icon;
-          const active = currencyFilter === f.value;
-          return (
-            <button
-              key={f.value}
-              onClick={() => setCurrencyFilter(f.value)}
-              className={cn(
-                "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-                active
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {f.label}
-            </button>
-          );
-        })}
-      </div>
+      
 
       {/* Search */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar posts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 bg-muted/50 border-border/40 text-sm"
-          />
+          <Input placeholder="Buscar posts..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 h-9 bg-muted/50 border-border/40 text-sm" />
         </div>
         <Button size="sm" className="h-9 px-4 text-sm">
           Buscar
@@ -241,13 +191,10 @@ const FeedPage = () => {
       </div>
 
       {/* Loading */}
-      {loading && (
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-2xl bg-card border border-border/40 p-5 space-y-3"
-            >
+      {loading && <div className="space-y-4">
+          {Array.from({
+        length: 3
+      }).map((_, i) => <div key={i} className="rounded-2xl bg-card border border-border/40 p-5 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
                 <div className="space-y-1.5">
@@ -257,37 +204,27 @@ const FeedPage = () => {
               </div>
               <div className="h-4 w-full rounded bg-muted animate-pulse" />
               <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
-            </div>
-          ))}
-        </div>
-      )}
+            </div>)}
+        </div>}
 
       {/* Empty state */}
-      {!loading && filtered.length === 0 && (
-        <div className="text-center py-10 text-muted-foreground text-sm">
+      {!loading && filtered.length === 0 && <div className="text-center py-10 text-muted-foreground text-sm">
           Nenhuma publicação encontrada.
-        </div>
-      )}
+        </div>}
 
       {/* Posts */}
       <div className="space-y-4">
         {filtered.map((post, idx) => {
-          const liked = likedPosts.has(post.id);
-          const isPinned = idx === 0;
-          return (
-            <div
-              key={post.id}
-              className="rounded-2xl bg-card border border-border/40 overflow-hidden"
-            >
+        const liked = likedPosts.has(post.id);
+        const isPinned = idx === 0;
+        return <div key={post.id} className="rounded-2xl bg-card border border-border/40 overflow-hidden">
               {/* Pinned label */}
-              {isPinned && (
-                <div className="flex items-center gap-1.5 px-5 py-2 bg-primary/10 border-b border-primary/10">
+              {isPinned && <div className="flex items-center gap-1.5 px-5 py-2 bg-primary/10 border-b border-primary/10">
                   <Pin className="h-3.5 w-3.5 text-primary" />
                   <span className="text-xs font-semibold text-primary">
                     Post Fixado
                   </span>
-                </div>
-              )}
+                </div>}
 
               <div className="p-5 space-y-4">
                 {/* Author header */}
@@ -316,43 +253,23 @@ const FeedPage = () => {
                 </p>
 
                 {/* Image */}
-                {post.image_url && (
-                  <div className="rounded-xl overflow-hidden">
-                    <img
-                      src={post.image_url}
-                      alt=""
-                      className="w-full h-auto object-cover max-h-80"
-                      loading="lazy"
-                    />
-                  </div>
-                )}
+                {post.image_url && <div className="rounded-xl overflow-hidden">
+                    <img src={post.image_url} alt="" className="w-full h-auto object-cover max-h-80" loading="lazy" />
+                  </div>}
 
                 {/* Actions */}
                 <div className="flex items-center pt-2">
-                  <button
-                    className={cn(
-                      "flex items-center gap-1.5 text-sm transition-colors",
-                      liked
-                        ? "text-red-500"
-                        : "text-muted-foreground hover:text-red-400"
-                    )}
-                    onClick={() => toggleLike(post.id)}
-                  >
-                    <Heart
-                      className={cn("h-4 w-4", liked && "fill-current")}
-                    />
+                  <button className={cn("flex items-center gap-1.5 text-sm transition-colors", liked ? "text-red-500" : "text-muted-foreground hover:text-red-400")} onClick={() => toggleLike(post.id)}>
+                    <Heart className={cn("h-4 w-4", liked && "fill-current")} />
                     <span className="text-xs font-medium">
                       {post.like_count}
                     </span>
                   </button>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            </div>;
+      })}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default FeedPage;
