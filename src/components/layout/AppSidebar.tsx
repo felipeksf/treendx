@@ -80,7 +80,7 @@ const AppSidebar = ({
         {/* Header: Logo + Collapse */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-border/50">
           <Link to="/dashboard" className="flex items-center gap-2 min-w-0">
-            <img src={treendLogo} alt="Treend" className="h-14 w-auto shrink-0 object-contain" />
+            <img src={treendLogo} alt="Treend" className="h-28 w-auto shrink-0 object-contain" />
           </Link>
           <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors duration-200">
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
