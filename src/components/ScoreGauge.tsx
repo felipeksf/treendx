@@ -4,6 +4,7 @@ interface ScoreGaugeProps {
   score: number;
   zone: string;
   size?: "sm" | "lg";
+  inverted?: boolean;
 }
 
 const polarToCartesian = (cx: number, cy: number, r: number, angleDeg: number) => {
@@ -22,16 +23,23 @@ const GAUGE_START = 135;
 const GAUGE_SWEEP = 270;
 
 const ZONES = [
-  { start: 0, end: 20, color: "hsl(var(--score-zone-1))" },
-  { start: 20, end: 40, color: "hsl(var(--score-zone-2))" },
-  { start: 40, end: 60, color: "hsl(var(--score-zone-3))" },
-  { start: 60, end: 80, color: "hsl(var(--score-zone-4))" },
-  { start: 80, end: 100, color: "hsl(var(--score-zone-5))" },
+  { start: 0, end: 20, color: "hsl(var(--score-zone-1))", invertedColor: "hsl(var(--score-zone-5))" },
+  { start: 20, end: 40, color: "hsl(var(--score-zone-2))", invertedColor: "hsl(var(--score-zone-4))" },
+  { start: 40, end: 60, color: "hsl(var(--score-zone-3))", invertedColor: "hsl(var(--score-zone-3))" },
+  { start: 60, end: 80, color: "hsl(var(--score-zone-4))", invertedColor: "hsl(var(--score-zone-2))" },
+  { start: 80, end: 100, color: "hsl(var(--score-zone-5))", invertedColor: "hsl(var(--score-zone-1))" },
 ];
 
 const scoreToAngle = (s: number) => GAUGE_START + (s / 100) * GAUGE_SWEEP;
 
-const getZoneColor = (score: number) => {
+const getZoneColor = (score: number, inverted = false) => {
+  if (inverted) {
+    if (score <= 20) return "hsl(var(--score-zone-5))";
+    if (score <= 40) return "hsl(var(--score-zone-4))";
+    if (score <= 60) return "hsl(var(--score-zone-3))";
+    if (score <= 80) return "hsl(var(--score-zone-2))";
+    return "hsl(var(--score-zone-1))";
+  }
   if (score <= 20) return "hsl(var(--score-zone-1))";
   if (score <= 40) return "hsl(var(--score-zone-2))";
   if (score <= 60) return "hsl(var(--score-zone-3))";
@@ -39,11 +47,12 @@ const getZoneColor = (score: number) => {
   return "hsl(var(--score-zone-5))";
 };
 
-const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, zone, size = "lg" }) => {
+const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, zone, size = "lg", inverted = false }) => {
   const cx = 100, cy = 100, r = 80;
   const needleAngle = scoreToAngle(Math.min(100, Math.max(0, score)));
   const needleEnd = polarToCartesian(cx, cy, r - 18, needleAngle);
   const sizeClass = size === "lg" ? "w-56" : "w-40";
+  const needleColor = getZoneColor(score, inverted);
 
   return (
     <div className="flex flex-col items-center">
@@ -62,7 +71,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, zone, size = "lg" }) => 
             key={i}
             d={describeArc(cx, cy, r, scoreToAngle(z.start) + 0.5, scoreToAngle(z.end) - 0.5)}
             fill="none"
-            style={{ stroke: z.color }}
+            style={{ stroke: inverted ? z.invertedColor : z.color }}
             strokeWidth={12}
             strokeLinecap="round"
           />
@@ -83,14 +92,14 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, zone, size = "lg" }) => 
           x={cx}
           y={cy + 28}
           textAnchor="middle"
-          style={{ fill: getZoneColor(score), fontSize: "26px", fontWeight: 700, fontFamily: "Space Grotesk, sans-serif" }}
+          style={{ fill: needleColor, fontSize: "26px", fontWeight: 700, fontFamily: "Space Grotesk, sans-serif" }}
         >
           {score}
         </text>
       </svg>
       <span
         className="text-sm font-semibold mt-1 px-3 py-1 rounded-full"
-        style={{ color: getZoneColor(score), backgroundColor: `${getZoneColor(score)}20` }}
+        style={{ color: needleColor, backgroundColor: `${needleColor}20` }}
       >
         {zone}
       </span>
