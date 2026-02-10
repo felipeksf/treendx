@@ -317,10 +317,25 @@ const CalculatorPage = () => {
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-3 space-y-3">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <TooltipLabel label="Spread Bancário (%)" tip="Percentual de spread cobrado pelo banco sobre a taxa" />
-                <Input type="number" value={bankSpread} onChange={(e) => setBankSpread(e.target.value)} step="0.1" className="h-10 text-sm bg-muted/40 border-border/40" />
+            <div className="space-y-4">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <TooltipLabel label="Taxa de Spread (%)" tip="Percentual de spread cobrado por bancos e plataformas sobre a taxa de câmbio" />
+                  <span className="text-sm font-semibold tabular-nums text-foreground">{parseFloat(bankSpread).toFixed(1)}%</span>
+                </div>
+                <Slider
+                  value={[parseFloat(bankSpread) || 0]}
+                  onValueChange={(val) => setBankSpread(val[0].toFixed(1))}
+                  min={0}
+                  max={5}
+                  step={0.1}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>0%</span>
+                  <span>2.5%</span>
+                  <span>5%</span>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <TooltipLabel label="Projeção (meses)" tip="Período para projeção de economia futura" />
@@ -394,7 +409,7 @@ const CalculatorPage = () => {
             <MetricCard
               title="Taxa Efetiva"
               value={metrics.effectiveRate.toFixed(4)}
-              subtitle="Com spread bancário"
+              subtitle="Com taxa de spread"
               icon={<LineChart className="h-4 w-4 text-muted-foreground" />}
               color="default"
             />
@@ -463,7 +478,7 @@ const CalculatorPage = () => {
               status={metrics.savingsHealthStatus}
             />
             <HealthItem
-              label="Spread Bancário"
+              label="Taxa de Spread"
               value={`${spread.toFixed(2)}%`}
               description={
                 metrics.spreadHealthStatus === "good"
