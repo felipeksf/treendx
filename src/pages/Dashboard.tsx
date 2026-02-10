@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ScoreGauge from "@/components/ScoreGauge";
 import TrialBanner from "@/components/TrialBanner";
+import { useExchangeRates } from "@/hooks/useExchangeRates";
 import {
   Calculator, History, Newspaper, DollarSign, Euro, TrendingUp, TrendingDown,
   ArrowRight, MessageSquare, CalendarDays, BarChart3, ArrowUpRight, ArrowDownRight,
@@ -78,6 +79,7 @@ const getZoneLabel = (score: number, scenario: Scenario) => {
 const Dashboard = () => {
   const context = useOutletContext<{ profile?: "importer" | "exporter" } | undefined>();
   const [scenario, setScenario] = useState<Scenario>(context?.profile === "exporter" ? "sell" : "buy");
+  const { usd: liveUsd, eur: liveEur, isLoading: ratesLoading } = useExchangeRates();
 
   useEffect(() => {
     if (context?.profile) {
@@ -87,6 +89,11 @@ const Dashboard = () => {
   const [frequency, setFrequency] = useState<Frequency>("weekly");
 
   const isExporter = scenario === "sell";
+
+  const usdRate = liveUsd?.bid ?? mockData.usd.rate;
+  const eurRate = liveEur?.bid ?? mockData.eur.rate;
+  const usdPctChange = liveUsd?.pctChange ?? 0;
+  const eurPctChange = liveEur?.pctChange ?? 0;
 
   const comment = useMemo(
     () => mockData.comments[scenario][frequency],
@@ -109,10 +116,10 @@ const Dashboard = () => {
     return { current: rate * baseAmount, treend: treendRate * baseAmount, savings: Math.abs(diff * baseAmount) };
   };
 
-  const usdCalc = calcSavings(mockData.usd.rate, mockData.usd.score);
+  const usdCalc = calcSavings(usdRate, mockData.usd.score);
 
-  const usdChange = ((chartData[chartData.length - 1].usd - chartData[0].usd) / chartData[0].usd * 100);
-  const eurChange = ((chartData[chartData.length - 1].eur - chartData[0].eur) / chartData[0].eur * 100);
+  const usdChange = usdPctChange;
+  const eurChange = eurPctChange;
 
   return (
     <div className="space-y-5 max-w-6xl mx-auto">
@@ -185,10 +192,15 @@ const Dashboard = () => {
         <div className="rounded-2xl bg-card p-5 border border-border/40">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs text-muted-foreground">Cotação Semanal</p>
+              <p className="text-xs text-muted-foreground">Cotação Semanal · USD</p>
               <p className="text-2xl font-bold text-foreground tracking-tight tabular-nums">
-                R$ {mockData.usd.rate.toFixed(3)}
+                R$ {usdRate.toFixed(3)}
               </p>
+              {liveUsd && (
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Atualizado: {new Date(liveUsd.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
@@ -250,7 +262,7 @@ const Dashboard = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground">USD / BRL</p>
-              <p className="text-sm font-bold text-foreground tabular-nums">R$ {mockData.usd.rate.toFixed(2)}</p>
+              <p className="text-sm font-bold text-foreground tabular-nums">R$ {usdRate.toFixed(4)}</p>
             </div>
             <div className={`flex items-center gap-0.5 text-xs font-semibold ${usdChange >= 0 ? "text-treend-danger" : "text-treend-success"}`}>
               {usdChange >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
@@ -265,7 +277,7 @@ const Dashboard = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground">EUR / BRL</p>
-              <p className="text-sm font-bold text-foreground tabular-nums">R$ {mockData.eur.rate.toFixed(2)}</p>
+              <p className="text-sm font-bold text-foreground tabular-nums">R$ {eurRate.toFixed(4)}</p>
             </div>
             <div className={`flex items-center gap-0.5 text-xs font-semibold ${eurChange >= 0 ? "text-treend-danger" : "text-treend-success"}`}>
               {eurChange >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
@@ -316,7 +328,7 @@ const Dashboard = () => {
             </div>
             <span className="text-sm font-semibold text-foreground tracking-tight">USD / BRL</span>
             <span className="ml-auto text-lg font-bold text-foreground tabular-nums">
-              R$ {mockData.usd.rate.toFixed(2)}
+              R$ {usdRate.toFixed(4)}
             </span>
           </div>
           <ScoreGauge score={mockData.usd.score} zone={usdZone} inverted={isExporter} />
@@ -333,7 +345,7 @@ const Dashboard = () => {
             </div>
             <span className="text-sm font-semibold text-foreground tracking-tight">EUR / BRL</span>
             <span className="ml-auto text-lg font-bold text-foreground tabular-nums">
-              R$ {mockData.eur.rate.toFixed(2)}
+              R$ {eurRate.toFixed(4)}
             </span>
           </div>
           <ScoreGauge score={mockData.eur.score} zone={eurZone} inverted={isExporter} />
