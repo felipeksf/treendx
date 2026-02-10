@@ -92,7 +92,7 @@ const Dashboard = () => {
         <div>
           <h1 className="text-xl font-bold text-foreground tracking-tight">Dashboard</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {frequencyDescriptions[frequency]} · {scenarioLabel}
+            Monitoramento de Câmbio 24h por dia
           </p>
         </div>
       </div>
