@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { Link, useOutletContext } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -51,7 +51,14 @@ const getZoneLabel = (score: number, scenario: Scenario) => {
 };
 
 const Dashboard = () => {
-  const [scenario, setScenario] = useState<Scenario>("buy");
+  const context = useOutletContext<{ profile?: "importer" | "exporter" } | undefined>();
+  const [scenario, setScenario] = useState<Scenario>(context?.profile === "exporter" ? "sell" : "buy");
+  
+  useEffect(() => {
+    if (context?.profile) {
+      setScenario(context.profile === "exporter" ? "sell" : "buy");
+    }
+  }, [context?.profile]);
   const [frequency, setFrequency] = useState<Frequency>("weekly");
 
   const isExporter = scenario === "sell";
