@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Calculator, History, Newspaper, User, Shield, TrendingUp, CalendarDays } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -14,7 +15,7 @@ const adminItem = { label: "Admin", icon: Shield, path: "/admin/users" };
 
 const AppLayout = () => {
   const location = useLocation();
-  const isAdmin = true; // Mock: would come from auth context
+  const { isAdmin } = useAuth();
 
   const allItems = isAdmin ? [...navItems, adminItem] : navItems;
 
