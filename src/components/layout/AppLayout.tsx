@@ -1,7 +1,8 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Calculator, History, Newspaper, User, Shield, TrendingUp, CalendarDays } from "lucide-react";
+import { LayoutDashboard, Calculator, History, Newspaper, User, Shield, CalendarDays } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle";
+import treendLogo from "@/assets/treend-logo.png";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -25,8 +26,7 @@ const AppLayout = () => {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card fixed inset-y-0 left-0 z-30">
         <Link to="/dashboard" className="flex items-center gap-2 px-6 py-5 border-b border-border">
-          <TrendingUp className="h-7 w-7 text-primary" />
-          <span className="text-xl font-display font-bold text-foreground">Treend</span>
+          <img src={treendLogo} alt="Treend" className="h-7 w-auto" />
         </Link>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {allItems.map((item) => {
@@ -57,8 +57,7 @@ const AppLayout = () => {
         {/* Mobile header */}
         <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card sticky top-0 z-20">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-primary" />
-            <span className="text-lg font-display font-bold text-foreground">Treend</span>
+            <img src={treendLogo} alt="Treend" className="h-6 w-auto" />
           </Link>
           <ThemeToggle />
         </header>
