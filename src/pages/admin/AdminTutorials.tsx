@@ -124,6 +124,7 @@ const AdminTutorials = () => {
   });
 
 
+  const resetForm = () => {
     setForm({ title: "", description: "", youtube_url: "", sort_order: "0", category: "introducao" });
     setEditingId(null);
     setDialogOpen(false);
