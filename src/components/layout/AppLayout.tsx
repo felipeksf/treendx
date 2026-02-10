@@ -36,7 +36,7 @@ const AppLayout = () => {
         {/* Mobile header */}
         <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card sticky top-0 z-20">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <img src={treendLogo} alt="Treend" className="h-10 w-auto" />
+            <img src={treendLogo} alt="Treend" className="h-20 w-auto" />
           </Link>
         </header>
 

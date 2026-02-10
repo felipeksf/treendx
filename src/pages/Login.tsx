@@ -52,7 +52,7 @@ const Login = () => {
       <Card className="w-full max-w-md bg-card border-border">
         <CardHeader className="text-center">
           <Link to="/" className="flex items-center justify-center gap-2 mb-4">
-            <img src={treendLogo} alt="Treend" className="h-14 w-auto" />
+            <img src={treendLogo} alt="Treend" className="h-28 w-auto" />
           </Link>
           <CardTitle className="font-display text-xl">Bem-vindo de volta</CardTitle>
           <CardDescription>Entre com sua conta para acessar o painel</CardDescription>
