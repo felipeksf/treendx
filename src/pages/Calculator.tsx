@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calculator as CalcIcon, TrendingDown, TrendingUp, Save } from "lucide-react";
+import { Calculator as CalcIcon, TrendingDown, TrendingUp, Save, Percent } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const mockRates: Record<string, { rate: number; treendRate: number; zone: string }> = {
@@ -15,10 +15,12 @@ const mockRates: Record<string, { rate: number; treendRate: number; zone: string
 const CalculatorPage = () => {
   const [currency, setCurrency] = useState("USD");
   const [amount, setAmount] = useState("10000");
+  const [targetPercent, setTargetPercent] = useState("");
   const { toast } = useToast();
 
   const data = mockRates[currency];
   const amountNum = parseFloat(amount) || 0;
+  const targetPctNum = parseFloat(targetPercent) || 0;
 
   const result = useMemo(() => {
     const currentBRL = amountNum * data.rate;
@@ -27,6 +29,15 @@ const CalculatorPage = () => {
     const savingsPct = currentBRL > 0 ? (savings / currentBRL) * 100 : 0;
     return { currentBRL, treendBRL, savings, savingsPct };
   }, [amountNum, data]);
+
+  const simulation = useMemo(() => {
+    if (targetPctNum <= 0) return null;
+    const currentBRL = amountNum * data.rate;
+    const targetSavings = currentBRL * (targetPctNum / 100);
+    const targetBRL = currentBRL - targetSavings;
+    const targetRate = amountNum > 0 ? targetBRL / amountNum : 0;
+    return { targetSavings, targetBRL, targetRate };
+  }, [amountNum, data, targetPctNum]);
 
   const isPositive = result.savings > 0;
 
@@ -67,6 +78,45 @@ const CalculatorPage = () => {
               <Label>Taxa zona Treend ({data.zone})</Label>
               <Input value={data.treendRate.toFixed(4)} readOnly className="bg-muted" />
             </div>
+          </div>
+
+          {/* Simulação por percentual */}
+          <div className="border-t border-border pt-4 space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <Percent className="h-4 w-4 text-primary" />
+              Simular economia/lucro desejado (%)
+            </Label>
+            <Input
+              type="number"
+              placeholder="Ex: 3.5"
+              value={targetPercent}
+              onChange={(e) => setTargetPercent(e.target.value)}
+              min="0"
+              max="100"
+              step="0.1"
+            />
+            {simulation && (
+              <div className="grid sm:grid-cols-3 gap-3 mt-3">
+                <div className="rounded-xl bg-muted/50 p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Taxa necessária</p>
+                  <p className="text-lg font-display font-bold text-primary">
+                    {simulation.targetRate.toFixed(4)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-muted/50 p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Valor alvo (BRL)</p>
+                  <p className="text-lg font-display font-bold text-foreground">
+                    R$ {simulation.targetBRL.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-muted/50 p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Economia simulada</p>
+                  <p className="text-lg font-display font-bold text-treend-success">
+                    R$ {simulation.targetSavings.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
