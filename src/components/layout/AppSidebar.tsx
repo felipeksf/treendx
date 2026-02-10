@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, MessageSquare, CalendarDays, Calculator, History, ShieldCheck, ChevronLeft, ChevronRight, MoreHorizontal, LogOut, User, Moon, Sun } from "lucide-react";
+import { LayoutDashboard, MessageSquare, CalendarDays, Calculator, History, ShieldCheck, ChevronLeft, ChevronRight, MoreHorizontal, LogOut, User, Moon, Sun, PlayCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,10 @@ const navItems = [{
   label: "Histórico",
   icon: History,
   path: "/history"
+}, {
+  label: "Tutoriais",
+  icon: PlayCircle,
+  path: "/tutorials"
 }];
 const adminItem = {
   label: "Admin",
