@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { Users, MessageSquare, CalendarDays, BarChart3, ArrowLeft, Shield, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const adminNavItems = [
   { label: "Usuários", icon: Users, path: "/admin/users" },
@@ -76,6 +77,9 @@ const AdminLayout = () => {
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
             <span className="text-lg font-display font-bold text-foreground">Admin</span>
+          </div>
+          <div className="ml-auto">
+            <ThemeToggle />
           </div>
         </header>
 
