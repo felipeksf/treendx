@@ -294,7 +294,7 @@ const CalculatorPage = () => {
           </div>
           <div className="grid sm:grid-cols-2 gap-3 mt-3">
             <div className="space-y-1.5">
-              <TooltipLabel label="Taxa Atual (R$)" tip="Insira a taxa de câmbio comercial do dia abaixo" />
+              <TooltipLabel label={`Taxa Atual (${currency === "BRL" ? "R$" : currency === "USD" ? "US$" : "€"})`} tip="Insira a taxa de câmbio comercial do dia abaixo" />
               <Input
                 type="number"
                 value={currentRate}
@@ -304,7 +304,7 @@ const CalculatorPage = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <TooltipLabel label="Taxa Treend (R$)" tip="Taxa Comercial mapeada pela Treend" />
+              <TooltipLabel label={`Taxa Treend (${currency === "BRL" ? "R$" : currency === "USD" ? "US$" : "€"})`} tip="Taxa Comercial mapeada pela Treend" />
               <Input type="number" value={treendRate} onChange={(e) => setTreendRate(e.target.value)} step="0.01" className="h-10 text-sm bg-muted/40 border-border/40" />
             </div>
           </div>
