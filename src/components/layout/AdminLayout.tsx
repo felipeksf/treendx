@@ -27,7 +27,7 @@ const AdminLayout = () => {
   const handleLogout = async () => {
     await signOut();
     toast({ title: "Sessão encerrada com sucesso" });
-    navigate("/");
+    navigate("/login");
   };
 
   const SidebarContent = () => (
