@@ -3,6 +3,7 @@ import { Users, MessageSquare, CalendarDays, BarChart3, ArrowLeft, Shield, Menu,
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import treendLogo from "@/assets/treend-logo.png";
 
 const adminNavItems = [
   { label: "Usuários", icon: Users, path: "/admin/users" },
@@ -18,8 +19,8 @@ const AdminLayout = () => {
   const SidebarContent = () => (
     <>
       <div className="flex items-center gap-2 px-6 py-5 border-b border-border">
-        <Shield className="h-6 w-6 text-primary" />
-        <span className="text-lg font-display font-bold text-foreground">Admin Treend</span>
+        <img src={treendLogo} alt="Treend" className="h-6 w-auto" />
+        <span className="text-lg font-display font-bold text-foreground">Admin</span>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">

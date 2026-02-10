@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import treendLogo from "@/assets/treend-logo.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -69,8 +70,7 @@ const Index = () => {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <TrendingUp className="h-7 w-7 text-primary" />
-            <span className="text-xl font-display font-bold text-foreground">Treend</span>
+            <img src={treendLogo} alt="Treend" className="h-7 w-auto" />
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/login">
@@ -207,8 +207,7 @@ const Index = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <span className="font-display font-bold text-foreground">Treend</span>
+              <img src={treendLogo} alt="Treend" className="h-5 w-auto" />
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
               <Link to="/login" className="hover:text-foreground transition-colors">Entrar</Link>

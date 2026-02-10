@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { TrendingUp, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import treendLogo from "@/assets/treend-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,8 +36,7 @@ const Login = () => {
       <Card className="w-full max-w-md bg-card border-border">
         <CardHeader className="text-center">
           <Link to="/" className="flex items-center justify-center gap-2 mb-4">
-            <TrendingUp className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-display font-bold text-foreground">Treend</span>
+            <img src={treendLogo} alt="Treend" className="h-8 w-auto" />
           </Link>
           <CardTitle className="font-display text-xl">Bem-vindo de volta</CardTitle>
           <CardDescription>Entre com sua conta para acessar o painel</CardDescription>
