@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, GripVertical, Video } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Video, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -100,7 +100,30 @@ const AdminTutorials = () => {
     },
   });
 
-  const resetForm = () => {
+  const duplicateMutation = useMutation({
+    mutationFn: async (t: Tutorial) => {
+      if (!user) throw new Error("Not authenticated");
+      const { error } = await supabase.from("tutorials").insert({
+        title: `${t.title} (cópia)`,
+        description: t.description,
+        youtube_url: t.youtube_url,
+        thumbnail_url: t.thumbnail_url,
+        sort_order: t.sort_order + 1,
+        category: t.category,
+        admin_id: user.id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-tutorials"] });
+      toast({ title: "Tutorial duplicado!" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Erro", description: err.message, variant: "destructive" });
+    },
+  });
+
+
     setForm({ title: "", description: "", youtube_url: "", sort_order: "0", category: "introducao" });
     setEditingId(null);
     setDialogOpen(false);
@@ -220,6 +243,9 @@ const AdminTutorials = () => {
                       <div className="flex items-center gap-1 shrink-0">
                         <button onClick={() => openEdit(t)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
                           <Pencil className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => duplicateMutation.mutate(t)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" title="Duplicar">
+                          <Copy className="h-4 w-4" />
                         </button>
                         <button onClick={() => deleteMutation.mutate(t.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
                           <Trash2 className="h-4 w-4" />
