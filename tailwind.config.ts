@@ -66,6 +66,7 @@ export default {
           warning: "hsl(var(--treend-warning))",
           danger: "hsl(var(--treend-danger))",
         },
+        "card-elevated": "hsl(var(--card-elevated))",
       },
       borderRadius: {
         lg: "var(--radius)",
