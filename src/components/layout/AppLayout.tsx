@@ -10,7 +10,7 @@ const navItems = [
   { label: "Minha Conta", icon: User, path: "/account" },
 ];
 
-const adminItem = { label: "Admin", icon: Shield, path: "/admin" };
+const adminItem = { label: "Admin", icon: Shield, path: "/admin/users" };
 
 const AppLayout = () => {
   const location = useLocation();
