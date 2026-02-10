@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Newspaper, CalendarDays, Calculator, History, ShieldCheck, ChevronLeft, ChevronRight, MoreHorizontal, LogOut, User, Moon, Sun, PlayCircle } from "lucide-react";
+import { LayoutDashboard, Newspaper, MessageSquare, CalendarDays, Calculator, History, ShieldCheck, ChevronLeft, ChevronRight, MoreHorizontal, LogOut, User, Moon, Sun, PlayCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,10 @@ const navItems = [{
   label: "Dashboard",
   icon: LayoutDashboard,
   path: "/dashboard"
+}, {
+  label: "Feed",
+  icon: MessageSquare,
+  path: "/feed",
 }, {
   label: "Notícias",
   icon: Newspaper,
