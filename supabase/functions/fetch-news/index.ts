@@ -10,9 +10,10 @@ interface NewsItem {
   link: string;
   pubDate: string;
   source: string;
+  currency: "USD" | "EUR" | "general";
 }
 
-function extractItems(xml: string, sourceName: string): NewsItem[] {
+function extractItems(xml: string, sourceName: string, currency: "USD" | "EUR" | "general"): NewsItem[] {
   const items: NewsItem[] = [];
   const itemRegex = /<item>([\s\S]*?)<\/item>/g;
   let match;
@@ -20,21 +21,53 @@ function extractItems(xml: string, sourceName: string): NewsItem[] {
   while ((match = itemRegex.exec(xml)) !== null) {
     const itemXml = match[1];
     const title = itemXml.match(/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/)?.[1] || '';
-    const link = itemXml.match(/<link>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/link>/)?.[1] || '';
     const pubDate = itemXml.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || '';
     const rssSource = itemXml.match(/<source[^>]*>(.*?)<\/source>/)?.[1] || sourceName;
+
+    // Extract the actual link - Google News uses <link> with the redirect URL
+    // Try to get the direct link first from <link> tag
+    let link = '';
+    const linkMatch = itemXml.match(/<link\s*\/?>([^<]*)/);
+    if (linkMatch && linkMatch[1]?.trim()) {
+      link = linkMatch[1].trim();
+    }
+    // Fallback: try guid
+    if (!link) {
+      const guidMatch = itemXml.match(/<guid[^>]*>(.*?)<\/guid>/);
+      if (guidMatch) link = guidMatch[1].trim();
+    }
 
     if (title) {
       items.push({
         title: title.trim(),
-        link: link.trim(),
+        link: link,
         pubDate: pubDate.trim(),
         source: rssSource.trim(),
+        currency,
       });
     }
   }
 
   return items;
+}
+
+async function resolveGoogleNewsUrl(url: string): Promise<string> {
+  if (!url.includes('news.google.com')) return url;
+  try {
+    const res = await fetch(url, { redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0' } });
+    // The final URL after redirects is the actual article
+    if (res.url && !res.url.includes('news.google.com')) {
+      await res.text(); // consume body
+      return res.url;
+    }
+    const html = await res.text();
+    // Try to extract from the HTML redirect page
+    const metaMatch = html.match(/<a[^>]+href="(https?:\/\/[^"]+)"/);
+    if (metaMatch) return metaMatch[1];
+    return url;
+  } catch {
+    return url;
+  }
 }
 
 serve(async (req) => {
@@ -43,18 +76,21 @@ serve(async (req) => {
   }
 
   try {
-    const feeds = [
+    const feeds: { url: string; name: string; currency: "USD" | "EUR" | "general" }[] = [
       {
         url: 'https://news.google.com/rss/search?q=d%C3%B3lar+c%C3%A2mbio+real&hl=pt-BR&gl=BR&ceid=BR:pt-419',
         name: 'Google News - Dólar',
+        currency: 'USD',
       },
       {
-        url: 'https://news.google.com/rss/search?q=euro+c%C3%A2mbio+real&hl=pt-BR&gl=BR&ceid=BR:pt-419',
+        url: 'https://news.google.com/rss/search?q=euro+c%C3%A2mbio+real+europeu&hl=pt-BR&gl=BR&ceid=BR:pt-419',
         name: 'Google News - Euro',
+        currency: 'EUR',
       },
       {
         url: 'https://news.google.com/rss/search?q=mercado+financeiro+brasil+c%C3%A2mbio&hl=pt-BR&gl=BR&ceid=BR:pt-419',
         name: 'Google News - Mercado',
+        currency: 'general',
       },
     ];
 
@@ -65,7 +101,7 @@ serve(async (req) => {
         });
         if (!res.ok) return [];
         const xml = await res.text();
-        return extractItems(xml, feed.name);
+        return extractItems(xml, feed.name, feed.currency);
       })
     );
 
@@ -95,7 +131,15 @@ serve(async (req) => {
     // Limit to 30 items
     const limited = unique.slice(0, 30);
 
-    return new Response(JSON.stringify({ news: limited }), {
+    // Resolve Google News redirect URLs in parallel (limit to avoid timeouts)
+    const resolved = await Promise.all(
+      limited.map(async (item) => {
+        const resolvedLink = await resolveGoogleNewsUrl(item.link);
+        return { ...item, link: resolvedLink };
+      })
+    );
+
+    return new Response(JSON.stringify({ news: resolved }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
