@@ -92,11 +92,11 @@ const Dashboard = () => {
           <TabsList className="grid w-full grid-cols-2 sm:w-[340px] bg-muted">
             <TabsTrigger value="buy" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <TrendingDown className="h-4 w-4" />
-              Quero do dólar mais barato
+              Sou Importador
             </TabsTrigger>
             <TabsTrigger value="sell" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <TrendingUp className="h-4 w-4" />
-              Quero Vender
+              Sou Exportador
             </TabsTrigger>
           </TabsList>
         </Tabs>
