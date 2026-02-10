@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, MessageSquare, CalendarDays, Calculator, History, ShieldCheck, ChevronLeft, ChevronRight, MoreHorizontal, LogOut, User, Moon, Sun, PlayCircle } from "lucide-react";
+import { LayoutDashboard, Newspaper, CalendarDays, Calculator, History, ShieldCheck, ChevronLeft, ChevronRight, MoreHorizontal, LogOut, User, Moon, Sun, PlayCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/hooks/use-toast";
@@ -16,11 +16,9 @@ const navItems = [{
   icon: LayoutDashboard,
   path: "/dashboard"
 }, {
-  label: "Feed",
-  icon: MessageSquare,
+  label: "Notícias",
+  icon: Newspaper,
   path: "/news",
-  badge: 3,
-  badgeColor: "bg-primary"
 }, {
   label: "Agenda",
   icon: CalendarDays,
