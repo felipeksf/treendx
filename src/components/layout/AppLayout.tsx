@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Calculator, History, Newspaper, User, Shield, TrendingUp, CalendarDays } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -46,6 +47,9 @@ const AppLayout = () => {
             );
           })}
         </nav>
+        <div className="px-3 py-4 border-t border-border">
+          <ThemeToggle />
+        </div>
       </aside>
 
       {/* Main content */}
@@ -56,6 +60,7 @@ const AppLayout = () => {
             <TrendingUp className="h-6 w-6 text-primary" />
             <span className="text-lg font-display font-bold text-foreground">Treend</span>
           </Link>
+          <ThemeToggle />
         </header>
 
         <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6">
