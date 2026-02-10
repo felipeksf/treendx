@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -21,33 +19,32 @@ const HistoryPage = () => {
   const totalSavings = filtered.reduce((acc, h) => acc + h.savings, 0);
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-display font-bold text-foreground">Histórico de Decisões</h1>
+    <div className="space-y-5 max-w-3xl mx-auto">
+      <div>
+        <h1 className="text-xl font-bold text-foreground tracking-tight">Histórico de Decisões</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">Acompanhe suas operações e economia acumulada</p>
+      </div>
 
       {/* Summary */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <Card className="bg-card border-border">
-          <CardContent className="pt-4 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Total de decisões</p>
-            <p className="text-3xl font-display font-bold text-foreground">{filtered.length}</p>
-          </CardContent>
-        </Card>
-        <Card className={`border ${totalSavings >= 0 ? "border-treend-success/20" : "border-treend-danger/20"} bg-card`}>
-          <CardContent className="pt-4 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Economia acumulada</p>
-            <p className={`text-3xl font-display font-bold ${totalSavings >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
-              R$ {totalSavings.toLocaleString("pt-BR")}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div className="rounded-2xl bg-card border border-border/40 p-4 text-center">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Total de decisões</p>
+          <p className="text-2xl font-bold text-foreground tabular-nums">{filtered.length}</p>
+        </div>
+        <div className={`rounded-2xl border p-4 text-center ${totalSavings >= 0 ? "border-treend-success/20 bg-card" : "border-treend-danger/20 bg-card"}`}>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Economia acumulada</p>
+          <p className={`text-2xl font-bold tabular-nums ${totalSavings >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
+            R$ {totalSavings.toLocaleString("pt-BR")}
+          </p>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex items-center gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Moeda</Label>
           <Select value={filterCurrency} onValueChange={setFilterCurrency}>
-            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-28 h-8 text-xs bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="USD">USD</SelectItem>
@@ -55,40 +52,38 @@ const HistoryPage = () => {
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" size="sm" disabled>
-          <Download className="mr-2 h-4 w-4" />
+        <Button variant="outline" size="sm" disabled className="h-8 text-xs mt-auto">
+          <Download className="mr-1.5 h-3.5 w-3.5" />
           Exportar CSV
         </Button>
       </div>
 
       {/* List */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {filtered.map((h) => (
-          <Card key={h.id} className="bg-card border-border">
-            <CardContent className="py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <HistoryIcon className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {h.currency} {h.amount.toLocaleString()} @ {h.rate.toFixed(2)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{h.date} · Zona: {h.zone}</p>
-                </div>
+          <div key={h.id} className="rounded-2xl bg-card border border-border/40 p-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <HistoryIcon className="h-4 w-4 text-primary" />
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {h.savings >= 0 ? (
-                  <TrendingDown className="h-4 w-4 text-treend-success" />
-                ) : (
-                  <TrendingUp className="h-4 w-4 text-treend-danger" />
-                )}
-                <span className={`text-sm font-semibold ${h.savings >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
-                  {h.savings >= 0 ? "+" : ""}R$ {h.savings.toLocaleString("pt-BR")}
-                </span>
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  {h.currency} {h.amount.toLocaleString()} @ {h.rate.toFixed(2)}
+                </p>
+                <p className="text-[11px] text-muted-foreground">{h.date} · Zona: {h.zone}</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {h.savings >= 0 ? (
+                <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
+              ) : (
+                <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
+              )}
+              <span className={`text-sm font-semibold tabular-nums ${h.savings >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
+                {h.savings >= 0 ? "+" : ""}R$ {h.savings.toLocaleString("pt-BR")}
+              </span>
+            </div>
+          </div>
         ))}
       </div>
     </div>

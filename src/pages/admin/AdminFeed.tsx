@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,12 +28,7 @@ const AdminFeed = () => {
 
   const handlePost = () => {
     if (!newText.trim()) return;
-    const post: FeedPost = {
-      id: Date.now(),
-      body: newText.trim(),
-      currency,
-      createdAt: new Date().toISOString(),
-    };
+    const post: FeedPost = { id: Date.now(), body: newText.trim(), currency, createdAt: new Date().toISOString() };
     setPosts((prev) => [post, ...prev]);
     setNewText("");
     toast({ title: "Publicação criada com sucesso!" });
@@ -46,89 +40,84 @@ const AdminFeed = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-        <MessageSquare className="h-6 w-6 text-primary" />
-        Gestão do Feed
-      </h1>
+    <div className="space-y-5 max-w-3xl mx-auto">
+      <div>
+        <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <MessageSquare className="h-5 w-5 text-primary" />
+          Gestão do Feed
+        </h1>
+      </div>
 
       {/* Composer */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base font-display">Nova publicação</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9">
+            <AvatarFallback className="bg-primary/15 text-primary text-xs font-bold">TA</AvatarFallback>
+          </Avatar>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-semibold text-foreground">Treend Admin</span>
+            <BadgeCheck className="h-4 w-4 text-primary" />
+          </div>
+        </div>
+        <Textarea
+          placeholder="Escreva uma análise para o feed..."
+          value={newText}
+          onChange={(e) => setNewText(e.target.value)}
+          className="resize-none bg-muted/40 border-border/40 min-h-[100px] text-sm"
+        />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">TA</AvatarFallback>
-            </Avatar>
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-foreground">Treend Admin</span>
-              <BadgeCheck className="h-4 w-4 text-primary" />
-            </div>
-          </div>
-          <Textarea
-            placeholder="Escreva uma análise para o feed..."
-            value={newText}
-            onChange={(e) => setNewText(e.target.value)}
-            className="resize-none bg-muted/50 border-border min-h-[100px]"
-          />
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" className="text-muted-foreground gap-1.5">
-                <ImageIcon className="h-4 w-4" /> Imagem
-              </Button>
-              <div className="flex items-center gap-2">
-                <Label className="text-xs text-muted-foreground">Moeda:</Label>
-                <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger className="h-8 w-24 text-xs bg-secondary border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">Dólar</SelectItem>
-                    <SelectItem value="EUR">Euro</SelectItem>
-                    <SelectItem value="general">Geral</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <Button size="sm" onClick={handlePost} disabled={!newText.trim()} className="gap-1.5">
-              <Send className="h-4 w-4" /> Publicar
+            <Button variant="ghost" size="sm" className="text-muted-foreground gap-1.5 h-8 text-xs">
+              <ImageIcon className="h-3.5 w-3.5" /> Imagem
             </Button>
+            <div className="flex items-center gap-2">
+              <Label className="text-[11px] text-muted-foreground">Moeda:</Label>
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger className="h-7 w-20 text-xs bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">Dólar</SelectItem>
+                  <SelectItem value="EUR">Euro</SelectItem>
+                  <SelectItem value="general">Geral</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          <Button size="sm" onClick={handlePost} disabled={!newText.trim()} className="gap-1.5 h-8 text-xs">
+            <Send className="h-3.5 w-3.5" /> Publicar
+          </Button>
+        </div>
+      </div>
 
-      {/* Existing Posts */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base font-display">Publicações anteriores</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      {/* Posts */}
+      <div className="rounded-2xl bg-card border border-border/40 overflow-hidden">
+        <div className="px-5 py-3 border-b border-border/40">
+          <span className="text-sm font-semibold text-foreground">Publicações anteriores</span>
+        </div>
+        <div className="divide-y divide-border/30">
           {posts.length === 0 ? (
-            <p className="text-muted-foreground text-center py-6">Nenhuma publicação.</p>
+            <p className="text-muted-foreground text-center py-8 text-sm">Nenhuma publicação.</p>
           ) : (
             posts.map((post) => (
-              <div key={post.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border">
+              <div key={post.id} className="flex items-start gap-3 p-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
                       {post.currency === "general" ? "Geral" : post.currency}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[11px] text-muted-foreground">
                       {new Date(post.createdAt).toLocaleDateString("pt-BR")}
                     </span>
                   </div>
-                  <p className="text-sm text-foreground/90 line-clamp-2">{post.body}</p>
+                  <p className="text-sm text-foreground/85 line-clamp-2">{post.body}</p>
                 </div>
-                <Button variant="ghost" size="icon" className="shrink-0" onClick={() => handleDelete(post.id)}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                </Button>
+                <button onClick={() => handleDelete(post.id)} className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             ))
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
