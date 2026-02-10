@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Shield } from "lucide-react";
+import { useAuth, STRIPE_PLANS } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import PricingCard from "@/components/PricingCard";
-import { Shield, TrendingUp } from "lucide-react";
+import treendLogo from "@/assets/treend-logo.png";
 
 const features = [
   "Score diário USD e EUR",
@@ -11,11 +16,37 @@ const features = [
 ];
 
 const PricingPage = () => {
+  const { user, subscription } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handleCheckout = async (priceId: string) => {
+    if (!user) {
+      toast({ title: "Faça login primeiro", description: "Você precisa estar logado para assinar.", variant: "destructive" });
+      return;
+    }
+    setLoading(priceId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Erro ao iniciar checkout", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const isCurrentPlan = (productId: string) => subscription.subscribed && subscription.productId === productId;
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
       <Link to="/" className="flex items-center gap-2 mb-8">
-        <TrendingUp className="h-8 w-8 text-primary" />
-        <span className="text-2xl font-display font-bold text-foreground">Treend</span>
+        <img src={treendLogo} alt="Treend" className="h-10 w-auto" />
       </Link>
 
       <h1 className="text-3xl font-display font-bold text-foreground text-center mb-2">
@@ -27,18 +58,24 @@ const PricingPage = () => {
 
       <div className="grid sm:grid-cols-2 gap-6 w-full max-w-2xl mb-10">
         <PricingCard
-          name="Mensal"
-          price="R$49,90"
-          period="mês"
+          name={STRIPE_PLANS.monthly.name}
+          price={STRIPE_PLANS.monthly.price}
+          period={STRIPE_PLANS.monthly.period}
           features={features}
+          onSelect={() => handleCheckout(STRIPE_PLANS.monthly.priceId)}
+          isCurrentPlan={isCurrentPlan(STRIPE_PLANS.monthly.productId)}
+          loading={loading === STRIPE_PLANS.monthly.priceId}
         />
         <PricingCard
-          name="Anual"
-          price="R$299"
-          period="ano"
+          name={STRIPE_PLANS.annual.name}
+          price={STRIPE_PLANS.annual.price}
+          period={STRIPE_PLANS.annual.period}
           features={[...features, "Economia de 50% vs mensal"]}
           highlighted
           badge="Melhor custo-benefício"
+          onSelect={() => handleCheckout(STRIPE_PLANS.annual.priceId)}
+          isCurrentPlan={isCurrentPlan(STRIPE_PLANS.annual.productId)}
+          loading={loading === STRIPE_PLANS.annual.priceId}
         />
       </div>
 
