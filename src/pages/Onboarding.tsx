@@ -43,7 +43,7 @@ const Onboarding = () => {
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground mb-4">
             {current.title}
           </h1>
-          <p className="text-muted-foreground mb-8">
+          <p className="mb-8 text-muted-foreground">
             {current.desc}
           </p>
 
