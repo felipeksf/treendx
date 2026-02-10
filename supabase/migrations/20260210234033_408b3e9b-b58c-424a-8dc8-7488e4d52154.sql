@@ -1,0 +1,1 @@
+ALTER TYPE tutorial_category ADD VALUE IF NOT EXISTS 'agentes_turismo';
