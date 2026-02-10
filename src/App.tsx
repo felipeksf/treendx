@@ -25,6 +25,8 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminFeed from "./pages/admin/AdminFeed";
 import AdminAgenda from "./pages/AdminAgenda";
 import AdminScores from "./pages/admin/AdminScores";
+import AdminTutorials from "./pages/admin/AdminTutorials";
+import Tutorials from "./pages/Tutorials";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +52,7 @@ const App = () => (
                 <Route path="/history" element={<History />} />
                 <Route path="/news" element={<News />} />
                 <Route path="/agenda" element={<Agenda />} />
+                <Route path="/tutorials" element={<Tutorials />} />
                 <Route path="/account" element={<Account />} />
               </Route>
               <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
@@ -58,6 +61,7 @@ const App = () => (
                 <Route path="feed" element={<AdminFeed />} />
                 <Route path="agenda" element={<AdminAgenda />} />
                 <Route path="scores" element={<AdminScores />} />
+                <Route path="tutorials" element={<AdminTutorials />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

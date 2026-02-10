@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { Users, MessageSquare, CalendarDays, BarChart3, ArrowLeft, Shield, Menu, X, LogOut } from "lucide-react";
+import { Users, MessageSquare, CalendarDays, BarChart3, ArrowLeft, Shield, Menu, X, LogOut, PlayCircle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +13,7 @@ const adminNavItems = [
   { label: "Feed", icon: MessageSquare, path: "/admin/feed" },
   { label: "Agenda", icon: CalendarDays, path: "/admin/agenda" },
   { label: "Scores", icon: BarChart3, path: "/admin/scores" },
+  { label: "Tutoriais", icon: PlayCircle, path: "/admin/tutorials" },
 ];
 
 const AdminLayout = () => {
