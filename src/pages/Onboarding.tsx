@@ -15,7 +15,7 @@ const steps = [{
 }, {
   icon: Calculator,
   title: "Use a Calculadora",
-  desc: "Simule quanto você pode economizar operando no timing certo. Registre suas decisões e acompanhe a economia acumulada ao longo do tempo."
+  desc: "Simule quanto você pode economizar operando no timing certo. Registre suas decisões e acompanhe a economia acumulada ao longo do tempo.\nVocê pode se planejar melhor a sua precificação de produtos, negociar com fornecedores ou até mesmo fechar câmbio sem perder tanto com taxas de spread."
 }];
 const Onboarding = () => {
   const [step, setStep] = useState(0);
