@@ -156,18 +156,7 @@ const Login = () => {
         <div className="absolute inset-0 bg-primary/60" />
 
         {/* Text overlay */}
-        <div className="relative z-10 flex flex-col items-center text-center px-8">
-          
-          <p className="mt-3 text-primary-foreground/80 text-base max-w-sm">
-        </p>
-
-          {/* Dots indicator */}
-          <div className="flex gap-2 mt-8">
-            <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-            <div className="w-2 h-2 rounded-full bg-primary-foreground/30" />
-            <div className="w-2 h-2 rounded-full bg-primary-foreground/30" />
-          </div>
-        </div>
+        
       </div>
     </div>;
 };
