@@ -117,9 +117,53 @@ const AdminScores = () => {
     toast({ title: "Score aplicado!", description: "Os valores da análise foram preenchidos nos campos." });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({ title: "Dados do dia salvos!", description: "Os scores e cotações foram atualizados." });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Não autenticado");
+
+      const today = new Date().toISOString().split("T")[0];
+
+      // Check if there's already a score for today
+      const { data: existing } = await supabase
+        .from("daily_scores")
+        .select("id")
+        .eq("score_date", today)
+        .maybeSingle();
+
+      const scoreData = {
+        admin_id: user.id,
+        score_date: today,
+        usd_score: scoreUSD ? parseInt(scoreUSD) : null,
+        eur_score: scoreEUR ? parseInt(scoreEUR) : null,
+        zone_usd: zoneUSD || null,
+        zone_eur: zoneEUR || null,
+        rate_usd: rateUSD ? parseFloat(rateUSD) : null,
+        rate_eur: rateEUR ? parseFloat(rateEUR) : null,
+        comment_buy: comment || null,
+      };
+
+      let error;
+      if (existing) {
+        ({ error } = await supabase
+          .from("daily_scores")
+          .update(scoreData)
+          .eq("id", existing.id));
+      } else {
+        ({ error } = await supabase
+          .from("daily_scores")
+          .insert(scoreData));
+      }
+
+      if (error) throw error;
+
+      toast({ title: "Dados do dia salvos!", description: "Os scores e cotações foram atualizados no banco de dados." });
+    } catch (err: any) {
+      console.error("Save error:", err);
+      toast({ title: "Erro ao salvar", description: err.message || "Tente novamente.", variant: "destructive" });
+    }
   };
 
   const getRsiZoneLabel = (zone: string) => {
