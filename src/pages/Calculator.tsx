@@ -36,7 +36,14 @@ const RATE_RANGES: Record<string, { min: number; max: number; default: number }>
   BRL: { min: 0.15, max: 0.30, default: 0.20 },
 };
 
-const currencySymbol = (c: string) => c === "BRL" ? "R$" : c === "USD" ? "US$" : "€";
+const currencySymbol = (c: string) => c === "BRL" ? "R$" : c === "USD" ? "US$" : c === "GBP" ? "£" : "€";
+
+const fmtThousands = (v: string) => {
+  const num = v.replace(/\D/g, "");
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+const parseThousands = (v: string) => v.replace(/\./g, "");
 
 const fmt = (v: number, negative = false, cur = "BRL") => {
   const sym = currencySymbol(cur);
@@ -346,7 +353,7 @@ const CalculatorPage = () => {
             </div>
             <div className="space-y-1.5">
               <TooltipLabel label={`Volume Mensal (${currency})`} tip="Total em moeda estrangeira movimentado por mês" />
-              <Input type="number" value={monthlyVolume} onChange={(e) => setMonthlyVolume(e.target.value)} className="h-10 text-sm bg-muted/40 border-border/40" />
+              <Input type="text" inputMode="numeric" value={fmtThousands(monthlyVolume)} onChange={(e) => setMonthlyVolume(parseThousands(e.target.value))} className="h-10 text-sm bg-muted/40 border-border/40" />
             </div>
             <div className="space-y-1.5">
               <TooltipLabel label="Operações/Mês" tip="Quantidade de operações de câmbio por mês" />
@@ -640,9 +647,10 @@ const CalculatorPage = () => {
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Valor em {convSymbol}</Label>
                 <Input
-                  type="number"
-                  value={converterAmount}
-                  onChange={(e) => setConverterAmount(e.target.value)}
+                  type="text"
+                  inputMode="numeric"
+                  value={fmtThousands(converterAmount)}
+                  onChange={(e) => setConverterAmount(parseThousands(e.target.value))}
                   className="h-10 text-sm bg-muted/40 border-border/40"
                 />
               </div>
