@@ -36,8 +36,11 @@ const RATE_RANGES: Record<string, { min: number; max: number; default: number }>
   BRL: { min: 0.15, max: 0.30, default: 0.20 },
 };
 
-const fmt = (v: number, negative = false) => {
-  const prefix = negative ? "-R$ " : "R$ ";
+const currencySymbol = (c: string) => c === "BRL" ? "R$" : c === "USD" ? "US$" : "€";
+
+const fmt = (v: number, negative = false, cur = "BRL") => {
+  const sym = currencySymbol(cur);
+  const prefix = negative ? `-${sym} ` : `${sym} `;
   const abs = Math.abs(v);
   return abs >= 1_000_000
     ? `${prefix}${(abs / 1_000_000).toFixed(1)}M`
@@ -46,8 +49,10 @@ const fmt = (v: number, negative = false) => {
     : `${prefix}${abs.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-const fmtFull = (v: number) =>
-  `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmtFull = (v: number, cur = "BRL") => {
+  const sym = currencySymbol(cur);
+  return `${sym} ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
 
 interface TooltipLabelProps {
   label: string;
@@ -357,7 +362,7 @@ const CalculatorPage = () => {
                   : "border-border/40 bg-muted/40 text-muted-foreground"
               }`}>
                 {curRate > 0 && trdRate > 0
-                  ? `${((curRate - trdRate) / curRate * 100) >= 0 ? "" : "-"}${Math.abs((curRate - trdRate) / curRate * 100).toFixed(2)}%`
+                  ? `${!isPositive && curRate !== trdRate ? "-" : ""}${Math.abs((curRate - trdRate) / curRate * 100).toFixed(2)}%`
                   : "—"}
               </div>
             </div>
@@ -410,7 +415,7 @@ const CalculatorPage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <MetricCard
               title="Economia Mensal"
-              value={fmt(metrics.savingsMonth, !isPositive)}
+              value={fmt(metrics.savingsMonth, !isPositive, currency)}
               subtitle={isPositive ? "Economia potencial" : "Custo adicional"}
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
@@ -418,14 +423,14 @@ const CalculatorPage = () => {
             />
             <MetricCard
               title="Economia Anual"
-              value={fmt(metrics.savingsYear, !isPositive)}
+              value={fmt(metrics.savingsYear, !isPositive, currency)}
               subtitle="Projeção 12 meses"
               icon={<Target className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
             />
             <MetricCard
               title="Economia"
-              value={fmt(metrics.savingsPerOp, !isPositive)}
+              value={fmt(metrics.savingsPerOp, !isPositive, currency)}
               subtitle="Por transação"
               icon={<Clock className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
@@ -457,7 +462,7 @@ const CalculatorPage = () => {
             />
             <MetricCard
               title="Custo Spread"
-              value={fmt(metrics.spreadCost)}
+              value={fmt(metrics.spreadCost, false, currency)}
               subtitle="/mês (banco)"
               icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
               color="warning"
@@ -475,14 +480,14 @@ const CalculatorPage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <MetricCard
               title="Volume BRL"
-              value={fmt(metrics.curBRL)}
-              subtitle="Total mensal em reais"
+              value={fmt(metrics.curBRL, false, currency)}
+              subtitle={`Total mensal em ${currency}`}
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               color="default"
             />
             <MetricCard
               title={`Projeção ${projMonths}m`}
-              value={fmt(metrics.savingsMonth * projMonths, !isPositive)}
+              value={fmt(metrics.savingsMonth * projMonths, !isPositive, currency)}
               subtitle="Economia projetada"
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
@@ -490,7 +495,7 @@ const CalculatorPage = () => {
             />
             <MetricCard
               title="Projeção 24m"
-              value={fmt(metrics.proj24m, !isPositive)}
+              value={fmt(metrics.proj24m, !isPositive, currency)}
               subtitle="Economia 2 anos"
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
@@ -561,7 +566,7 @@ const CalculatorPage = () => {
             />
             <HealthItem
               label="Volume Mensal"
-              value={fmt(volume)}
+              value={fmt(volume, false, currency)}
               description={
                 metrics.volumeHealthStatus === "good"
                   ? "Volume saudável para operações"
@@ -601,7 +606,7 @@ const CalculatorPage = () => {
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Valor neste cenário</p>
-            <p className="text-base font-bold text-foreground tabular-nums">{fmtFull(metrics.sliderBRL)}</p>
+            <p className="text-base font-bold text-foreground tabular-nums">{fmtFull(metrics.sliderBRL, currency)}</p>
           </div>
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Diferença vs atual</p>
@@ -609,7 +614,7 @@ const CalculatorPage = () => {
               {metrics.sliderDiff > 0 ? <TrendingDown className="h-3.5 w-3.5 text-treend-success" /> : <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />}
               <p className={`text-base font-bold tabular-nums ${metrics.sliderDiff > 0 ? "text-treend-success" : "text-treend-danger"}`}>
                 {metrics.sliderDiff > 0 ? "−" : "+"}
-                {fmtFull(Math.abs(metrics.sliderDiff))}
+                {fmtFull(Math.abs(metrics.sliderDiff), currency)}
               </p>
               <span className={`text-xs ${metrics.sliderDiff > 0 ? "text-treend-success" : "text-treend-danger"}`}>
                 ({Math.abs(metrics.sliderDiffPct).toFixed(1)}%)
