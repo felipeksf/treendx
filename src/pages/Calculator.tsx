@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useExchangeRates } from "@/hooks/useExchangeRates";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -152,6 +153,18 @@ const CalculatorPage = () => {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [profile, setProfile] = useState<"importador" | "exportador" | "agente_turismo" | "turista" | "freelancer">("importador");
   const { toast } = useToast();
+  const { usd: liveUsd, eur: liveEur } = useExchangeRates();
+
+  // Update currentRate when live rates load
+  useEffect(() => {
+    if (currency === "USD" && liveUsd) {
+      setCurrentRate(liveUsd.bid.toFixed(4));
+      setSliderRate([liveUsd.bid]);
+    } else if (currency === "EUR" && liveEur) {
+      setCurrentRate(liveEur.bid.toFixed(4));
+      setSliderRate([liveEur.bid]);
+    }
+  }, [liveUsd?.bid, liveEur?.bid]); // only on first load / rate change
 
   const rateRange = RATE_RANGES[currency];
   const volume = parseFloat(monthlyVolume) || 0;
@@ -165,8 +178,9 @@ const CalculatorPage = () => {
   const handleCurrencyChange = (val: string) => {
     setCurrency(val);
     const range = RATE_RANGES[val];
-    setCurrentRate(range.default.toFixed(2));
-    setSliderRate([range.default]);
+    const liveRate = val === "USD" && liveUsd ? liveUsd.bid : val === "EUR" && liveEur ? liveEur.bid : range.default;
+    setCurrentRate(liveRate.toFixed(4));
+    setSliderRate([liveRate]);
     setTreendRate(val === "USD" ? "4.95" : val === "EUR" ? "5.72" : "0.18");
   };
 
