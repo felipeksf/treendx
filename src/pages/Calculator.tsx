@@ -456,7 +456,7 @@ const CalculatorPage = () => {
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
               highlight={isPositive}
-              tooltip="Quanto você teria de lucro/economia somente no mês (caso você realizasse apenas 1 operação no mês)."
+              tooltip="Quanto você teria de lucro/economia somente no mês (caso você realizasse 4 operações no mês ou 1 por semana)."
             />
             <MetricCard
               title="Economia Anual"
