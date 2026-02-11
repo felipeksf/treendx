@@ -82,9 +82,10 @@ interface MetricCardProps {
   icon: React.ReactNode;
   highlight?: boolean;
   color?: "success" | "warning" | "danger" | "default";
+  tooltip?: string;
 }
 
-const MetricCard = ({ title, value, subtitle, icon, highlight, color = "default" }: MetricCardProps) => {
+const MetricCard = ({ title, value, subtitle, icon, highlight, color = "default", tooltip }: MetricCardProps) => {
   const colorMap = {
     success: "text-treend-success",
     warning: "text-treend-warning",
@@ -101,7 +102,21 @@ const MetricCard = ({ title, value, subtitle, icon, highlight, color = "default"
       }`}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground font-medium">{title}</span>
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-muted-foreground font-medium">{title}</span>
+          {tooltip && (
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground/60 cursor-help shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[220px] text-xs">
+                  {tooltip}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-muted/60">
           {icon}
         </div>
@@ -223,10 +238,11 @@ const CalculatorPage = () => {
     const sliderDiff = curBRL - sliderBRL;
     const sliderDiffPct = curBRL > 0 ? (sliderDiff / curBRL) * 100 : 0;
 
-    // Break-even (if subscription cost ~R$200/mo)
-    const subscriptionCost = 200;
-    const breakEvenMonths = savingsMonth > 0 ? subscriptionCost / savingsMonth : Infinity;
-    const roi = savingsMonth > 0 ? (savingsYear / (subscriptionCost * 12)) * 100 : 0;
+    // ROI based on official Treend pricing
+    const subscriptionCostMonthly = 49.90;
+    const subscriptionCostAnnual = 299;
+    const breakEvenMonths = Math.abs(savingsMonth) > 0 ? subscriptionCostMonthly / Math.abs(savingsMonth) : Infinity;
+    const roi = Math.abs(savingsYear) > 0 ? (Math.abs(savingsYear) / subscriptionCostAnnual) * 100 : 0;
 
     // Zone info
     const range = rateRange.max - rateRange.min;
@@ -236,7 +252,7 @@ const CalculatorPage = () => {
     const prefersLowerRate = ["importador", "agente_turismo", "turista"].includes(profile);
     const effectiveSavings = prefersLowerRate ? savingsMonth : -savingsMonth;
     const effectiveSavingsPct = prefersLowerRate ? savingsPct : -savingsPct;
-    const effectiveRoi = effectiveSavings > 0 ? (Math.abs(savingsYear) / (subscriptionCost * 12)) * 100 : 0;
+    const effectiveRoi = effectiveSavings > 0 ? (Math.abs(savingsYear) / subscriptionCostAnnual) * 100 : 0;
 
     const savingsHealthStatus: "good" | "warning" | "bad" =
       effectiveSavingsPct >= 2 ? "good" : effectiveSavingsPct >= 0.5 ? "warning" : "bad";
@@ -263,7 +279,7 @@ const CalculatorPage = () => {
       spreadCost, effectiveRate, rateDiff, rateDiffPct,
       proj6m, proj12m, proj24m,
       sliderBRL, sliderDiff, sliderDiffPct,
-      breakEvenMonths, roi: effectiveRoi, subscriptionCost,
+      breakEvenMonths, roi: effectiveRoi, subscriptionCostMonthly, subscriptionCostAnnual,
       pct,
       savingsHealthStatus, spreadHealthStatus, roiHealthStatus, volumeHealthStatus,
       overallHealth,
@@ -412,7 +428,7 @@ const CalculatorPage = () => {
         {/* Left - Metric Cards Grid */}
         <div className="space-y-3">
           {/* Row 1 */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <MetricCard
               title="Economia Mensal"
               value={fmt(metrics.savingsMonth, !isPositive, currency)}
@@ -420,6 +436,7 @@ const CalculatorPage = () => {
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
               highlight={isPositive}
+              tooltip="Quanto você teria de lucro/economia somente no mês (caso você realizasse apenas 1 operação no mês)."
             />
             <MetricCard
               title="Economia Anual"
@@ -427,6 +444,7 @@ const CalculatorPage = () => {
               subtitle="Projeção 12 meses"
               icon={<Target className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
+              tooltip="A economia da operação x 12 meses."
             />
             <MetricCard
               title="Economia"
@@ -434,6 +452,7 @@ const CalculatorPage = () => {
               subtitle="Por transação"
               icon={<Clock className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
+              tooltip="Quanto você teria de lucro/economia somente nessa operação específica."
             />
             <MetricCard
               title="Diferença de Taxa"
@@ -441,6 +460,7 @@ const CalculatorPage = () => {
               subtitle={`${Math.abs(metrics.rateDiff).toFixed(4)} pts`}
               icon={<Zap className="h-4 w-4 text-muted-foreground" />}
               color={metrics.rateDiff > 0 ? "success" : "danger"}
+              tooltip="Diferença percentual entre a cotação do dia Vs a cotação mapeada pela Treend."
             />
           </div>
 
@@ -452,6 +472,7 @@ const CalculatorPage = () => {
               subtitle="% de economia gerado"
               icon={<Users className="h-4 w-4 text-muted-foreground" />}
               color={metrics.savingsPct >= 2 ? "success" : metrics.savingsPct >= 0.5 ? "warning" : "danger"}
+              tooltip="Quando você economizou ou deixaria de economizar na operação."
             />
             <MetricCard
               title="ROI Anual"
@@ -459,6 +480,7 @@ const CalculatorPage = () => {
               subtitle="Retorno sobre investimento"
               icon={<BarChart3 className="h-4 w-4 text-muted-foreground" />}
               color={metrics.roi >= 200 ? "success" : metrics.roi >= 100 ? "warning" : "danger"}
+              tooltip="Retorno do valor da operação Vs o quanto que você paga por ano ao assinar a Treend."
             />
             <MetricCard
               title="Custo Spread"
@@ -466,6 +488,7 @@ const CalculatorPage = () => {
               subtitle="/mês (banco)"
               icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
               color="warning"
+              tooltip="O Volume Mensal x o % de Taxa de Spread que você selecionou na barra de progresso."
             />
             <MetricCard
               title="Taxa Efetiva"
@@ -473,6 +496,7 @@ const CalculatorPage = () => {
               subtitle="Com taxa de spread"
               icon={<LineChart className="h-4 w-4 text-muted-foreground" />}
               color="default"
+              tooltip="A cotação do dia + Taxa de Spread que você selecionou na barra de progresso."
             />
           </div>
 
@@ -480,10 +504,11 @@ const CalculatorPage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <MetricCard
               title="Volume BRL"
-              value={fmt(metrics.curBRL, false, currency)}
-              subtitle={`Total mensal em ${currency}`}
+              value={fmt(metrics.curBRL, false, "BRL")}
+              subtitle="Total mensal em R$"
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               color="default"
+              tooltip="O valor da operação x a cotação do dia (em reais)."
             />
             <MetricCard
               title={`Projeção ${projMonths}m`}
@@ -492,6 +517,7 @@ const CalculatorPage = () => {
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
               highlight={isPositive}
+              tooltip="O quanto você economizaria ou lucraria por ano de acordo com o valor da operação atual. (Aqui é aonde a Treend faz a diferença)."
             />
             <MetricCard
               title="Projeção 24m"
@@ -499,6 +525,7 @@ const CalculatorPage = () => {
               subtitle="Economia 2 anos"
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
+              tooltip="O quanto você economizaria ou lucraria em 2 anos repetindo este resultado da operação."
             />
             <MetricCard
               title="Variação (%)"
@@ -506,6 +533,7 @@ const CalculatorPage = () => {
               subtitle={isPositive ? "Economia percentual" : "Custo percentual"}
               icon={<Percent className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
+              tooltip="O percentual que você economizaria ou lucraria nessa operação."
             />
           </div>
         </div>
@@ -577,6 +605,43 @@ const CalculatorPage = () => {
               benchmark={`>= ${currency} 50K (ideal: 100K)`}
               status={metrics.volumeHealthStatus}
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Converter */}
+      <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+            <CalcIcon className="h-4 w-4 text-primary" />
+          </div>
+          <span className="text-sm font-semibold text-foreground">Conversor Rápido</span>
+          <span className="text-xs text-muted-foreground ml-1">({currency} → BRL com cotação do dia)</span>
+        </div>
+        <div className="grid sm:grid-cols-3 gap-3 items-end">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Valor em {currency}</Label>
+            <Input
+              type="number"
+              value={monthlyVolume}
+              readOnly
+              className="h-10 text-sm bg-muted/40 border-border/40"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Cotação Atual</Label>
+            <Input
+              type="number"
+              value={currentRate}
+              readOnly
+              className="h-10 text-sm bg-muted/40 border-border/40"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Resultado em R$</Label>
+            <div className="h-10 flex items-center justify-center rounded-md border border-primary/30 bg-primary/5 text-sm font-bold tabular-nums text-foreground">
+              {fmtFull(volume * curRate, "BRL")}
+            </div>
           </div>
         </div>
       </div>
