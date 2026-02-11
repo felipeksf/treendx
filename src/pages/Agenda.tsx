@@ -11,18 +11,13 @@ const categoryConfig: Record<string, {
   dot: string;
   className: string;
 }> = {
-  mentoria: {
-    label: "Live de Mentoria",
-    dot: "bg-primary",
-    className: "bg-primary/15 text-primary"
-  },
   relatorio: {
-    label: "Relatório Semanal",
+    label: "Report Semanal no Feed",
     dot: "bg-treend-success",
     className: "bg-treend-success/15 text-treend-success"
   },
   macroeconomico: {
-    label: "Evento Macro",
+    label: "Evento Macroeconômico",
     dot: "bg-treend-warning",
     className: "bg-treend-warning/15 text-treend-warning"
   }

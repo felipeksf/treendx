@@ -19,8 +19,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type AgendaEvent = Tables<"agenda_events">;
 
 const categoryOptions = [
-  { value: "mentoria", label: "Live de Mentoria" },
-  { value: "relatorio", label: "Relatório Semanal" },
+  { value: "relatorio", label: "Report Semanal no Feed" },
   { value: "macroeconomico", label: "Evento Macroeconômico" },
 ];
 
