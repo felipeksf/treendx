@@ -36,12 +36,15 @@ const RATE_RANGES: Record<string, { min: number; max: number; default: number }>
   BRL: { min: 0.15, max: 0.30, default: 0.20 },
 };
 
-const fmt = (v: number) =>
-  v >= 1_000_000
-    ? `R$ ${(v / 1_000_000).toFixed(1)}M`
-    : v >= 1_000
-    ? `R$ ${(v / 1_000).toFixed(1)}K`
-    : `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmt = (v: number, negative = false) => {
+  const prefix = negative ? "-R$ " : "R$ ";
+  const abs = Math.abs(v);
+  return abs >= 1_000_000
+    ? `${prefix}${(abs / 1_000_000).toFixed(1)}M`
+    : abs >= 1_000
+    ? `${prefix}${(abs / 1_000).toFixed(1)}K`
+    : `${prefix}${abs.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
 
 const fmtFull = (v: number) =>
   `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -391,7 +394,7 @@ const CalculatorPage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <MetricCard
               title="Economia Mensal"
-              value={fmt(Math.abs(metrics.savingsMonth))}
+              value={fmt(metrics.savingsMonth, !isPositive)}
               subtitle={isPositive ? "Economia potencial" : "Custo adicional"}
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
@@ -399,14 +402,14 @@ const CalculatorPage = () => {
             />
             <MetricCard
               title="Economia Anual"
-              value={fmt(Math.abs(metrics.savingsYear))}
+              value={fmt(metrics.savingsYear, !isPositive)}
               subtitle="Projeção 12 meses"
               icon={<Target className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
             />
             <MetricCard
               title="Economia"
-              value={fmt(Math.abs(metrics.savingsPerOp))}
+              value={fmt(metrics.savingsPerOp, !isPositive)}
               subtitle="Por transação"
               icon={<Clock className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
@@ -463,7 +466,7 @@ const CalculatorPage = () => {
             />
             <MetricCard
               title={`Projeção ${projMonths}m`}
-              value={fmt(Math.abs(metrics.savingsMonth * projMonths))}
+              value={fmt(metrics.savingsMonth * projMonths, !isPositive)}
               subtitle="Economia projetada"
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
@@ -471,7 +474,7 @@ const CalculatorPage = () => {
             />
             <MetricCard
               title="Projeção 24m"
-              value={fmt(Math.abs(metrics.proj24m))}
+              value={fmt(metrics.proj24m, !isPositive)}
               subtitle="Economia 2 anos"
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
