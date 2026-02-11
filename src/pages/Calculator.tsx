@@ -224,13 +224,18 @@ const CalculatorPage = () => {
     const range = rateRange.max - rateRange.min;
     const pct = ((sliderRateNum - rateRange.min) / range) * 100;
 
-    // Health scores
+    // Health scores - adjusted based on profile perspective
+    const prefersLowerRate = ["importador", "agente_turismo", "turista"].includes(profile);
+    const effectiveSavings = prefersLowerRate ? savingsMonth : -savingsMonth;
+    const effectiveSavingsPct = prefersLowerRate ? savingsPct : -savingsPct;
+    const effectiveRoi = effectiveSavings > 0 ? (Math.abs(savingsYear) / (subscriptionCost * 12)) * 100 : 0;
+
     const savingsHealthStatus: "good" | "warning" | "bad" =
-      savingsPct >= 2 ? "good" : savingsPct >= 0.5 ? "warning" : "bad";
+      effectiveSavingsPct >= 2 ? "good" : effectiveSavingsPct >= 0.5 ? "warning" : "bad";
     const spreadHealthStatus: "good" | "warning" | "bad" =
       spread <= 1.5 ? "good" : spread <= 3 ? "warning" : "bad";
     const roiHealthStatus: "good" | "warning" | "bad" =
-      roi >= 200 ? "good" : roi >= 100 ? "warning" : "bad";
+      effectiveRoi >= 200 ? "good" : effectiveRoi >= 100 ? "warning" : "bad";
     const volumeHealthStatus: "good" | "warning" | "bad" =
       volume >= 50000 ? "good" : volume >= 10000 ? "warning" : "bad";
 
@@ -250,12 +255,12 @@ const CalculatorPage = () => {
       spreadCost, effectiveRate, rateDiff, rateDiffPct,
       proj6m, proj12m, proj24m,
       sliderBRL, sliderDiff, sliderDiffPct,
-      breakEvenMonths, roi, subscriptionCost,
+      breakEvenMonths, roi: effectiveRoi, subscriptionCost,
       pct,
       savingsHealthStatus, spreadHealthStatus, roiHealthStatus, volumeHealthStatus,
       overallHealth,
     };
-  }, [volume, curRate, trdRate, ops, spread, sliderRateNum, rateRange]);
+  }, [volume, curRate, trdRate, ops, spread, sliderRateNum, rateRange, profile]);
 
   const getZoneLabel = (pct: number) => {
     if (pct <= 20) return { label: "Muito Saudável", color: "text-treend-success" };
