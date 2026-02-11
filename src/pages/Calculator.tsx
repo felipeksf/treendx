@@ -330,7 +330,7 @@ const CalculatorPage = () => {
               <Input type="number" value={opsPerMonth} onChange={(e) => setOpsPerMonth(e.target.value)} className="h-10 text-sm bg-muted/40 border-border/40" />
             </div>
           </div>
-          <div className="grid sm:grid-cols-2 gap-3 mt-3">
+          <div className="grid sm:grid-cols-3 gap-3 mt-3">
             <div className="space-y-1.5">
               <TooltipLabel label={`Taxa Atual (${currency === "BRL" ? "R$" : currency === "USD" ? "US$" : "€"})`} tip="Insira a taxa de câmbio comercial do dia abaixo" />
               <Input
@@ -344,6 +344,22 @@ const CalculatorPage = () => {
             <div className="space-y-1.5">
               <TooltipLabel label={`Taxa Treend (${currency === "BRL" ? "R$" : currency === "USD" ? "US$" : "€"})`} tip="Taxa Comercial mapeada pela Treend" />
               <Input type="number" value={treendRate} onChange={(e) => setTreendRate(e.target.value)} step="0.01" className="h-10 text-sm bg-muted/40 border-border/40" />
+            </div>
+            <div className="space-y-1.5">
+              <TooltipLabel label="Percentual de Diferença" tip="Diferença percentual entre a Taxa Atual e a Taxa Treend" />
+              <div className={`h-10 flex items-center justify-center rounded-md border text-sm font-semibold tabular-nums ${
+                curRate > 0 && trdRate > 0
+                  ? curRate !== trdRate
+                    ? isPositive
+                      ? "border-treend-success/30 bg-treend-success/10 text-treend-success"
+                      : "border-treend-danger/30 bg-treend-danger/10 text-treend-danger"
+                    : "border-border/40 bg-muted/40 text-muted-foreground"
+                  : "border-border/40 bg-muted/40 text-muted-foreground"
+              }`}>
+                {curRate > 0 && trdRate > 0
+                  ? `${((curRate - trdRate) / curRate * 100) >= 0 ? "" : "-"}${Math.abs((curRate - trdRate) / curRate * 100).toFixed(2)}%`
+                  : "—"}
+              </div>
             </div>
           </div>
         </div>
