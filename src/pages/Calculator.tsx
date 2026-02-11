@@ -176,7 +176,9 @@ const CalculatorPage = () => {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [profile, setProfile] = useState<"importador" | "exportador" | "agente_turismo" | "turista" | "freelancer">("importador");
   const { toast } = useToast();
-  const { usd: liveUsd, eur: liveEur } = useExchangeRates();
+  const { usd: liveUsd, eur: liveEur, gbp: liveGbp } = useExchangeRates();
+  const [converterCurrency, setConverterCurrency] = useState("USD");
+  const [converterAmount, setConverterAmount] = useState("1000");
 
   // Update currentRate when live rates load
   useEffect(() => {
@@ -610,41 +612,56 @@ const CalculatorPage = () => {
       </div>
 
       {/* Quick Converter */}
-      <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
-            <CalcIcon className="h-4 w-4 text-primary" />
-          </div>
-          <span className="text-sm font-semibold text-foreground">Conversor Rápido</span>
-          <span className="text-xs text-muted-foreground ml-1">({currency} → BRL com cotação do dia)</span>
-        </div>
-        <div className="grid sm:grid-cols-3 gap-3 items-end">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Valor em {currency}</Label>
-            <Input
-              type="number"
-              value={monthlyVolume}
-              readOnly
-              className="h-10 text-sm bg-muted/40 border-border/40"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Cotação Atual</Label>
-            <Input
-              type="number"
-              value={currentRate}
-              readOnly
-              className="h-10 text-sm bg-muted/40 border-border/40"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Resultado em R$</Label>
-            <div className="h-10 flex items-center justify-center rounded-md border border-primary/30 bg-primary/5 text-sm font-bold tabular-nums text-foreground">
-              {fmtFull(volume * curRate, "BRL")}
+      {(() => {
+        const convRate = converterCurrency === "USD" ? liveUsd?.bid : converterCurrency === "EUR" ? liveEur?.bid : liveGbp?.bid;
+        const convAmount = parseFloat(converterAmount) || 0;
+        const convSymbol = converterCurrency === "USD" ? "US$" : converterCurrency === "EUR" ? "€" : "£";
+        return (
+          <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+                <CalcIcon className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-sm font-semibold text-foreground">Conversor Rápido</span>
+              <span className="text-xs text-muted-foreground ml-1">({converterCurrency} → BRL com cotação do dia)</span>
+            </div>
+            <div className="grid sm:grid-cols-4 gap-3 items-end">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Moeda</Label>
+                <Select value={converterCurrency} onValueChange={setConverterCurrency}>
+                  <SelectTrigger className="h-10 text-sm bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD — Dólar</SelectItem>
+                    <SelectItem value="EUR">EUR — Euro</SelectItem>
+                    <SelectItem value="GBP">GBP — Libra</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Valor em {convSymbol}</Label>
+                <Input
+                  type="number"
+                  value={converterAmount}
+                  onChange={(e) => setConverterAmount(e.target.value)}
+                  className="h-10 text-sm bg-muted/40 border-border/40"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Cotação Atual</Label>
+                <div className="h-10 flex items-center justify-center rounded-md border border-border/40 bg-muted/40 text-sm font-semibold tabular-nums text-foreground">
+                  {convRate ? convRate.toFixed(4) : "—"}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Resultado em R$</Label>
+                <div className="h-10 flex items-center justify-center rounded-md border border-primary/30 bg-primary/5 text-sm font-bold tabular-nums text-foreground">
+                  {convRate ? fmtFull(convAmount * convRate, "BRL") : "—"}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* Scenario Slider */}
       <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
