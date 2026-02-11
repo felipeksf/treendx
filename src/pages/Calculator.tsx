@@ -150,7 +150,7 @@ const CalculatorPage = () => {
   const [projectionMonths, setProjectionMonths] = useState("12");
   const [sliderRate, setSliderRate] = useState([5.12]);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [profile, setProfile] = useState<"importador" | "exportador">("importador");
+  const [profile, setProfile] = useState<"importador" | "exportador" | "agente_turismo" | "turista" | "freelancer">("importador");
   const { toast } = useToast();
 
   const rateRange = RATE_RANGES[currency];
@@ -252,7 +252,8 @@ const CalculatorPage = () => {
   };
 
   const zoneInfo = getZoneLabel(metrics.pct);
-  const isPositive = profile === "importador" ? metrics.savingsMonth > 0 : metrics.savingsMonth < 0;
+  const prefersLower = ["importador", "agente_turismo", "turista"].includes(profile);
+  const isPositive = prefersLower ? metrics.savingsMonth > 0 : metrics.savingsMonth < 0;
   const healthLabels = { good: "Saudável", warning: "Atenção", bad: "Crítico" };
   const healthColors = { good: "bg-treend-success/10 text-treend-success border-treend-success/30", warning: "bg-treend-warning/10 text-treend-warning border-treend-warning/30", bad: "bg-treend-danger/10 text-treend-danger border-treend-danger/30" };
 
@@ -273,6 +274,9 @@ const CalculatorPage = () => {
               <SelectContent>
                 <SelectItem value="importador">Importador</SelectItem>
                 <SelectItem value="exportador">Exportador</SelectItem>
+                <SelectItem value="agente_turismo">Agente de Turismo</SelectItem>
+                <SelectItem value="turista">Turista</SelectItem>
+                <SelectItem value="freelancer">Freelancer</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 text-xs">
