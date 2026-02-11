@@ -167,7 +167,7 @@ const Dashboard = () => {
         {[
           { label: "Calculadora", desc: "Simular câmbio", icon: Calculator, path: "/calculator" },
           { label: "Histórico", desc: "Decisões passadas", icon: History, path: "/history" },
-          { label: "Feed", desc: "Comunidade", icon: Newspaper, path: "/news" },
+          { label: "Feed", desc: "Reports Semanais", icon: Newspaper, path: "/news" },
           { label: "Agenda", desc: "Próximos eventos", icon: CalendarDays, path: "/agenda" },
         ].map((item) => (
           <Link
