@@ -26,6 +26,11 @@ import {
   HelpCircle,
   ChevronDown,
 } from "lucide-react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
+  Legend, ResponsiveContainer, LineChart as RechartsLineChart, Line,
+  ComposedChart, Area,
+} from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -724,6 +729,170 @@ const CalculatorPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Charts Section */}
+      {(() => {
+        const TREEND_BLUE = "#3B82F6";
+        const RATE_ORANGE = "#F97316";
+        const EFFECTIVE_PURPLE = "#A855F7";
+        const GRID_COLOR = "hsl(var(--border) / 0.3)";
+        const TEXT_COLOR = "hsl(var(--muted-foreground))";
+
+        const barComparisonData = [
+          { name: currency, "Taxa Atual": curRate, "Taxa Treend": trdRate },
+        ];
+
+        const economyEvolutionData = Array.from({ length: 24 }, (_, i) => ({
+          name: `Mês ${i + 1}`,
+          economia: Math.abs(metrics.savingsMonth) * (i + 1),
+        }));
+
+        const comparativoData = Array.from({ length: 24 }, (_, i) => {
+          const month = i + 1;
+          const variation = Math.sin(month * 0.5) * 0.03;
+          return {
+            name: `Mês ${month}`,
+            "Taxa Atual": parseFloat((curRate + variation * curRate * 0.1).toFixed(4)),
+            "Taxa Treend": parseFloat((trdRate - variation * trdRate * 0.05).toFixed(4)),
+            "Taxa Efetiva": parseFloat((metrics.effectiveRate + variation * metrics.effectiveRate * 0.08).toFixed(4)),
+          };
+        });
+
+        const chartTooltipStyle = {
+          contentStyle: {
+            backgroundColor: "hsl(var(--card))",
+            border: "1px solid hsl(var(--border))",
+            borderRadius: "12px",
+            fontSize: "12px",
+            color: "hsl(var(--foreground))",
+          },
+        };
+
+        return (
+          <div className="space-y-5">
+            {/* Chart 1 - Taxa Atual vs Taxa Treend */}
+            <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <span className="text-sm font-semibold text-foreground">Taxa Atual vs Taxa Treend</span>
+                  <p className="text-[11px] text-muted-foreground">Comparação direta entre a cotação comercial do dia e a taxa mapeada pela Treend. Quanto menor a taxa Treend (azul), maior a economia.</p>
+                </div>
+              </div>
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barComparisonData} barCategoryGap="30%">
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
+                    <XAxis dataKey="name" tick={{ fill: TEXT_COLOR, fontSize: 12 }} />
+                    <YAxis
+                      domain={["auto", "auto"]}
+                      tick={{ fill: TEXT_COLOR, fontSize: 11 }}
+                      tickFormatter={(v: number) => v.toFixed(2)}
+                    />
+                    <RechartsTooltip {...chartTooltipStyle} formatter={(value: number) => value.toFixed(4)} />
+                    <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                    <Bar dataKey="Taxa Atual" fill={RATE_ORANGE} radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="Taxa Treend" fill={TREEND_BLUE} radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Chart 2 - Evolução da Economia/Lucro */}
+            <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <span className="text-sm font-semibold text-foreground">Evolução da Economia/Lucro</span>
+                  <p className="text-[11px] text-muted-foreground">Projeção acumulada da economia gerada ao longo de 24 meses com base nos valores da simulação atual.</p>
+                </div>
+              </div>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={economyEvolutionData}>
+                    <defs>
+                      <linearGradient id="economyGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={isPositive ? "#22C55E" : "#EF4444"} stopOpacity={0.2} />
+                        <stop offset="95%" stopColor={isPositive ? "#22C55E" : "#EF4444"} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
+                    <XAxis dataKey="name" tick={{ fill: TEXT_COLOR, fontSize: 10 }} interval={1} />
+                    <YAxis
+                      tick={{ fill: TEXT_COLOR, fontSize: 11 }}
+                      tickFormatter={(v: number) =>
+                        v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}K` : v.toString()
+                      }
+                    />
+                    <RechartsTooltip
+                      {...chartTooltipStyle}
+                      formatter={(value: number) => [
+                        `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        isPositive ? "Economia" : "Custo",
+                      ]}
+                    />
+                    <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                    <Area
+                      type="monotone"
+                      dataKey="economia"
+                      fill="url(#economyGradient)"
+                      stroke="none"
+                      name={isPositive ? "Economia Acumulada" : "Custo Acumulado"}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="economia"
+                      stroke={isPositive ? "#22C55E" : "#EF4444"}
+                      strokeWidth={2.5}
+                      dot={{ fill: isPositive ? "#22C55E" : "#EF4444", r: 3, strokeWidth: 0 }}
+                      activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))" }}
+                      name={isPositive ? "Economia Acumulada" : "Custo Acumulado"}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Chart 3 - Comparativo Treend */}
+            <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+                  <LineChart className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <span className="text-sm font-semibold text-foreground">Comparativo Treend</span>
+                  <p className="text-[11px] text-muted-foreground">Projeção comparativa ao longo de 24 meses: taxa comercial, taxa Treend e taxa efetiva (com spread bancário).</p>
+                </div>
+              </div>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsLineChart data={comparativoData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
+                    <XAxis dataKey="name" tick={{ fill: TEXT_COLOR, fontSize: 10 }} interval={1} />
+                    <YAxis
+                      domain={["auto", "auto"]}
+                      tick={{ fill: TEXT_COLOR, fontSize: 11 }}
+                      tickFormatter={(v: number) => v.toFixed(2)}
+                    />
+                    <RechartsTooltip
+                      {...chartTooltipStyle}
+                      formatter={(value: number) => value.toFixed(4)}
+                    />
+                    <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                    <Line type="monotone" dataKey="Taxa Atual" stroke={RATE_ORANGE} strokeWidth={2} dot={{ fill: RATE_ORANGE, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Taxa Treend" stroke={TREEND_BLUE} strokeWidth={2.5} dot={{ fill: TREEND_BLUE, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Taxa Efetiva" stroke={EFFECTIVE_PURPLE} strokeWidth={2} strokeDasharray="5 5" dot={{ fill: EFFECTIVE_PURPLE, r: 2.5, strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                  </RechartsLineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="flex justify-center">
         <Button
