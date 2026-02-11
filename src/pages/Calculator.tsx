@@ -370,7 +370,7 @@ const CalculatorPage = () => {
               color={isPositive ? "success" : "danger"}
             />
             <MetricCard
-              title="Economia/Operação"
+              title="Economia"
               value={fmt(Math.abs(metrics.savingsPerOp))}
               subtitle="Por transação"
               icon={<Clock className="h-4 w-4 text-muted-foreground" />}
@@ -388,11 +388,11 @@ const CalculatorPage = () => {
           {/* Row 2 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <MetricCard
-              title="Break-even"
-              value={metrics.breakEvenMonths === Infinity ? "∞" : `${metrics.breakEvenMonths.toFixed(1)} meses`}
-              subtitle="Retorno da assinatura"
+              title="Percentual Otimizado"
+              value={`${Math.abs(metrics.savingsPct).toFixed(2)}%`}
+              subtitle="% de economia gerado"
               icon={<Users className="h-4 w-4 text-muted-foreground" />}
-              color={metrics.breakEvenMonths <= 1 ? "success" : metrics.breakEvenMonths <= 3 ? "warning" : "danger"}
+              color={metrics.savingsPct >= 2 ? "success" : metrics.savingsPct >= 0.5 ? "warning" : "danger"}
             />
             <MetricCard
               title="ROI Anual"
