@@ -150,6 +150,7 @@ const CalculatorPage = () => {
   const [projectionMonths, setProjectionMonths] = useState("12");
   const [sliderRate, setSliderRate] = useState([5.12]);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [profile, setProfile] = useState<"importador" | "exportador">("importador");
   const { toast } = useToast();
 
   const rateRange = RATE_RANGES[currency];
@@ -251,7 +252,7 @@ const CalculatorPage = () => {
   };
 
   const zoneInfo = getZoneLabel(metrics.pct);
-  const isPositive = metrics.savingsMonth > 0;
+  const isPositive = profile === "importador" ? metrics.savingsMonth > 0 : metrics.savingsMonth < 0;
   const healthLabels = { good: "Saudável", warning: "Atenção", bad: "Crítico" };
   const healthColors = { good: "bg-treend-success/10 text-treend-success border-treend-success/30", warning: "bg-treend-warning/10 text-treend-warning border-treend-warning/30", bad: "bg-treend-danger/10 text-treend-danger border-treend-danger/30" };
 
@@ -259,15 +260,26 @@ const CalculatorPage = () => {
     <div className="space-y-5 max-w-5xl mx-auto">
       {/* Input Card */}
       <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-lg font-bold text-foreground tracking-tight">Simulação Interativa</h1>
             <p className="text-xs text-muted-foreground mt-0.5">Ajuste os valores e veja as mudanças em tempo real</p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 text-xs">
-            <RefreshCw className="h-3.5 w-3.5" />
-            Resetar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={profile} onValueChange={(v) => setProfile(v as "importador" | "exportador")}>
+              <SelectTrigger className="h-9 w-[150px] text-xs bg-muted/40 border-border/40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="importador">Importador</SelectItem>
+                <SelectItem value="exportador">Exportador</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 text-xs">
+              <RefreshCw className="h-3.5 w-3.5" />
+              Resetar
+            </Button>
+          </div>
         </div>
 
         <div className="border-t border-border/40 pt-4">
