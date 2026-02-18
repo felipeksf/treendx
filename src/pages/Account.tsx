@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, CreditCard, LogOut, Clock, Loader2 } from "lucide-react";
+import { User, CreditCard, LogOut, Clock, Loader2, Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,11 @@ const AccountPage = () => {
   const [saving, setSaving] = useState(false);
   const [subStatus, setSubStatus] = useState<string>("trial");
   const [trialExpiresAt, setTrialExpiresAt] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -51,6 +56,31 @@ const AccountPage = () => {
       toast({ title: "Dados atualizados!" });
     }
     setSaving(false);
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast({ title: "Preencha ambos os campos", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "A senha deve ter no mínimo 6 caracteres", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "As senhas não coincidem", variant: "destructive" });
+      return;
+    }
+    setSavingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Senha alterada com sucesso!" });
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+    setSavingPassword(false);
   };
 
   const handleLogout = async () => {
@@ -120,6 +150,58 @@ const AccountPage = () => {
         </div>
         <Button variant="outline" size="sm" onClick={() => navigate("/pricing")} className="h-8 text-xs">
           Gerenciar Assinatura
+        </Button>
+      </div>
+
+      {/* Password */}
+      <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+            <Lock className="h-4 w-4 text-primary" />
+          </div>
+          <span className="text-sm font-semibold text-foreground">Redefinir Senha</span>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Nova Senha</Label>
+          <div className="relative">
+            <Input
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+              className="h-9 text-sm bg-muted/40 border-border/40 pr-9"
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Confirmar Nova Senha</Label>
+          <div className="relative">
+            <Input
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repita a nova senha"
+              className="h-9 text-sm bg-muted/40 border-border/40 pr-9"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+        <Button size="sm" onClick={handleChangePassword} disabled={savingPassword} className="h-8 text-xs">
+          {savingPassword && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+          Alterar Senha
         </Button>
       </div>
 
