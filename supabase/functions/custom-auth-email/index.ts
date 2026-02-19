@@ -206,10 +206,10 @@ serve(async (req) => {
     const email = user.email;
     const tokenHash = emailData.token_hash;
     const token = emailData.token;
+    const emailActionType = emailData.email_action_type;
     const redirectTo = emailActionType === "recovery" 
       ? "https://treendx.lovable.app/reset-password" 
       : (emailData.redirect_to || "https://treendx.lovable.app");
-    const emailActionType = emailData.email_action_type;
 
     let subject: string;
     let html: string;
