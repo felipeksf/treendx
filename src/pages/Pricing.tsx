@@ -47,16 +47,11 @@ const PricingPage = () => {
 
           <Button
             size="lg"
-            onClick={handleCheckout}
-            disabled={loading}
             variant="outline"
-            className="w-full h-14 text-base font-semibold rounded-xl"
+            className="w-full h-14 text-base font-semibold rounded-xl mt-3"
+            onClick={() => window.open("https://app.treend.com.br/login", "_blank")}
           >
-            {loading ? (
-              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Abrindo checkout...</>
-            ) : (
-              <><ExternalLink className="mr-2 h-5 w-5" /> Assinar agora</>
-            )}
+            <ExternalLink className="mr-2 h-5 w-5" /> Acessar a Plataforma
           </Button>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-8">
