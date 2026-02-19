@@ -69,7 +69,7 @@ const AppSidebar = ({
   const allItems = isAdmin ? [...navItems, adminItem] : navItems;
   const handleLogout = async () => {
     await signOut();
-    navigate("/login");
+    window.location.href = "/login";
     toast({
       title: "Sessão encerrada com sucesso"
     });
