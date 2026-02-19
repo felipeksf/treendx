@@ -26,12 +26,14 @@ const getHeatColor = (x: number, y: number): string => {
 };
 
 const getZoneMessage = (x: number, y: number): string => {
-  const favorability = 100 - ((x + y) / 2);
-  if (favorability >= 75) return "Zona muito favorável para tomada de decisão";
-  if (favorability >= 50) return "Zona favorável — bom momento para avaliar";
-  if (favorability >= 35) return "Zona neutra — aguarde por melhores condições";
-  if (favorability >= 20) return "Zona de atenção — cautela recomendada";
-  return "Zona crítica — momento não recomendado";
+  // x determines the column (0=left/green, 100=right/red)
+  // We use x position to map to 5 columns
+  const column = x / 100; // 0 to 1
+  if (column <= 0.2) return "Cenário interessante para tomada de decisão";
+  if (column <= 0.4) return "Cenário OK para tomada de decisão";
+  if (column <= 0.6) return "Cenário Neutro para tomada de decisão";
+  if (column <= 0.8) return "Cenário não saudável para tomada de decisão";
+  return "Cenário pessimista para tomada de decisão";
 };
 
 const HeatmapBlock = ({
