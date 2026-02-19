@@ -304,9 +304,9 @@ const CalculatorPage = () => {
     const pct = ((sliderRateNum - rateRange.min) / range) * 100;
 
     // Health scores
-    // Economia >= 1% ideal 1.5%
+    // Economia <= 0.8% ideal
     const savingsHealthStatus: "good" | "warning" | "bad" =
-      grossPct >= 1 ? "good" : grossPct >= 0.5 ? "warning" : "bad";
+      grossPct <= 0.8 && grossPct > 0 ? "good" : grossPct <= 1.2 ? "warning" : "bad";
     // Spread <= 1.2% ideal 0.5%
     const spreadHealthStatus: "good" | "warning" | "bad" =
       spread <= 0.5 ? "good" : spread <= 1.2 ? "warning" : "bad";
@@ -631,7 +631,7 @@ const CalculatorPage = () => {
                   ? "Diferencial moderado, avalie condições"
                   : "Diferencial insuficiente para gerar economia"
               }
-              benchmark=">= 1% (ideal: 1,5%)"
+              benchmark="<= 0,8% (ideal)"
               status={metrics.savingsHealthStatus}
             />
             <HealthItem
