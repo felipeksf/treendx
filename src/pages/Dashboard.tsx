@@ -197,11 +197,7 @@ const Dashboard = () => {
           ] as const).map(({ rate, flag, label }) => rate && (
             <div
               key={label}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
-                currency === label
-                  ? "bg-primary/10 border-primary/30"
-                  : "bg-muted/30 border-border/40"
-              }`}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all bg-muted/30 border-border/40 hover:bg-primary/10 hover:border-primary/30"
             >
               <span className="text-base">{flag}</span>
               <div>
