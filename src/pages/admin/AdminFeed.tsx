@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Send, Trash2, BadgeCheck, Loader2, ImagePlus, X } from "lucide-react";
+import { MessageSquare, Send, Trash2, BadgeCheck, Loader2, ImagePlus, X, Mail, MailCheck, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
@@ -248,13 +248,24 @@ const AdminFeed = () => {
             posts.map((post) => (
               <div key={post.id} className="flex items-start gap-3 p-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-[10px] font-medium uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
                       {post.currency === "general" ? "Geral" : post.currency}
                     </span>
                     <span className="text-[11px] text-muted-foreground">
                       {new Date(post.created_at).toLocaleDateString("pt-BR")}
                     </span>
+                    {(post as FeedPost & { report_email_sent?: boolean }).report_email_sent ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-green-600 bg-green-500/10 px-2 py-0.5 rounded-md">
+                        <MailCheck className="h-3 w-3" />
+                        E-mail enviado
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
+                        <Clock className="h-3 w-3" />
+                        Aguardando envio
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-foreground/85 line-clamp-2">{post.body}</p>
                   {post.image_url && (
