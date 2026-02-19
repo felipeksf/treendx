@@ -63,7 +63,7 @@ const HeatmapBlock = ({
   }), []);
 
   return (
-    <div className="rounded-2xl bg-card border border-border/40 overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+    <div className="rounded-2xl bg-card border border-primary/40 overflow-hidden transition-all hover:border-primary/60 hover:shadow-lg hover:shadow-primary/10">
       {/* Header */}
       <div className="p-4 pb-3 flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
