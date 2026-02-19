@@ -6,6 +6,7 @@ import {
   History,
   Newspaper,
   CalendarDays,
+  MessageSquare,
   User,
   LogOut,
   MoreVertical,
@@ -25,7 +26,8 @@ type ProfileType = "importer" | "exporter";
 
 const mobileNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { label: "Feed", icon: Newspaper, path: "/news" },
+  { label: "Feed", icon: MessageSquare, path: "/feed" },
+  { label: "Notícias", icon: Newspaper, path: "/news" },
   { label: "Agenda", icon: CalendarDays, path: "/agenda" },
   { label: "Calculadora", icon: Calculator, path: "/calculator" },
   { label: "Histórico", icon: History, path: "/history" },
