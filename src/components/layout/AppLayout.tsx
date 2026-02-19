@@ -47,7 +47,7 @@ const AppLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background overflow-x-hidden">
       {/* Desktop Sidebar */}
       <AppSidebar profile={profile} onProfileChange={setProfile} />
 
