@@ -1,22 +1,87 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { History as HistoryIcon, Download, TrendingDown, TrendingUp } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
-const mockHistory = [
-  { id: 1, date: "2026-02-08", currency: "USD", amount: 10000, rate: 5.12, zone: "Barato", savings: 1700 },
-  { id: 2, date: "2026-02-05", currency: "EUR", amount: 5000, rate: 5.58, zone: "Caro", savings: -400 },
-  { id: 3, date: "2026-01-28", currency: "USD", amount: 25000, rate: 4.98, zone: "Muito Barato", savings: 3200 },
-  { id: 4, date: "2026-01-20", currency: "USD", amount: 8000, rate: 5.25, zone: "Neutro", savings: 120 },
-  { id: 5, date: "2026-01-15", currency: "EUR", amount: 15000, rate: 5.45, zone: "Neutro", savings: 890 },
-];
+const currencySymbol = (c: string) => c === "BRL" ? "R$" : c === "USD" ? "US$" : c === "GBP" ? "£" : c === "EUR" ? "€" : c;
+
+const formatDateBR = (dateStr: string) => {
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const year = d.getUTCFullYear();
+  return `${day}/${month}/${year}`;
+};
 
 const HistoryPage = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [filterCurrency, setFilterCurrency] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
-  const filtered = filterCurrency === "all" ? mockHistory : mockHistory.filter((h) => h.currency === filterCurrency);
-  const totalSavings = filtered.reduce((acc, h) => acc + h.savings, 0);
+  const { data: decisions = [], isLoading } = useQuery({
+    queryKey: ["user-decisions", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("user_decisions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const filtered = useMemo(() => {
+    let result = decisions;
+    if (filterCurrency !== "all") {
+      result = result.filter((h) => h.currency === filterCurrency);
+    }
+    if (dateFrom) {
+      result = result.filter((h) => h.created_at.slice(0, 10) >= dateFrom);
+    }
+    if (dateTo) {
+      result = result.filter((h) => h.created_at.slice(0, 10) <= dateTo);
+    }
+    return result;
+  }, [decisions, filterCurrency, dateFrom, dateTo]);
+
+  // Group savings by currency
+  const savingsByCurrency = useMemo(() => {
+    const map: Record<string, number> = {};
+    filtered.forEach((h) => {
+      const cur = h.currency || "USD";
+      map[cur] = (map[cur] || 0) + (h.savings || 0);
+    });
+    return map;
+  }, [filtered]);
+
+  const handleExportCSV = () => {
+    if (filtered.length === 0) {
+      toast({ title: "Nenhum dado para exportar" });
+      return;
+    }
+    const header = "Data,Moeda,Volume,Taxa,Zona,Economia\n";
+    const rows = filtered.map((h) =>
+      `${formatDateBR(h.created_at)},${h.currency},${h.amount},${h.rate},${h.zone || ""},${h.savings || 0}`
+    ).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `historico-treend-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
@@ -31,16 +96,24 @@ const HistoryPage = () => {
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Total de decisões</p>
           <p className="text-2xl font-bold text-foreground tabular-nums">{filtered.length}</p>
         </div>
-        <div className={`rounded-2xl border p-4 text-center ${totalSavings >= 0 ? "border-treend-success/20 bg-card" : "border-treend-danger/20 bg-card"}`}>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Economia acumulada</p>
-          <p className={`text-2xl font-bold tabular-nums ${totalSavings >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
-            R$ {totalSavings.toLocaleString("pt-BR")}
-          </p>
+        <div className="rounded-2xl border border-border/40 bg-card p-4">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1 text-center">Economia acumulada</p>
+          {Object.keys(savingsByCurrency).length === 0 ? (
+            <p className="text-2xl font-bold text-foreground tabular-nums text-center">—</p>
+          ) : (
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {Object.entries(savingsByCurrency).map(([cur, total]) => (
+                <p key={cur} className={`text-xl font-bold tabular-nums ${total >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
+                  {currencySymbol(cur)} {total.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-end gap-3 flex-wrap">
         <div className="space-y-1">
           <Label className="text-xs">Moeda</Label>
           <Select value={filterCurrency} onValueChange={setFilterCurrency}>
@@ -49,43 +122,58 @@ const HistoryPage = () => {
               <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="USD">USD</SelectItem>
               <SelectItem value="EUR">EUR</SelectItem>
+              <SelectItem value="GBP">GBP</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" size="sm" disabled className="h-8 text-xs mt-auto">
+        <div className="space-y-1">
+          <Label className="text-xs flex items-center gap-1"><CalendarDays className="h-3 w-3" /> De</Label>
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-36 text-xs bg-muted/40 border-border/40" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Até</Label>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-36 text-xs bg-muted/40 border-border/40" />
+        </div>
+        <Button variant="outline" size="sm" onClick={handleExportCSV} className="h-8 text-xs">
           <Download className="mr-1.5 h-3.5 w-3.5" />
           Exportar CSV
         </Button>
       </div>
 
       {/* List */}
-      <div className="space-y-2">
-        {filtered.map((h) => (
-          <div key={h.id} className="rounded-2xl bg-card border border-border/40 p-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <HistoryIcon className="h-4 w-4 text-primary" />
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground text-center py-8">Carregando...</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-8">Nenhuma decisão registrada ainda.</p>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((h) => (
+            <div key={h.id} className="rounded-2xl bg-card border border-border/40 p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <HistoryIcon className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {h.currency} {Number(h.amount).toLocaleString()} @ {Number(h.rate).toFixed(2)}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">{formatDateBR(h.created_at)} · Zona: {h.zone || "—"}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {h.currency} {h.amount.toLocaleString()} @ {h.rate.toFixed(2)}
-                </p>
-                <p className="text-[11px] text-muted-foreground">{h.date} · Zona: {h.zone}</p>
+              <div className="flex items-center gap-1 shrink-0">
+                {(h.savings || 0) >= 0 ? (
+                  <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
+                ) : (
+                  <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
+                )}
+                <span className={`text-sm font-semibold tabular-nums ${(h.savings || 0) >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
+                  {(h.savings || 0) >= 0 ? "+" : ""}{currencySymbol(h.currency)} {(h.savings || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
-              {h.savings >= 0 ? (
-                <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-              ) : (
-                <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
-              )}
-              <span className={`text-sm font-semibold tabular-nums ${h.savings >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
-                {h.savings >= 0 ? "+" : ""}R$ {h.savings.toLocaleString("pt-BR")}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

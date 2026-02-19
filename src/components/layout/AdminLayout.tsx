@@ -9,7 +9,6 @@ import { Sun, Moon } from "lucide-react";
 import treendLogo from "@/assets/treend-logo.png";
 
 const adminNavItems = [
-  { label: "Usuários", icon: Users, path: "/admin/users" },
   { label: "Feed", icon: MessageSquare, path: "/admin/feed" },
   { label: "Agenda", icon: CalendarDays, path: "/admin/agenda" },
   { label: "Scores", icon: BarChart3, path: "/admin/scores" },
