@@ -187,7 +187,7 @@ const CalculatorPage = () => {
   const [treendRate, setTreendRate] = useState("5.08");
   const [opsPerMonth, setOpsPerMonth] = useState("10");
   const [opsFrequency, setOpsFrequency] = useState<"month" | "week">("month");
-  const [bankSpread, setBankSpread] = useState("2.5");
+  const [bankSpread, setBankSpread] = useState("1.0");
   const [projectionMonths, setProjectionMonths] = useState("12");
   const [sliderRate, setSliderRate] = useState([5.12]);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -255,7 +255,7 @@ const CalculatorPage = () => {
     setCurrentRate(rateRange.default.toFixed(2));
     setTreendRate(computeTreendRate(rateRange.default).toFixed(4));
     setOpsPerMonth("10");
-    setBankSpread("2.5");
+    setBankSpread("1.0");
     setProjectionMonths("12");
     setSliderRate([rateRange.default]);
   };
@@ -437,7 +437,9 @@ const CalculatorPage = () => {
               <TooltipLabel label="Percentual de Diferença" tip="Diferença percentual entre a Taxa Atual e a Taxa Estimada pela Treend" />
               <div className={`h-10 flex items-center justify-center rounded-md border text-sm font-semibold tabular-nums ${
                 curRate > 0 && trdRate > 0 && curRate !== trdRate
-                  ? "border-treend-success/30 bg-treend-success/10 text-treend-success"
+                  ? isPositive
+                    ? "border-treend-success/30 bg-treend-success/10 text-treend-success"
+                    : "border-treend-danger/30 bg-treend-danger/10 text-treend-danger"
                   : "border-border/40 bg-muted/40 text-muted-foreground"
               }`}>
                 {curRate > 0 && trdRate > 0
