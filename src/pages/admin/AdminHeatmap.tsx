@@ -105,6 +105,9 @@ const AdminHeatmap = () => {
         <p className="text-xs text-muted-foreground mt-0.5">
           Gerencie os indicadores visuais de cada perfil
         </p>
+        <p className="text-[10px] text-muted-foreground/70 mt-2 italic">
+          Importante: não fazemos nenhum tipo de recomendação cambial/financeira. As informações exibidas são meramente indicativas e a decisão final é de total responsabilidade do usuário.
+        </p>
       </div>
 
       {/* Filters */}
