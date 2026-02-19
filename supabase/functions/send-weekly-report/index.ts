@@ -47,12 +47,7 @@ function buildReportHtml(body: string, imageUrl: string | null, dateFormatted: s
     <!-- Hero Strip -->
     <div style="background:#eff6ff;border-bottom:1px solid #dbeafe;padding:28px 48px;">
       <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
-        <td width="68" valign="middle">
-          <div style="width:52px;height:52px;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:14px;text-align:center;line-height:52px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
-          </div>
-        </td>
-        <td valign="middle" style="padding-left:16px;">
+        <td valign="middle">
           <div style="font-size:17px;font-weight:700;color:#1e3a5f;line-height:1.3;">Report Semanal</div>
           <div style="font-size:13.5px;color:#64748b;margin-top:3px;">Publicado em ${dateFormatted}</div>
         </td>

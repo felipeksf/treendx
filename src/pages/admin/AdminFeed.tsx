@@ -357,12 +357,12 @@ const AdminFeed = () => {
                   {(post as FeedPost & { report_email_sent?: boolean }).report_email_sent ? (
                     <span className="inline-flex items-center gap-1 text-[10px] font-medium text-green-600 bg-green-500/10 px-2 py-0.5 rounded-md">
                       <MailCheck className="h-3 w-3" />
-                      E-mail enviado
+                      Enviado
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
                       <Clock className="h-3 w-3" />
-                      Aguardando envio
+                      Aguardando
                     </span>
                   )}
                 </div>
