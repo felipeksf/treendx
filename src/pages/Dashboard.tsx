@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +8,8 @@ import { useHeatmapScores } from "@/hooks/useHeatmap";
 import HeatmapBlock from "@/components/HeatmapBlock";
 import TrialBanner from "@/components/TrialBanner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 type ProfileFilter = "all" | "importador" | "exportador" | "agente_turismo" | "freelancer";
 type Currency = "USD" | "EUR" | "GBP";
@@ -52,6 +54,33 @@ const Dashboard = () => {
   const [profileFilter, setProfileFilter] = useState<ProfileFilter>("all");
   const [currency, setCurrency] = useState<Currency>("USD");
   const [frequency, setFrequency] = useState<Frequency>("weekly");
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
+  const { user, subscription } = useAuth();
+
+  useEffect(() => {
+    const fetchTrialDays = async () => {
+      if (!user) return;
+      // If user has active subscription, don't show trial banner
+      if (subscription.subscribed) {
+        setTrialDaysLeft(null);
+        return;
+      }
+      const { data } = await supabase
+        .from("profiles")
+        .select("trial_expires_at, subscription_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data?.trial_expires_at && data.subscription_status === "trial") {
+        const expires = new Date(data.trial_expires_at);
+        const now = new Date();
+        const diff = Math.ceil((expires.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        setTrialDaysLeft(Math.max(0, diff));
+      } else {
+        setTrialDaysLeft(null);
+      }
+    };
+    fetchTrialDays();
+  }, [user, subscription.subscribed]);
 
   const { usd: liveUsd, eur: liveEur, gbp: liveGbp, isLoading: ratesLoading } = useExchangeRates();
   const { data: heatmapScores, isLoading: heatmapLoading } = useHeatmapScores(currency, frequency);
@@ -99,7 +128,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <TrialBanner daysLeft={5} />
+      {trialDaysLeft !== null && trialDaysLeft > 0 && <TrialBanner daysLeft={trialDaysLeft} />}
 
       {/* Top Action Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

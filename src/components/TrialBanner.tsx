@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
 
 interface TrialBannerProps {
   daysLeft: number;
@@ -6,12 +6,26 @@ interface TrialBannerProps {
 
 const TrialBanner = ({ daysLeft }: TrialBannerProps) => {
   if (daysLeft <= 0) return null;
+
+  const isUrgent = daysLeft <= 2;
+  const Icon = isUrgent ? AlertTriangle : Clock;
+
   return (
-    <div className="bg-primary/10 border border-primary/20 rounded-lg px-4 py-3 flex items-center gap-3 mb-4">
-      <Clock className="h-5 w-5 text-primary shrink-0" />
+    <div
+      className={`rounded-lg px-4 py-3 flex items-center gap-3 mb-4 border ${
+        isUrgent
+          ? "bg-destructive/10 border-destructive/20"
+          : "bg-primary/10 border-primary/20"
+      }`}
+    >
+      <Icon className={`h-5 w-5 shrink-0 ${isUrgent ? "text-destructive" : "text-primary"}`} />
       <p className="text-sm text-foreground">
-        <span className="font-semibold">Trial ativo:</span> Você tem{" "}
-        <span className="text-primary font-bold">{daysLeft} dias</span> restantes de acesso completo.
+        <span className="font-semibold">{isUrgent ? "Trial expirando!" : "Trial ativo:"}</span>{" "}
+        Você tem{" "}
+        <span className={`font-bold ${isUrgent ? "text-destructive" : "text-primary"}`}>
+          {daysLeft} {daysLeft === 1 ? "dia" : "dias"}
+        </span>{" "}
+        restantes de acesso completo.
       </p>
     </div>
   );
