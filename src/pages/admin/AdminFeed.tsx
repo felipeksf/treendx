@@ -133,21 +133,49 @@ const AdminFeed = () => {
       imageUrl = publicData.publicUrl;
     }
 
-    const { error } = await supabase.from("feed_posts").insert({
-      body: newText.trim(),
+    const postBody = newText.trim();
+    const { data: insertedData, error } = await supabase.from("feed_posts").insert({
+      body: postBody,
       currency,
       admin_id: user.id,
       image_url: imageUrl,
-    });
-    setSubmitting(false);
+    }).select().single();
+    
     if (error) {
+      setSubmitting(false);
       toast({ title: "Erro ao publicar.", description: error.message, variant: "destructive" });
-    } else {
-      setNewText("");
-      clearImage();
-      toast({ title: "Publicação criada com sucesso!" });
-      fetchPosts();
+      return;
     }
+
+    // Enviar e-mail imediatamente
+    try {
+      const { data: emailResult, error: emailError } = await supabase.functions.invoke("send-weekly-report", {
+        body: {
+          post_id: insertedData.id,
+          body: postBody,
+          image_url: imageUrl,
+          created_at: insertedData.created_at,
+        },
+      });
+
+      if (emailError) {
+        console.error("Erro ao enviar e-mail:", emailError);
+        toast({ title: "Post publicado, mas erro ao enviar e-mail.", description: String(emailError.message || emailError), variant: "destructive" });
+      } else {
+        // Marcar como enviado
+        await supabase.from("feed_posts").update({ report_email_sent: true } as any).eq("id", insertedData.id);
+        console.log("E-mail enviado:", emailResult);
+        toast({ title: "Publicação criada e e-mail enviado!" });
+      }
+    } catch (err) {
+      console.error("Erro ao disparar e-mail:", err);
+      toast({ title: "Post publicado, mas falha ao enviar e-mail.", variant: "destructive" });
+    }
+
+    setSubmitting(false);
+    setNewText("");
+    clearImage();
+    fetchPosts();
   };
 
   const handleDelete = async (id: string) => {
