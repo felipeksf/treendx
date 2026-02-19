@@ -17,7 +17,7 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
-    const { email, name, password } = await req.json();
+    const { email, name } = await req.json();
 
     if (!email) {
       throw new Error("Email is required");
@@ -46,14 +46,14 @@ serve(async (req) => {
     </div>
 
     <!-- Hero Strip -->
-    <div style="background:#eff6ff;border-bottom:1px solid #dbeafe;padding:28px 48px;display:flex;align-items:center;">
+    <div style="background:#eff6ff;border-bottom:1px solid #dbeafe;padding:28px 48px;">
       <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
         <td width="68" valign="middle">
           <div style="width:52px;height:52px;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:14px;text-align:center;line-height:52px;">
-            <span style="font-size:26px;">🔑</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
         </td>
-        <td valign="middle">
+        <td valign="middle" style="padding-left:16px;">
           <div style="font-size:17px;font-weight:700;color:#1e3a5f;line-height:1.3;">Seus dados de acesso chegaram!</div>
           <div style="font-size:13.5px;color:#64748b;margin-top:3px;">Acesse sua conta e comece a acompanhar o câmbio agora.</div>
         </td>
@@ -66,45 +66,29 @@ serve(async (req) => {
         Olá, <span style="color:#3b82f6;">${firstName}</span>! 👋
       </div>
       <p style="font-size:15px;color:#475569;line-height:1.7;margin:0 0 32px;">
-        Sua conta na Treend foi criada com sucesso. Abaixo você encontra
-        suas credenciais de acesso. Guarde-as em um local seguro e nunca
-        compartilhe com ninguém.
+        Sua conta no Treend foi criada com sucesso. Abaixo você encontra
+        seu e-mail de acesso. Clique no botão para entrar na plataforma e começar a acompanhar
+        o câmbio em tempo real com inteligência artificial.
       </p>
 
       <!-- Credentials Card -->
       <div style="background:#f8faff;border:1.5px solid #dbeafe;border-radius:16px;overflow:hidden;margin-bottom:28px;">
         <div style="background:#eff6ff;padding:14px 24px;font-size:11px;font-weight:700;color:#3b82f6;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid #dbeafe;">
-          🔐  Suas Credenciais de Acesso
+          ✉️  Seu E-mail de Acesso
         </div>
         <!-- Email row -->
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           <tr>
-            <td style="padding:18px 24px;border-bottom:1px solid #e2e8f0;">
+            <td style="padding:18px 24px;">
               <table cellpadding="0" cellspacing="0" border="0"><tr>
                 <td width="52" valign="middle">
                   <div style="width:36px;height:36px;background:#eff6ff;border-radius:10px;text-align:center;line-height:36px;">
-                    <span style="font-size:16px;">✉️</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                   </div>
                 </td>
                 <td valign="middle">
                   <div style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:3px;">E-mail</div>
                   <div style="font-size:15.5px;font-weight:700;color:#1e3a5f;letter-spacing:0.3px;word-break:break-all;">${email}</div>
-                </td>
-              </tr></table>
-            </td>
-          </tr>
-          <!-- Password row -->
-          <tr>
-            <td style="padding:18px 24px;">
-              <table cellpadding="0" cellspacing="0" border="0"><tr>
-                <td width="52" valign="middle">
-                  <div style="width:36px;height:36px;background:#f0fdf4;border-radius:10px;text-align:center;line-height:36px;">
-                    <span style="font-size:16px;">🔒</span>
-                  </div>
-                </td>
-                <td valign="middle">
-                  <div style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:3px;">Senha temporária</div>
-                  <div style="font-family:'Courier New',monospace;background:#ecfdf5;color:#059669;padding:6px 12px;border-radius:8px;display:inline-block;font-size:16px;font-weight:700;letter-spacing:2px;margin-top:2px;">${password || "••••••"}</div>
                 </td>
               </tr></table>
             </td>
@@ -122,11 +106,13 @@ serve(async (req) => {
       <!-- Security Notice -->
       <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;margin-bottom:32px;">
         <table cellpadding="0" cellspacing="0" border="0"><tr>
-          <td width="32" valign="top" style="font-size:20px;">⚠️</td>
+          <td width="32" valign="top">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          </td>
           <td>
             <p style="font-size:13px;color:#92400e;line-height:1.6;margin:0;">
-              <strong style="color:#b45309;">Importante:</strong> Esta é uma senha temporária gerada automaticamente. Por segurança,
-              recomendamos que você a altere no primeiro acesso em Configurações → Segurança.
+              Esqueceu sua senha? Sem problema! Na página de login, clique em
+              <strong style="color:#b45309;">"Esqueci minha senha"</strong> para redefinir e criar uma nova senha de forma rápida e segura.
               Caso não tenha solicitado este cadastro, entre em contato conosco imediatamente.
             </p>
           </td>
