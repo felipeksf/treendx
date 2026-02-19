@@ -160,6 +160,84 @@ export type Database = {
         }
         Relationships: []
       }
+      heatmap_history: {
+        Row: {
+          admin_id: string
+          created_at: string
+          currency: string
+          frequency: string
+          heat_x: number
+          heat_y: number
+          id: string
+          is_accurate: boolean | null
+          profile_type: string
+          published_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          currency: string
+          frequency: string
+          heat_x: number
+          heat_y: number
+          id?: string
+          is_accurate?: boolean | null
+          profile_type: string
+          published_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          currency?: string
+          frequency?: string
+          heat_x?: number
+          heat_y?: number
+          id?: string
+          is_accurate?: boolean | null
+          profile_type?: string
+          published_at?: string
+        }
+        Relationships: []
+      }
+      heatmap_scores: {
+        Row: {
+          admin_id: string
+          created_at: string
+          currency: string
+          frequency: string
+          heat_x: number
+          heat_y: number
+          id: string
+          profile_type: string
+          published_at: string
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          currency: string
+          frequency: string
+          heat_x?: number
+          heat_y?: number
+          id?: string
+          profile_type: string
+          published_at?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          currency?: string
+          frequency?: string
+          heat_x?: number
+          heat_y?: number
+          id?: string
+          profile_type?: string
+          published_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
