@@ -66,7 +66,7 @@ const FeedPage = () => {
       if (postsError) throw postsError;
 
       // Fetch like counts
-      const postIds = (postsData || []).map(p => p.id);
+      const postIds = (postsData || []).map((p) => p.id);
       let likeCounts: Record<string, number> = {};
       let userLikes: Set<string> = new Set();
       if (postIds.length > 0) {
@@ -86,11 +86,11 @@ const FeedPage = () => {
             data: userLikesData
           } = await supabase.from("feed_likes").select("post_id").eq("user_id", user.id).in("post_id", postIds);
           if (userLikesData) {
-            userLikes = new Set(userLikesData.map(l => l.post_id));
+            userLikes = new Set(userLikesData.map((l) => l.post_id));
           }
         }
       }
-      const enriched: FeedPost[] = (postsData || []).map(p => ({
+      const enriched: FeedPost[] = (postsData || []).map((p) => ({
         id: p.id,
         admin_id: p.admin_id,
         body: p.body,
@@ -115,12 +115,12 @@ const FeedPage = () => {
     const isLiked = likedPosts.has(postId);
 
     // Optimistic update
-    setLikedPosts(prev => {
+    setLikedPosts((prev) => {
       const next = new Set(prev);
       if (isLiked) next.delete(postId);else next.add(postId);
       return next;
     });
-    setPosts(prev => prev.map(p => p.id === postId ? {
+    setPosts((prev) => prev.map((p) => p.id === postId ? {
       ...p,
       like_count: p.like_count + (isLiked ? -1 : 1)
     } : p));
@@ -135,18 +135,18 @@ const FeedPage = () => {
       }
     } catch (e) {
       // Revert on error
-      setLikedPosts(prev => {
+      setLikedPosts((prev) => {
         const next = new Set(prev);
         if (isLiked) next.add(postId);else next.delete(postId);
         return next;
       });
-      setPosts(prev => prev.map(p => p.id === postId ? {
+      setPosts((prev) => prev.map((p) => p.id === postId ? {
         ...p,
         like_count: p.like_count + (isLiked ? 1 : -1)
       } : p));
     }
   };
-  const filtered = posts.filter(p => currencyFilter === "all" || p.currency === currencyFilter).filter(p => !searchQuery.trim() || p.body.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filtered = posts.filter((p) => currencyFilter === "all" || p.currency === currencyFilter).filter((p) => !searchQuery.trim() || p.body.toLowerCase().includes(searchQuery.toLowerCase()));
 
   // First post is always "pinned"
   const pinnedPost = filtered.length > 0 ? filtered[0] : null;
@@ -154,12 +154,12 @@ const FeedPage = () => {
   return <div className="max-w-2xl mx-auto space-y-5 pb-10">
       {/* Header */}
       <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">
-          Feed da Comunidade
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Compartilhe ideias e descubra análises cambiais
-        </p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Reports Semanais
+
+      </h1>
+        <p className="text-sm text-muted-foreground">Compartilhamos cases semanais de atuaç
+
+      </p>
       </div>
 
       {/* Currency Filters */}
@@ -169,7 +169,7 @@ const FeedPage = () => {
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar posts..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 h-9 bg-muted/50 border-border/40 text-sm" />
+          <Input placeholder="Buscar posts..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-9 bg-muted/50 border-border/40 text-sm" />
         </div>
         <Button size="sm" className="h-9 px-4 text-sm">
           Buscar
