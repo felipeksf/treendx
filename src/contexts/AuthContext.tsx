@@ -88,7 +88,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        // Block Google OAuth users that are not previously registered
+        if (event === "SIGNED_IN" && session?.user) {
+          const provider = session.user.app_metadata?.provider;
+          if (provider === "google") {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("user_id", session.user.id)
+              .maybeSingle();
+            if (!profile) {
+              await supabase.auth.signOut();
+              setSession(null);
+              setUser(null);
+              setIsAdmin(false);
+              setSubscription({ subscribed: false, productId: null, subscriptionEnd: null, isLoading: false });
+              setIsLoading(false);
+              alert("Você precisa se cadastrar primeiro para acessar a plataforma.");
+              return;
+            }
+          }
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
