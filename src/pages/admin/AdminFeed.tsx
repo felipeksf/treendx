@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Send, Trash2, BadgeCheck, Loader2, ImagePlus, X, Mail, MailCheck, Clock } from "lucide-react";
+import { MessageSquare, Send, Trash2, BadgeCheck, Loader2, ImagePlus, X, Mail, MailCheck, Clock, Pencil, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
@@ -23,6 +23,12 @@ const AdminFeed = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const compressImage = async (file: File, maxSizeKB = 100): Promise<File> => {
     if (file.size <= maxSizeKB * 1024) return file;
@@ -154,6 +160,72 @@ const AdminFeed = () => {
     }
   };
 
+  const startEdit = (post: FeedPost) => {
+    setEditingId(post.id);
+    setEditText(post.body);
+    setEditImageFile(null);
+    setEditImagePreview(post.image_url || null);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditText("");
+    setEditImageFile(null);
+    setEditImagePreview(null);
+    if (editFileInputRef.current) editFileInputRef.current.value = "";
+  };
+
+  const handleEditImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Selecione apenas imagens.", variant: "destructive" });
+      return;
+    }
+    const compressed = await compressImage(file);
+    setEditImageFile(compressed);
+    setEditImagePreview(URL.createObjectURL(compressed));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !editText.trim()) return;
+    setSaving(true);
+
+    let imageUrl: string | null = editImagePreview;
+
+    // If a new image was selected, upload it
+    if (editImageFile) {
+      const sanitizedName = editImageFile.name
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]/g, "_");
+      const filePath = `${Date.now()}_${sanitizedName}`;
+      const { error: uploadError } = await supabase.storage
+        .from("feed-images")
+        .upload(filePath, editImageFile);
+      if (uploadError) {
+        toast({ title: "Erro ao enviar imagem.", description: uploadError.message, variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      const { data: publicData } = supabase.storage.from("feed-images").getPublicUrl(filePath);
+      imageUrl = publicData.publicUrl;
+    }
+
+    const { error } = await supabase
+      .from("feed_posts")
+      .update({ body: editText.trim(), image_url: imageUrl })
+      .eq("id", editingId);
+
+    setSaving(false);
+    if (error) {
+      toast({ title: "Erro ao salvar.", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Publicação editada com sucesso!" });
+      cancelEdit();
+      fetchPosts();
+    }
+  };
+
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
       <div>
@@ -246,35 +318,96 @@ const AdminFeed = () => {
             <p className="text-muted-foreground text-center py-8 text-sm">Nenhuma publicação.</p>
           ) : (
             posts.map((post) => (
-              <div key={post.id} className="flex items-start gap-3 p-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                      {post.currency === "general" ? "Geral" : post.currency}
+              <div key={post.id} className="p-4">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                    {post.currency === "general" ? "Geral" : post.currency}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {new Date(post.created_at).toLocaleDateString("pt-BR")}
+                  </span>
+                  {(post as FeedPost & { report_email_sent?: boolean }).report_email_sent ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-green-600 bg-green-500/10 px-2 py-0.5 rounded-md">
+                      <MailCheck className="h-3 w-3" />
+                      E-mail enviado
                     </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {new Date(post.created_at).toLocaleDateString("pt-BR")}
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
+                      <Clock className="h-3 w-3" />
+                      Aguardando envio
                     </span>
-                    {(post as FeedPost & { report_email_sent?: boolean }).report_email_sent ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-green-600 bg-green-500/10 px-2 py-0.5 rounded-md">
-                        <MailCheck className="h-3 w-3" />
-                        E-mail enviado
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
-                        <Clock className="h-3 w-3" />
-                        Aguardando envio
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-foreground/85 line-clamp-2">{post.body}</p>
-                  {post.image_url && (
-                    <img src={post.image_url} alt="Post" className="mt-2 max-h-32 rounded-lg border border-border/40 object-cover" />
                   )}
                 </div>
-                <button onClick={() => handleDelete(post.id)} className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+
+                {editingId === post.id ? (
+                  <div className="space-y-3 mt-2">
+                    <Textarea
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="resize-none bg-muted/40 border-border/40 min-h-[80px] text-sm"
+                    />
+                    {editImagePreview && (
+                      <div className="relative inline-block">
+                        <img src={editImagePreview} alt="Preview" className="max-h-32 rounded-lg border border-border/40 object-cover" />
+                        <button
+                          onClick={() => { setEditImageFile(null); setEditImagePreview(null); }}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      ref={editFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleEditImageSelect}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs gap-1.5 border-border/40"
+                        onClick={() => editFileInputRef.current?.click()}
+                      >
+                        <ImagePlus className="h-3.5 w-3.5" />
+                        Imagem
+                      </Button>
+                      <Button size="sm" onClick={handleSaveEdit} disabled={!editText.trim() || saving} className="h-7 text-xs gap-1.5">
+                        {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                        Salvar
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-7 text-xs">
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-3 mt-1">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground/85 line-clamp-2">{post.body}</p>
+                      {post.image_url && (
+                        <img src={post.image_url} alt="Post" className="mt-2 max-h-32 rounded-lg border border-border/40 object-cover" />
+                      )}
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      {!(post as FeedPost & { report_email_sent?: boolean }).report_email_sent && (
+                        <button
+                          onClick={() => startEdit(post)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          title="Editar publicação"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(post.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}
