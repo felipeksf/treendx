@@ -14,6 +14,7 @@ const AccountPage = () => {
   const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [subStatus, setSubStatus] = useState<string>("trial");
+  const [loadingPortal, setLoadingPortal] = useState(false);
   const [trialExpiresAt, setTrialExpiresAt] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -148,9 +149,27 @@ const AccountPage = () => {
             </span>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={() => navigate("/pricing")} className="h-8 text-xs">
-          Gerenciar Assinatura
-        </Button>
+        {subStatus === "active" ? (
+          <Button variant="outline" size="sm" onClick={async () => {
+            setLoadingPortal(true);
+            try {
+              const { data, error } = await supabase.functions.invoke("customer-portal");
+              if (error) throw error;
+              if (data?.url) window.open(data.url, "_blank");
+            } catch (err: any) {
+              toast({ title: "Erro", description: err.message, variant: "destructive" });
+            } finally {
+              setLoadingPortal(false);
+            }
+          }} disabled={loadingPortal} className="h-8 text-xs">
+            {loadingPortal && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+            Gerenciar Assinatura
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => navigate("/pricing")} className="h-8 text-xs">
+            Assinar agora
+          </Button>
+        )}
       </div>
 
       {/* Password */}
