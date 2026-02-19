@@ -436,16 +436,12 @@ const CalculatorPage = () => {
             <div className="space-y-1.5">
               <TooltipLabel label="Percentual de Diferença" tip="Diferença percentual entre a Taxa Atual e a Taxa Estimada pela Treend" />
               <div className={`h-10 flex items-center justify-center rounded-md border text-sm font-semibold tabular-nums ${
-                curRate > 0 && trdRate > 0
-                  ? curRate !== trdRate
-                    ? isPositive
-                      ? "border-treend-success/30 bg-treend-success/10 text-treend-success"
-                      : "border-treend-danger/30 bg-treend-danger/10 text-treend-danger"
-                    : "border-border/40 bg-muted/40 text-muted-foreground"
+                curRate > 0 && trdRate > 0 && curRate !== trdRate
+                  ? "border-treend-success/30 bg-treend-success/10 text-treend-success"
                   : "border-border/40 bg-muted/40 text-muted-foreground"
               }`}>
                 {curRate > 0 && trdRate > 0
-                  ? `${!isPositive && curRate !== trdRate ? "-" : ""}${Math.abs((curRate - trdRate) / curRate * 100).toFixed(2)}%`
+                  ? `${Math.abs((curRate - trdRate) / curRate * 100).toFixed(2)}%`
                   : "—"}
               </div>
             </div>
