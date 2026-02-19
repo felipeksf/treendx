@@ -660,15 +660,9 @@ const CalculatorPage = () => {
             <HealthItem
               label="Volume Mensal"
               value={fmt(volume, false, currency)}
-              description={
-                metrics.volumeHealthStatus === "good"
-                  ? "Volume saudável para operações"
-                  : metrics.volumeHealthStatus === "warning"
-                  ? "Volume moderado de operações"
-                  : "Volume baixo, considere consolidar"
-              }
+              description="Este é o volume mensal projetado conforme as suas inserções na calculadora."
               benchmark={`>= ${currency} 50K (ideal: 100K)`}
-              status={metrics.volumeHealthStatus}
+              status="good"
             />
           </div>
         </div>
