@@ -154,12 +154,12 @@ const FeedPage = () => {
   return <div className="max-w-2xl mx-auto space-y-5 pb-10">
       {/* Header */}
       <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Reports Semanais
-
-      </h1>
-        <p className="text-sm text-muted-foreground">Compartilhamos cases semanais de atuaç
-
-      </p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">
+          Feed da Comunidade
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Compartilhe ideias e descubra análises cambiais
+        </p>
       </div>
 
       {/* Currency Filters */}
@@ -177,18 +177,18 @@ const FeedPage = () => {
       </div>
 
       {/* Composer placeholder */}
-      <div className="rounded-2xl bg-card border border-border/40 p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-muted">
-            <User className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="flex-1 rounded-xl bg-muted/50 border border-border/30 px-4 py-2.5">
-            <span className="text-sm text-muted-foreground">
-              No que você está pensando, {displayName}?
-            </span>
-          </div>
-        </div>
-      </div>
+      
+
+
+
+
+
+
+
+
+
+
+
 
       {/* Loading */}
       {loading && <div className="space-y-4">
