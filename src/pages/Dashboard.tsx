@@ -188,23 +188,36 @@ const Dashboard = () => {
           </TooltipProvider>
         </div>
 
-        {/* Live rate display */}
-        {currentRate && (
-          <div className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/5 border border-primary/20">
-            <span className="text-base">{currencyFlag}</span>
-            <div>
-              <p className="text-xs font-bold text-foreground tabular-nums">
-                R$ {currentRate.bid.toFixed(4)}
-              </p>
-              <p className="text-[9px] text-muted-foreground">
-                {new Date(currentRate.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-              </p>
+        {/* Live rates display - all 3 currencies */}
+        <div className="ml-auto flex items-center gap-3">
+          {([
+            { rate: liveUsd, flag: "🇺🇸", label: "USD" },
+            { rate: liveEur, flag: "🇪🇺", label: "EUR" },
+            { rate: liveGbp, flag: "🇬🇧", label: "GBP" },
+          ] as const).map(({ rate, flag, label }) => rate && (
+            <div
+              key={label}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
+                currency === label
+                  ? "bg-primary/10 border-primary/30"
+                  : "bg-muted/30 border-border/40"
+              }`}
+            >
+              <span className="text-base">{flag}</span>
+              <div>
+                <p className="text-xs font-bold text-foreground tabular-nums">
+                  R$ {rate.bid.toFixed(4)}
+                </p>
+                <p className="text-[9px] text-muted-foreground">
+                  {new Date(rate.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              </div>
+              <span className={`text-[11px] font-semibold ${rate.pctChange >= 0 ? "text-treend-danger" : "text-treend-success"}`}>
+                {rate.pctChange >= 0 ? "+" : ""}{rate.pctChange.toFixed(2)}%
+              </span>
             </div>
-            <span className={`text-[11px] font-semibold ${currentRate.pctChange >= 0 ? "text-treend-danger" : "text-treend-success"}`}>
-              {currentRate.pctChange >= 0 ? "+" : ""}{currentRate.pctChange.toFixed(2)}%
-            </span>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
       {/* Heatmap Grid - 4 blocks */}
