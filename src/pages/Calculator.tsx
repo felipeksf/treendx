@@ -25,6 +25,7 @@ import {
   RefreshCw,
   HelpCircle,
   ChevronDown,
+  MinusCircle,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -42,6 +43,8 @@ const RATE_RANGES: Record<string, { min: number; max: number; default: number }>
 };
 
 const currencySymbol = (c: string) => c === "BRL" ? "R$" : c === "USD" ? "US$" : c === "GBP" ? "£" : "€";
+
+const currencyFlag = (c: string) => c === "USD" ? "🇺🇸" : c === "EUR" ? "🇪🇺" : c === "GBP" ? "🇬🇧" : c === "BRL" ? "🇧🇷" : "";
 
 const fmtThousands = (v: string) => {
   const num = v.replace(/\D/g, "");
@@ -180,7 +183,7 @@ const CalculatorPage = () => {
   const [currency, setCurrency] = useState("USD");
   const [monthlyVolume, setMonthlyVolume] = useState("50000");
   const [currentRate, setCurrentRate] = useState("5.12");
-  const [treendRate, setTreendRate] = useState("4.95");
+  const [treendRate, setTreendRate] = useState("5.08");
   const [opsPerMonth, setOpsPerMonth] = useState("10");
   const [opsFrequency, setOpsFrequency] = useState<"month" | "week">("month");
   const [bankSpread, setBankSpread] = useState("2.5");
@@ -193,16 +196,34 @@ const CalculatorPage = () => {
   const [converterCurrency, setConverterCurrency] = useState("USD");
   const [converterAmount, setConverterAmount] = useState("1000");
 
-  // Update currentRate when live rates load
+  const prefersLower = ["importador", "agente_turismo", "turista"].includes(profile);
+
+  // Compute Treend estimated rate: ±0.8% from current rate based on profile
+  const computeTreendRate = (rate: number) => {
+    // importador/agente_turismo → 0.8% below (cheaper buy); exportador/freelancer → 0.8% above (better sell)
+    return prefersLower ? rate * (1 - 0.008) : rate * (1 + 0.008);
+  };
+
+  // Update currentRate and treendRate when live rates load
   useEffect(() => {
     if (currency === "USD" && liveUsd) {
       setCurrentRate(liveUsd.bid.toFixed(4));
       setSliderRate([liveUsd.bid]);
+      setTreendRate(computeTreendRate(liveUsd.bid).toFixed(4));
     } else if (currency === "EUR" && liveEur) {
       setCurrentRate(liveEur.bid.toFixed(4));
       setSliderRate([liveEur.bid]);
+      setTreendRate(computeTreendRate(liveEur.bid).toFixed(4));
     }
-  }, [liveUsd?.bid, liveEur?.bid]); // only on first load / rate change
+  }, [liveUsd?.bid, liveEur?.bid]);
+
+  // Recalculate treend rate when profile changes
+  useEffect(() => {
+    const rate = parseFloat(currentRate);
+    if (rate > 0) {
+      setTreendRate(computeTreendRate(rate).toFixed(4));
+    }
+  }, [profile]);
 
   const rateRange = RATE_RANGES[currency];
   const volume = parseFloat(monthlyVolume) || 0;
@@ -220,13 +241,14 @@ const CalculatorPage = () => {
     const liveRate = val === "USD" && liveUsd ? liveUsd.bid : val === "EUR" && liveEur ? liveEur.bid : range.default;
     setCurrentRate(liveRate.toFixed(4));
     setSliderRate([liveRate]);
-    setTreendRate(val === "USD" ? "4.95" : val === "EUR" ? "5.72" : "0.18");
+    const prefLower = ["importador", "agente_turismo", "turista"].includes(profile);
+    setTreendRate((prefLower ? liveRate * (1 - 0.008) : liveRate * (1 + 0.008)).toFixed(4));
   };
 
   const handleReset = () => {
     setMonthlyVolume("50000");
     setCurrentRate(rateRange.default.toFixed(2));
-    setTreendRate(currency === "USD" ? "4.95" : currency === "EUR" ? "5.72" : "0.18");
+    setTreendRate(computeTreendRate(rateRange.default).toFixed(4));
     setOpsPerMonth("10");
     setBankSpread("2.5");
     setProjectionMonths("12");
@@ -236,14 +258,25 @@ const CalculatorPage = () => {
   const metrics = useMemo(() => {
     const curBRL = volume * curRate;
     const trdBRL = volume * trdRate;
-    const savingsMonth = curBRL - trdBRL;
-    const savingsPct = curBRL > 0 ? (savingsMonth / curBRL) * 100 : 0;
-    const savingsPerOp = ops > 0 ? savingsMonth / ops : 0;
-    const savingsYear = savingsMonth * 12;
-    const spreadCost = curBRL * (spread / 100);
-    const effectiveRate = curRate * (1 + spread / 100);
     const rateDiff = curRate - trdRate;
     const rateDiffPct = curRate > 0 ? (rateDiff / curRate) * 100 : 0;
+
+    // Economia = (rateDiffPct - spread) * volume / 100 ... but in BRL terms
+    // More precisely: (% diferença - % spread) * volume mensal em BRL
+    const economiaPct = Math.abs(rateDiffPct) - spread;
+    const economiaPerTransaction = (economiaPct / 100) * curBRL;
+    const savingsMonth = economiaPerTransaction;
+    const savingsPct = economiaPct;
+    const savingsPerOp = ops > 0 ? savingsMonth / ops : 0;
+    const savingsYear = savingsMonth * 12;
+
+    // Spread cost = volume in BRL * spread%
+    const spreadCost = curBRL * (spread / 100);
+    const effectiveRate = curRate * (1 + spread / 100);
+
+    // Economia - Spread
+    const economiaBruta = curBRL - trdBRL;
+    const economiaMinusSpread = economiaBruta - spreadCost;
 
     const proj6m = savingsMonth * 6;
     const proj12m = savingsMonth * 12;
@@ -264,16 +297,16 @@ const CalculatorPage = () => {
     const range = rateRange.max - rateRange.min;
     const pct = ((sliderRateNum - rateRange.min) / range) * 100;
 
-    // Health scores - adjusted based on profile perspective
-    const prefersLowerRate = ["importador", "agente_turismo", "turista"].includes(profile);
-    const effectiveSavings = prefersLowerRate ? savingsMonth : -savingsMonth;
-    const effectiveSavingsPct = prefersLowerRate ? savingsPct : -savingsPct;
-    const effectiveRoi = effectiveSavings > 0 ? (Math.abs(savingsYear) / subscriptionCostAnnual) * 100 : 0;
+    // Health scores
+    const effectiveSavingsPct = prefersLower ? Math.abs(savingsPct) : Math.abs(savingsPct);
+    const effectiveRoi = roi;
 
+    // Updated benchmarks: Economia >= 1% ideal 1.5%
     const savingsHealthStatus: "good" | "warning" | "bad" =
-      effectiveSavingsPct >= 2 ? "good" : effectiveSavingsPct >= 0.5 ? "warning" : "bad";
+      effectiveSavingsPct >= 1 ? "good" : effectiveSavingsPct >= 0.5 ? "warning" : "bad";
+    // Updated benchmarks: Spread <= 1.2% ideal 0.5%
     const spreadHealthStatus: "good" | "warning" | "bad" =
-      spread <= 1.5 ? "good" : spread <= 3 ? "warning" : "bad";
+      spread <= 1.2 ? "good" : spread <= 3 ? "warning" : "bad";
     const roiHealthStatus: "good" | "warning" | "bad" =
       effectiveRoi >= 200 ? "good" : effectiveRoi >= 100 ? "warning" : "bad";
     const volumeHealthStatus: "good" | "warning" | "bad" =
@@ -293,6 +326,7 @@ const CalculatorPage = () => {
     return {
       curBRL, trdBRL, savingsMonth, savingsPct, savingsPerOp, savingsYear,
       spreadCost, effectiveRate, rateDiff, rateDiffPct,
+      economiaBruta, economiaMinusSpread,
       proj6m, proj12m, proj24m,
       sliderBRL, sliderDiff, sliderDiffPct,
       breakEvenMonths, roi: effectiveRoi, subscriptionCostMonthly, subscriptionCostAnnual,
@@ -300,7 +334,7 @@ const CalculatorPage = () => {
       savingsHealthStatus, spreadHealthStatus, roiHealthStatus, volumeHealthStatus,
       overallHealth,
     };
-  }, [volume, curRate, trdRate, ops, spread, sliderRateNum, rateRange, profile]);
+  }, [volume, curRate, trdRate, ops, spread, sliderRateNum, rateRange, profile, prefersLower]);
 
   const getZoneLabel = (pct: number) => {
     if (pct <= 20) return { label: "Muito Saudável", color: "text-treend-success" };
@@ -311,7 +345,6 @@ const CalculatorPage = () => {
   };
 
   const zoneInfo = getZoneLabel(metrics.pct);
-  const prefersLower = ["importador", "agente_turismo", "turista"].includes(profile);
   const isPositive = prefersLower ? metrics.savingsMonth > 0 : metrics.savingsMonth < 0;
   const healthLabels = { good: "Saudável", warning: "Atenção", bad: "Crítico" };
   const healthColors = { good: "bg-treend-success/10 text-treend-success border-treend-success/30", warning: "bg-treend-warning/10 text-treend-warning border-treend-warning/30", bad: "bg-treend-danger/10 text-treend-danger border-treend-danger/30" };
@@ -352,9 +385,9 @@ const CalculatorPage = () => {
               <Select value={currency} onValueChange={handleCurrencyChange}>
                 <SelectTrigger className="h-10 text-sm bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USD">USD — Dólar</SelectItem>
-                  <SelectItem value="EUR">EUR — Euro</SelectItem>
-                  <SelectItem value="BRL">BRL — Real</SelectItem>
+                  <SelectItem value="USD"><span className="flex items-center gap-2">{currencyFlag("USD")} USD — Dólar</span></SelectItem>
+                  <SelectItem value="EUR"><span className="flex items-center gap-2">{currencyFlag("EUR")} EUR — Euro</span></SelectItem>
+                  <SelectItem value="BRL"><span className="flex items-center gap-2">{currencyFlag("BRL")} BRL — Real</span></SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -382,17 +415,23 @@ const CalculatorPage = () => {
               <Input
                 type="number"
                 value={currentRate}
-                onChange={(e) => { setCurrentRate(e.target.value); setSliderRate([parseFloat(e.target.value) || rateRange.default]); }}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCurrentRate(val);
+                  setSliderRate([parseFloat(val) || rateRange.default]);
+                  const rate = parseFloat(val) || 0;
+                  if (rate > 0) setTreendRate(computeTreendRate(rate).toFixed(4));
+                }}
                 step="0.01"
                 className="h-10 text-sm bg-muted/40 border-border/40"
               />
             </div>
             <div className="space-y-1.5">
-              <TooltipLabel label={`Taxa Treend (${currency === "BRL" ? "R$" : currency === "USD" ? "US$" : "€"})`} tip="Taxa Comercial mapeada pela Treend" />
+              <TooltipLabel label={`Taxa Estimada pela Treend (${currency === "BRL" ? "R$" : currency === "USD" ? "US$" : "€"})`} tip="Taxa estimada pela Treend com base na cotação atual ±0.8%" />
               <Input type="number" value={treendRate} onChange={(e) => setTreendRate(e.target.value)} step="0.01" className="h-10 text-sm bg-muted/40 border-border/40" />
             </div>
             <div className="space-y-1.5">
-              <TooltipLabel label="Percentual de Diferença" tip="Diferença percentual entre a Taxa Atual e a Taxa Treend" />
+              <TooltipLabel label="Percentual de Diferença" tip="Diferença percentual entre a Taxa Atual e a Taxa Estimada pela Treend" />
               <div className={`h-10 flex items-center justify-center rounded-md border text-sm font-semibold tabular-nums ${
                 curRate > 0 && trdRate > 0
                   ? curRate !== trdRate
@@ -452,8 +491,16 @@ const CalculatorPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
         {/* Left - Metric Cards Grid */}
         <div className="space-y-3">
-          {/* Row 1 */}
+          {/* Row 1 - Reordered: Economia → Economia Mensal → Economia Anual */}
            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <MetricCard
+              title="Economia"
+              value={fmt(metrics.savingsPerOp, !isPositive, currency)}
+              subtitle="Por transação"
+              icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+              color={isPositive ? "success" : "danger"}
+              tooltip="(% diferença - % spread) × volume mensal ÷ operações. Economia líquida por operação."
+            />
             <MetricCard
               title="Economia Mensal"
               value={fmt(metrics.savingsMonth, !isPositive, currency)}
@@ -461,7 +508,7 @@ const CalculatorPage = () => {
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
               highlight={isPositive}
-              tooltip="Quanto você teria de lucro/economia somente no mês (caso você realizasse 4 operações no mês ou 1 por semana)."
+              tooltip="(% diferença - % spread) × volume mensal em BRL. Economia líquida no mês."
             />
             <MetricCard
               title="Economia Anual"
@@ -469,15 +516,7 @@ const CalculatorPage = () => {
               subtitle="Projeção 12 meses"
               icon={<Target className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
-              tooltip="A economia da operação x 12 meses."
-            />
-            <MetricCard
-              title="Economia"
-              value={fmt(metrics.savingsPerOp, !isPositive, currency)}
-              subtitle="Por transação"
-              icon={<Clock className="h-4 w-4 text-muted-foreground" />}
-              color={isPositive ? "success" : "danger"}
-              tooltip="Quanto você teria de lucro/economia somente nessa operação específica."
+              tooltip="Economia mensal × 12 meses."
             />
             <MetricCard
               title="Diferença de Taxa"
@@ -485,7 +524,7 @@ const CalculatorPage = () => {
               subtitle={`${Math.abs(metrics.rateDiff).toFixed(4)} pts`}
               icon={<Zap className="h-4 w-4 text-muted-foreground" />}
               color={metrics.rateDiff > 0 ? "success" : "danger"}
-              tooltip="Diferença percentual entre a cotação do dia Vs a cotação mapeada pela Treend."
+              tooltip="Diferença percentual entre a cotação do dia e a taxa estimada pela Treend."
             />
           </div>
 
@@ -496,16 +535,17 @@ const CalculatorPage = () => {
               value={`${Math.abs(metrics.savingsPct).toFixed(2)}%`}
               subtitle="% de economia gerado"
               icon={<Users className="h-4 w-4 text-muted-foreground" />}
-              color={metrics.savingsPct >= 2 ? "success" : metrics.savingsPct >= 0.5 ? "warning" : "danger"}
-              tooltip="Quando você economizou ou deixaria de economizar na operação."
+              color={Math.abs(metrics.savingsPct) >= 1 ? "success" : Math.abs(metrics.savingsPct) >= 0.5 ? "warning" : "danger"}
+              tooltip="(% diferença - % spread). Percentual líquido de economia."
             />
             <MetricCard
-              title="ROI Anual"
-              value={`${metrics.roi.toFixed(0)}%`}
-              subtitle="Retorno sobre investimento"
-              icon={<BarChart3 className="h-4 w-4 text-muted-foreground" />}
-              color={metrics.roi >= 200 ? "success" : metrics.roi >= 100 ? "warning" : "danger"}
-              tooltip="Retorno do valor da operação Vs o quanto que você paga por ano ao assinar a Treend."
+              title="Economia - Spread"
+              value={fmt(metrics.economiaMinusSpread, metrics.economiaMinusSpread < 0, currency)}
+              subtitle="Economia líquida após spread"
+              icon={<MinusCircle className="h-4 w-4 text-muted-foreground" />}
+              color={metrics.economiaMinusSpread > 0 ? "success" : "danger"}
+              highlight={metrics.economiaMinusSpread > 0}
+              tooltip="Economia bruta da operação menos o custo de spread bancário."
             />
             <MetricCard
               title="Custo Spread"
@@ -513,7 +553,7 @@ const CalculatorPage = () => {
               subtitle="/mês (banco)"
               icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
               color="warning"
-              tooltip="O Volume Mensal x o % de Taxa de Spread que você selecionou na barra de progresso."
+              tooltip="Volume mensal em BRL × a taxa de spread selecionada na barra de progresso."
             />
             <MetricCard
               title="Taxa Efetiva"
@@ -542,7 +582,7 @@ const CalculatorPage = () => {
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
               highlight={isPositive}
-              tooltip="O quanto você economizaria ou lucraria por ano de acordo com o valor da operação atual. (Aqui é aonde a Treend faz a diferença)."
+              tooltip="Economia mensal × número de meses de projeção."
             />
             <MetricCard
               title="Projeção 24m"
@@ -550,7 +590,7 @@ const CalculatorPage = () => {
               subtitle="Economia 2 anos"
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
-              tooltip="O quanto você economizaria ou lucraria em 2 anos repetindo este resultado da operação."
+              tooltip="Economia mensal × 24 meses."
             />
             <MetricCard
               title="Variação (%)"
@@ -558,7 +598,7 @@ const CalculatorPage = () => {
               subtitle={isPositive ? "Economia percentual" : "Custo percentual"}
               icon={<Percent className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
-              tooltip="O percentual que você economizaria ou lucraria nessa operação."
+              tooltip="O percentual líquido (diferença - spread) desta operação."
             />
           </div>
         </div>
@@ -588,7 +628,7 @@ const CalculatorPage = () => {
                   ? "Economia moderada, avalie condições"
                   : "Economia insuficiente ou custo adicional"
               }
-              benchmark=">= 2% (ideal: 5%)"
+              benchmark=">= 1% (ideal: 1,5%)"
               status={metrics.savingsHealthStatus}
             />
             <HealthItem
@@ -601,7 +641,7 @@ const CalculatorPage = () => {
                   ? "Spread aceitável mas pode melhorar"
                   : "Spread elevado, renegociar condições"
               }
-              benchmark="<= 1.5% (ideal: 0.5%)"
+              benchmark="<= 1,2% (ideal: 0,5%)"
               status={metrics.spreadHealthStatus}
             />
             <HealthItem
@@ -654,9 +694,9 @@ const CalculatorPage = () => {
                 <Select value={converterCurrency} onValueChange={setConverterCurrency}>
                   <SelectTrigger className="h-10 text-sm bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="USD">USD — Dólar</SelectItem>
-                    <SelectItem value="EUR">EUR — Euro</SelectItem>
-                    <SelectItem value="GBP">GBP — Libra</SelectItem>
+                    <SelectItem value="USD"><span className="flex items-center gap-2">{currencyFlag("USD")} USD — Dólar</span></SelectItem>
+                    <SelectItem value="EUR"><span className="flex items-center gap-2">{currencyFlag("EUR")} EUR — Euro</span></SelectItem>
+                    <SelectItem value="GBP"><span className="flex items-center gap-2">{currencyFlag("GBP")} GBP — Libra</span></SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -739,9 +779,10 @@ const CalculatorPage = () => {
         const TEXT_COLOR = "hsl(var(--muted-foreground))";
 
         const barComparisonData = [
-          { name: currency, "Taxa Atual": curRate, "Taxa Treend": trdRate },
+          { name: currency, "Taxa Atual": curRate, "Taxa Estimada Treend": trdRate },
         ];
 
+        // Economy evolution based on economia per transaction * ops * months
         const economyEvolutionData = Array.from({ length: 24 }, (_, i) => ({
           name: `Mês ${i + 1}`,
           economia: Math.abs(metrics.savingsMonth) * (i + 1),
@@ -753,7 +794,7 @@ const CalculatorPage = () => {
           return {
             name: `Mês ${month}`,
             "Taxa Atual": parseFloat((curRate + variation * curRate * 0.1).toFixed(4)),
-            "Taxa Treend": parseFloat((trdRate - variation * trdRate * 0.05).toFixed(4)),
+            "Taxa Estimada Treend": parseFloat((trdRate - variation * trdRate * 0.05).toFixed(4)),
             "Taxa Efetiva": parseFloat((metrics.effectiveRate + variation * metrics.effectiveRate * 0.08).toFixed(4)),
           };
         });
@@ -768,17 +809,19 @@ const CalculatorPage = () => {
           },
         };
 
+        const economyCurrencySymbol = currencySymbol(currency);
+
         return (
           <div className="space-y-5">
-            {/* Chart 1 - Taxa Atual vs Taxa Treend */}
+            {/* Chart 1 - Taxa Atual vs Taxa Estimada pela Treend */}
             <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
                   <BarChart3 className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <span className="text-sm font-semibold text-foreground">Taxa Atual vs Taxa Treend</span>
-                  <p className="text-[11px] text-muted-foreground">Comparação direta entre a cotação comercial do dia e a taxa mapeada pela Treend. Quanto menor a taxa Treend (azul), maior a economia.</p>
+                  <span className="text-sm font-semibold text-foreground">Taxa Atual vs Taxa Estimada pela Treend</span>
+                  <p className="text-[11px] text-muted-foreground">Comparação direta entre a cotação comercial do dia e a taxa estimada pela Treend. Quanto menor a taxa (azul), maior a economia.</p>
                 </div>
               </div>
               <div className="h-[280px] w-full">
@@ -794,7 +837,7 @@ const CalculatorPage = () => {
                     <RechartsTooltip {...chartTooltipStyle} formatter={(value: number) => value.toFixed(4)} />
                     <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
                     <Bar dataKey="Taxa Atual" fill={RATE_ORANGE} radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="Taxa Treend" fill={TREEND_BLUE} radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="Taxa Estimada Treend" fill={TREEND_BLUE} radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -808,7 +851,7 @@ const CalculatorPage = () => {
                 </div>
                 <div>
                   <span className="text-sm font-semibold text-foreground">Evolução da Economia/Lucro</span>
-                  <p className="text-[11px] text-muted-foreground">Projeção acumulada da economia gerada ao longo de 24 meses com base nos valores da simulação atual.</p>
+                  <p className="text-[11px] text-muted-foreground">Projeção acumulada com base na economia mensal (já descontando spread).</p>
                 </div>
               </div>
               <div className="h-[300px] w-full">
@@ -831,7 +874,7 @@ const CalculatorPage = () => {
                     <RechartsTooltip
                       {...chartTooltipStyle}
                       formatter={(value: number) => [
-                        `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        `${economyCurrencySymbol} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                         isPositive ? "Economia" : "Custo",
                       ]}
                     />
@@ -865,7 +908,7 @@ const CalculatorPage = () => {
                 </div>
                 <div>
                   <span className="text-sm font-semibold text-foreground">Comparativo Treend</span>
-                  <p className="text-[11px] text-muted-foreground">Projeção comparativa ao longo de 24 meses: taxa comercial, taxa Treend e taxa efetiva (com spread bancário).</p>
+                  <p className="text-[11px] text-muted-foreground">Projeção comparativa ao longo de 24 meses: taxa comercial, taxa estimada pela Treend e taxa efetiva (com spread bancário).</p>
                 </div>
               </div>
               <div className="h-[300px] w-full">
@@ -884,7 +927,7 @@ const CalculatorPage = () => {
                     />
                     <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
                     <Line type="monotone" dataKey="Taxa Atual" stroke={RATE_ORANGE} strokeWidth={2} dot={{ fill: RATE_ORANGE, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Taxa Treend" stroke={TREEND_BLUE} strokeWidth={2.5} dot={{ fill: TREEND_BLUE, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Taxa Estimada Treend" stroke={TREEND_BLUE} strokeWidth={2.5} dot={{ fill: TREEND_BLUE, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
                     <Line type="monotone" dataKey="Taxa Efetiva" stroke={EFFECTIVE_PURPLE} strokeWidth={2} strokeDasharray="5 5" dot={{ fill: EFFECTIVE_PURPLE, r: 2.5, strokeWidth: 0 }} activeDot={{ r: 5 }} />
                   </RechartsLineChart>
                 </ResponsiveContainer>
