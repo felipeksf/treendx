@@ -169,7 +169,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: "Treend <noreply@treend.com.br>",
         to: [email],
-        subject: `Treend – Seus dados de acesso 🔑`,
+        subject: "Acesso liberado na Treend",
         html,
       }),
     });
