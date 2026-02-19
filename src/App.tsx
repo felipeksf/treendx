@@ -27,6 +27,7 @@ import AdminFeed from "./pages/admin/AdminFeed";
 import AdminAgenda from "./pages/AdminAgenda";
 import AdminScores from "./pages/admin/AdminScores";
 import AdminTutorials from "./pages/admin/AdminTutorials";
+import AdminHeatmap from "./pages/admin/AdminHeatmap";
 import Tutorials from "./pages/Tutorials";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -66,6 +67,7 @@ const App = () => (
                 <Route path="agenda" element={<AdminAgenda />} />
                 <Route path="scores" element={<AdminScores />} />
                 <Route path="tutorials" element={<AdminTutorials />} />
+                <Route path="heatmap" element={<AdminHeatmap />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
