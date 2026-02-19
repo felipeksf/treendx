@@ -6,7 +6,7 @@ const PricingPage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
       <Link to="/" className="flex items-center gap-2 mb-8">
-        <img src={treendLogo} alt="Treend" className="h-10 w-auto" />
+        <img src={treendLogo} alt="Treend" className="h-32 w-auto" />
       </Link>
 
       <h1 className="text-3xl font-display font-bold text-foreground text-center mb-2">
