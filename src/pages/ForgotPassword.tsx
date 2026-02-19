@@ -20,7 +20,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
+      redirectTo: `${window.location.origin}/login`
     });
 
     if (error) {
@@ -43,8 +43,8 @@ const ForgotPassword = () => {
             <img src={treendLogo} alt="Treend" className="h-32 w-auto" />
           </Link>
 
-          {sent ? (
-            <>
+          {sent ?
+          <>
               {/* Confirmation State */}
               <h1 className="font-display text-3xl font-bold tracking-tight text-foreground mb-2">
                 E-mail enviado!
@@ -66,16 +66,16 @@ const ForgotPassword = () => {
                   </Button>
                 </Link>
               </div>
-            </>
-          ) : (
-            <>
+            </> :
+
+          <>
               {/* Form State */}
               <h1 className="font-display text-3xl font-bold tracking-tight text-foreground mb-2">
                 Recuperar senha
               </h1>
-              <p className="text-muted-foreground mb-8">
-                Informe seu e-mail cadastrado para receber o link de recuperação.
-              </p>
+              <p className="text-muted-foreground mb-8">Informe seu e-mail cadastrado para receber o link de recuperação da senha.
+
+            </p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -83,14 +83,14 @@ const ForgotPassword = () => {
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="pl-10 h-12 bg-muted/30 border-border/60"
-                    />
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="pl-10 h-12 bg-muted/30 border-border/60" />
+
                   </div>
                 </div>
 
@@ -107,7 +107,7 @@ const ForgotPassword = () => {
                 </Link>
               </p>
             </>
-          )}
+          }
         </div>
       </div>
 
@@ -118,8 +118,8 @@ const ForgotPassword = () => {
         </video>
         <div className="absolute inset-0 bg-primary/60" />
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default ForgotPassword;
