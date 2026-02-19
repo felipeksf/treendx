@@ -235,6 +235,9 @@ const Dashboard = () => {
           );
         })}
       </div>
+      <p className="text-[10px] text-muted-foreground/70 mt-4 italic">
+        Importante: não fazemos nenhum tipo de recomendação cambial/financeira. As informações exibidas são meramente indicativas e a decisão final é de total responsabilidade do usuário. A Treend atualiza as informações do Mapa de Calor de acordo com identificações no mercado.
+      </p>
     </div>
   );
 };
