@@ -28,6 +28,7 @@ import AdminAgenda from "./pages/AdminAgenda";
 import AdminScores from "./pages/admin/AdminScores";
 import AdminTutorials from "./pages/admin/AdminTutorials";
 import Tutorials from "./pages/Tutorials";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/calculator" element={<Calculator />} />
