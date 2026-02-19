@@ -126,11 +126,11 @@ const Dashboard = () => {
       </div>
 
       {/* Filters Row */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-card border border-border/40 p-4">
+      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 rounded-2xl bg-card border border-border/40 p-4 overflow-hidden">
         {/* Profile filter */}
-        <div className="flex-1 min-w-[160px]">
+        <div className="flex-1 min-w-0">
           <Select value={profileFilter} onValueChange={(v) => setProfileFilter(v as ProfileFilter)}>
-            <SelectTrigger className="h-9 text-xs bg-muted/40 border-border/40">
+            <SelectTrigger className="h-9 text-xs bg-muted/40 border-border/40 w-full">
               <SelectValue placeholder="Filtrar por perfil" />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border z-50">
@@ -144,9 +144,9 @@ const Dashboard = () => {
         </div>
 
         {/* Currency filter */}
-        <div className="min-w-[170px]">
+        <div className="flex-1 min-w-0">
           <Select value={currency} onValueChange={(v) => setCurrency(v as Currency)}>
-            <SelectTrigger className="h-9 text-xs bg-muted/40 border-border/40">
+            <SelectTrigger className="h-9 text-xs bg-muted/40 border-border/40 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border z-50">
@@ -163,9 +163,9 @@ const Dashboard = () => {
         </div>
 
         {/* Frequency filter */}
-        <div className="flex items-center gap-1.5 min-w-[180px]">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <Select value={frequency} onValueChange={(v) => setFrequency(v as Frequency)}>
-            <SelectTrigger className="h-9 text-xs bg-muted/40 border-border/40">
+            <SelectTrigger className="h-9 text-xs bg-muted/40 border-border/40 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border z-50">
@@ -189,7 +189,7 @@ const Dashboard = () => {
         </div>
 
         {/* Live rates display - all 3 currencies */}
-        <div className="w-full flex justify-center gap-3 mt-2">
+        <div className="w-full flex flex-wrap justify-center gap-2 mt-2">
           {([
             { rate: liveUsd, flag: "🇺🇸", label: "USD" },
             { rate: liveEur, flag: "🇪🇺", label: "EUR" },
