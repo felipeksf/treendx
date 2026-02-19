@@ -57,8 +57,8 @@ const HeatmapBlock = ({
         hsl(142, 71%, 45%, 0.8)
       ),
       linear-gradient(to bottom,
-        hsl(0, 84%, 55%, 0.4),
-        hsl(142, 71%, 45%, 0.4)
+        hsl(142, 71%, 45%, 0.4),
+        hsl(0, 84%, 55%, 0.4)
       )
     `,
     backgroundBlendMode: "multiply" as const,
