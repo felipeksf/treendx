@@ -36,6 +36,20 @@ const PricingPage = () => {
             size="lg"
             onClick={handleCheckout}
             disabled={loading}
+            className="w-full h-14 text-base font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {loading ? (
+              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Abrindo checkout...</>
+            ) : (
+              <>Teste Grátis por 7 dias</>
+            )}
+          </Button>
+
+          <Button
+            size="lg"
+            onClick={handleCheckout}
+            disabled={loading}
+            variant="outline"
             className="w-full h-14 text-base font-semibold rounded-xl"
           >
             {loading ? (
