@@ -99,7 +99,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .eq("user_id", session.user.id)
               .maybeSingle();
             if (!profile) {
+              // Delete orphan auth user so they can register with email later
+              const userId = session.user.id;
               await supabase.auth.signOut();
+              await supabase.functions.invoke("delete-orphan-user", {
+                body: { user_id: userId },
+              });
               setSession(null);
               setUser(null);
               setIsAdmin(false);
