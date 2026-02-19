@@ -263,80 +263,77 @@ const CalculatorPage = () => {
   const metrics = useMemo(() => {
     const curBRL = volume * curRate;
     const trdBRL = volume * trdRate;
-    const rateDiff = curRate - trdRate;
-    const rateDiffPct = curRate > 0 ? (rateDiff / curRate) * 100 : 0;
 
-    // Economia = (rateDiffPct - spread) * volume / 100 ... but in BRL terms
-    // More precisely: (% diferença - % spread) * volume mensal em BRL
-    const economiaPct = Math.abs(rateDiffPct) - spread;
-    const economiaPerTransaction = (economiaPct / 100) * curBRL;
-    const savingsMonth = economiaPerTransaction;
-    const savingsPct = economiaPct;
-    const savingsPerOp = ops > 0 ? savingsMonth / ops : 0;
-    const savingsYear = savingsMonth * 12;
+    // Rate difference – always as positive magnitude of the benefit
+    const rateDiffAbs = Math.abs(curRate - trdRate);
+    const rateDiffPct = curRate > 0 ? (rateDiffAbs / curRate) * 100 : 0;
+    const rateDiff = curRate - trdRate; // signed, for display
 
-    // Spread cost = volume in BRL * spread%
+    // Gross economy (just the rate-difference benefit, before spread)
+    const grossPct = rateDiffPct;
+    const grossMonth = (grossPct / 100) * curBRL;
+    const grossPerOp = ops > 0 ? grossMonth / ops : 0;
+
+    // Net economy = (|diff%| - spread%) × volume BRL
+    const netPct = rateDiffPct - spread;
+    const netMonth = (netPct / 100) * curBRL;
+    const netPerOp = ops > 0 ? netMonth / ops : 0;
+    const netYear = netMonth * 12;
+
+    // Spread cost = volume BRL × spread%
     const spreadCost = curBRL * (spread / 100);
     const effectiveRate = curRate * (1 + spread / 100);
 
-    // Economia - Spread
-    const economiaBruta = curBRL - trdBRL;
-    const economiaMinusSpread = economiaBruta - spreadCost;
+    // Economia - Spread = gross - spread cost (= netMonth, but shown with breakdown context)
+    const economiaMinusSpread = grossMonth - spreadCost;
 
-    const proj6m = savingsMonth * 6;
-    const proj12m = savingsMonth * 12;
-    const proj24m = savingsMonth * 24;
+    const proj6m = netMonth * 6;
+    const proj12m = netMonth * 12;
+    const proj24m = netMonth * 24;
 
     // Slider scenario
     const sliderBRL = volume * sliderRateNum;
     const sliderDiff = curBRL - sliderBRL;
     const sliderDiffPct = curBRL > 0 ? (sliderDiff / curBRL) * 100 : 0;
 
-    // ROI based on official Treend pricing
-    const subscriptionCostMonthly = 49.90;
-    const subscriptionCostAnnual = 299;
-    const breakEvenMonths = Math.abs(savingsMonth) > 0 ? subscriptionCostMonthly / Math.abs(savingsMonth) : Infinity;
-    const roi = Math.abs(savingsYear) > 0 ? (Math.abs(savingsYear) / subscriptionCostAnnual) * 100 : 0;
-
     // Zone info
     const range = rateRange.max - rateRange.min;
     const pct = ((sliderRateNum - rateRange.min) / range) * 100;
 
     // Health scores
-    const effectiveSavingsPct = prefersLower ? Math.abs(savingsPct) : Math.abs(savingsPct);
-    const effectiveRoi = roi;
-
-    // Updated benchmarks: Economia >= 1% ideal 1.5%
+    // Economia >= 1% ideal 1.5%
     const savingsHealthStatus: "good" | "warning" | "bad" =
-      effectiveSavingsPct >= 1 ? "good" : effectiveSavingsPct >= 0.5 ? "warning" : "bad";
-    // Updated benchmarks: Spread <= 1.2% ideal 0.5%
+      grossPct >= 1 ? "good" : grossPct >= 0.5 ? "warning" : "bad";
+    // Spread <= 1.2% ideal 0.5%
     const spreadHealthStatus: "good" | "warning" | "bad" =
-      spread <= 1.2 ? "good" : spread <= 3 ? "warning" : "bad";
-    const roiHealthStatus: "good" | "warning" | "bad" =
-      effectiveRoi >= 200 ? "good" : effectiveRoi >= 100 ? "warning" : "bad";
+      spread <= 0.5 ? "good" : spread <= 1.2 ? "warning" : "bad";
+    // Economia Líquida (net %) >= 0.5% good, >= 0.2% warning, else bad
+    const netHealthStatus: "good" | "warning" | "bad" =
+      netPct >= 0.5 ? "good" : netPct >= 0.2 ? "warning" : "bad";
     const volumeHealthStatus: "good" | "warning" | "bad" =
       volume >= 50000 ? "good" : volume >= 10000 ? "warning" : "bad";
 
     const overallHealth =
-      [savingsHealthStatus, spreadHealthStatus, roiHealthStatus, volumeHealthStatus].filter(
+      [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter(
         (s) => s === "good"
       ).length >= 3
         ? "good"
-        : [savingsHealthStatus, spreadHealthStatus, roiHealthStatus, volumeHealthStatus].filter(
+        : [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter(
             (s) => s === "bad"
           ).length >= 2
         ? "bad"
         : "warning";
 
     return {
-      curBRL, trdBRL, savingsMonth, savingsPct, savingsPerOp, savingsYear,
-      spreadCost, effectiveRate, rateDiff, rateDiffPct,
-      economiaBruta, economiaMinusSpread,
+      curBRL, trdBRL, rateDiff, rateDiffPct,
+      grossPct, grossMonth, grossPerOp,
+      netPct, netMonth, netPerOp, netYear,
+      spreadCost, effectiveRate,
+      economiaMinusSpread,
       proj6m, proj12m, proj24m,
       sliderBRL, sliderDiff, sliderDiffPct,
-      breakEvenMonths, roi: effectiveRoi, subscriptionCostMonthly, subscriptionCostAnnual,
       pct,
-      savingsHealthStatus, spreadHealthStatus, roiHealthStatus, volumeHealthStatus,
+      savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus,
       overallHealth,
     };
   }, [volume, curRate, trdRate, ops, spread, sliderRateNum, rateRange, profile, prefersLower]);
@@ -350,7 +347,7 @@ const CalculatorPage = () => {
   };
 
   const zoneInfo = getZoneLabel(metrics.pct);
-  const isPositive = prefersLower ? metrics.savingsMonth > 0 : metrics.savingsMonth < 0;
+  const isPositive = metrics.netMonth > 0;
   const healthLabels = { good: "Saudável", warning: "Atenção", bad: "Crítico" };
   const healthColors = { good: "bg-treend-success/10 text-treend-success border-treend-success/30", warning: "bg-treend-warning/10 text-treend-warning border-treend-warning/30", bad: "bg-treend-danger/10 text-treend-danger border-treend-danger/30" };
 
@@ -497,19 +494,19 @@ const CalculatorPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
         {/* Left - Metric Cards Grid */}
         <div className="space-y-3">
-          {/* Row 1 - Reordered: Economia → Economia Mensal → Economia Anual */}
+          {/* Row 1: Economia → Economia Mensal → Economia - Spread */}
            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <MetricCard
               title="Economia"
-              value={fmt(metrics.savingsPerOp, !isPositive, currency)}
-              subtitle="Por transação"
+              value={fmt(metrics.netPerOp, !isPositive, currency)}
+              subtitle="Por transação (líquida)"
               icon={<Clock className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
               tooltip="(% diferença - % spread) × volume mensal ÷ operações. Economia líquida por operação."
             />
             <MetricCard
               title="Economia Mensal"
-              value={fmt(metrics.savingsMonth, !isPositive, currency)}
+              value={fmt(metrics.netMonth, !isPositive, currency)}
               subtitle={isPositive ? "Economia potencial" : "Custo adicional"}
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
@@ -517,19 +514,20 @@ const CalculatorPage = () => {
               tooltip="(% diferença - % spread) × volume mensal em BRL. Economia líquida no mês."
             />
             <MetricCard
-              title="Economia Anual"
-              value={fmt(metrics.savingsYear, !isPositive, currency)}
-              subtitle="Projeção 12 meses"
-              icon={<Target className="h-4 w-4 text-muted-foreground" />}
-              color={isPositive ? "success" : "danger"}
-              tooltip="Economia mensal × 12 meses."
+              title="Economia - Spread"
+              value={fmt(metrics.economiaMinusSpread, metrics.economiaMinusSpread < 0, currency)}
+              subtitle={`Bruto ${fmt(metrics.grossMonth, false, currency)} − Spread ${fmt(metrics.spreadCost, false, currency)}`}
+              icon={<MinusCircle className="h-4 w-4 text-muted-foreground" />}
+              color={metrics.economiaMinusSpread > 0 ? "success" : "danger"}
+              highlight={metrics.economiaMinusSpread > 0}
+              tooltip="Economia bruta (só diferença de taxa) menos o custo de spread. Resultado final líquido."
             />
             <MetricCard
               title="Diferença de Taxa"
-              value={`${Math.abs(metrics.rateDiffPct).toFixed(1)}%`}
+              value={`${metrics.rateDiffPct.toFixed(2)}%`}
               subtitle={`${Math.abs(metrics.rateDiff).toFixed(4)} pts`}
               icon={<Zap className="h-4 w-4 text-muted-foreground" />}
-              color={metrics.rateDiff > 0 ? "success" : "danger"}
+              color={metrics.rateDiffPct >= 0.5 ? "success" : "warning"}
               tooltip="Diferença percentual entre a cotação do dia e a taxa estimada pela Treend."
             />
           </div>
@@ -537,29 +535,20 @@ const CalculatorPage = () => {
           {/* Row 2 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <MetricCard
-              title="Percentual Otimizado"
-              value={`${Math.abs(metrics.savingsPct).toFixed(2)}%`}
-              subtitle="% de economia gerado"
-              icon={<Users className="h-4 w-4 text-muted-foreground" />}
-              color={Math.abs(metrics.savingsPct) >= 1 ? "success" : Math.abs(metrics.savingsPct) >= 0.5 ? "warning" : "danger"}
-              tooltip="(% diferença - % spread). Percentual líquido de economia."
-            />
-            <MetricCard
-              title="Economia - Spread"
-              value={fmt(metrics.economiaMinusSpread, metrics.economiaMinusSpread < 0, currency)}
-              subtitle="Economia líquida após spread"
-              icon={<MinusCircle className="h-4 w-4 text-muted-foreground" />}
-              color={metrics.economiaMinusSpread > 0 ? "success" : "danger"}
-              highlight={metrics.economiaMinusSpread > 0}
-              tooltip="Economia bruta da operação menos o custo de spread bancário."
+              title="Economia Bruta"
+              value={fmt(metrics.grossMonth, false, currency)}
+              subtitle="Mensal (sem spread)"
+              icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+              color={metrics.grossMonth > 0 ? "success" : "default"}
+              tooltip="Economia bruta apenas pela diferença de taxas, sem descontar spread."
             />
             <MetricCard
               title="Custo Spread"
               value={fmt(metrics.spreadCost, false, currency)}
-              subtitle="/mês (banco)"
+              subtitle={`${spread.toFixed(1)}% sobre ${fmt(metrics.curBRL, false, "BRL")}`}
               icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
               color="warning"
-              tooltip="Volume mensal em BRL × a taxa de spread selecionada na barra de progresso."
+              tooltip="Volume mensal em BRL × a taxa de spread selecionada."
             />
             <MetricCard
               title="Taxa Efetiva"
@@ -567,7 +556,15 @@ const CalculatorPage = () => {
               subtitle="Com taxa de spread"
               icon={<LineChart className="h-4 w-4 text-muted-foreground" />}
               color="default"
-              tooltip="A cotação do dia + Taxa de Spread que você selecionou na barra de progresso."
+              tooltip="A cotação do dia + Taxa de Spread que você selecionou."
+            />
+            <MetricCard
+              title="Percentual Líquido"
+              value={`${metrics.netPct.toFixed(2)}%`}
+              subtitle={isPositive ? "% de economia" : "% de custo"}
+              icon={<Percent className="h-4 w-4 text-muted-foreground" />}
+              color={metrics.netPct >= 0.5 ? "success" : metrics.netPct >= 0 ? "warning" : "danger"}
+              tooltip="(% diferença - % spread). Percentual líquido da operação."
             />
           </div>
 
@@ -579,16 +576,23 @@ const CalculatorPage = () => {
               subtitle="Total mensal em R$"
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               color="default"
-              tooltip="O valor da operação x a cotação do dia (em reais)."
+              tooltip="O valor da operação × a cotação do dia (em reais)."
+            />
+            <MetricCard
+              title="Economia Anual"
+              value={fmt(metrics.netYear, !isPositive, currency)}
+              subtitle="Projeção 12 meses"
+              icon={<Target className="h-4 w-4 text-muted-foreground" />}
+              color={isPositive ? "success" : "danger"}
+              tooltip="Economia líquida mensal × 12 meses."
             />
             <MetricCard
               title={`Projeção ${projMonths}m`}
-              value={fmt(metrics.savingsMonth * projMonths, !isPositive, currency)}
+              value={fmt(metrics.netMonth * projMonths, !isPositive, currency)}
               subtitle="Economia projetada"
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
-              highlight={isPositive}
-              tooltip="Economia mensal × número de meses de projeção."
+              tooltip="Economia líquida mensal × meses de projeção."
             />
             <MetricCard
               title="Projeção 24m"
@@ -596,15 +600,7 @@ const CalculatorPage = () => {
               subtitle="Economia 2 anos"
               icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
-              tooltip="Economia mensal × 24 meses."
-            />
-            <MetricCard
-              title="Variação (%)"
-              value={`${Math.abs(metrics.savingsPct).toFixed(1)}%`}
-              subtitle={isPositive ? "Economia percentual" : "Custo percentual"}
-              icon={<Percent className="h-4 w-4 text-muted-foreground" />}
-              color={isPositive ? "success" : "danger"}
-              tooltip="O percentual líquido (diferença - spread) desta operação."
+              tooltip="Economia líquida mensal × 24 meses."
             />
           </div>
         </div>
@@ -626,13 +622,13 @@ const CalculatorPage = () => {
           <div className="space-y-2.5">
             <HealthItem
               label="Economia"
-              value={`${Math.abs(metrics.savingsPct).toFixed(2)}%`}
+              value={`${metrics.grossPct.toFixed(2)}%`}
               description={
                 metrics.savingsHealthStatus === "good"
-                  ? "Excelente economia sobre operações"
+                  ? "Excelente diferencial cambial sobre operações"
                   : metrics.savingsHealthStatus === "warning"
-                  ? "Economia moderada, avalie condições"
-                  : "Economia insuficiente ou custo adicional"
+                  ? "Diferencial moderado, avalie condições"
+                  : "Diferencial insuficiente para gerar economia"
               }
               benchmark=">= 1% (ideal: 1,5%)"
               status={metrics.savingsHealthStatus}
@@ -651,17 +647,17 @@ const CalculatorPage = () => {
               status={metrics.spreadHealthStatus}
             />
             <HealthItem
-              label="ROI Assinatura"
-              value={`${metrics.roi.toFixed(0)}%`}
+              label="Economia Líquida"
+              value={`${metrics.netPct.toFixed(2)}%`}
               description={
-                metrics.roiHealthStatus === "good"
-                  ? "Excelente retorno sobre o investimento ao assinar a Treend"
-                  : metrics.roiHealthStatus === "warning"
-                  ? "Retorno moderado ao assinar a Treend"
-                  : "Retorno baixo ao assinar a Treend, aumente o volume"
+                metrics.netHealthStatus === "good"
+                  ? "Resultado líquido excelente após descontar spread"
+                  : metrics.netHealthStatus === "warning"
+                  ? "Resultado positivo, mas margem apertada"
+                  : "Spread consome a economia — renegocie ou aguarde melhor taxa"
               }
-              benchmark=">= 200% (ideal: 500%)"
-              status={metrics.roiHealthStatus}
+              benchmark=">= 0,5% (ideal: 1%)"
+              status={metrics.netHealthStatus}
             />
             <HealthItem
               label="Volume Mensal"
@@ -791,7 +787,7 @@ const CalculatorPage = () => {
         // Economy evolution based on economia per transaction * ops * months
         const economyEvolutionData = Array.from({ length: 24 }, (_, i) => ({
           name: `Mês ${i + 1}`,
-          economia: Math.abs(metrics.savingsMonth) * (i + 1),
+          economia: Math.abs(metrics.netMonth) * (i + 1),
         }));
 
         const comparativoData = Array.from({ length: 24 }, (_, i) => {
