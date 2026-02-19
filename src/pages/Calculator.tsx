@@ -310,9 +310,9 @@ const CalculatorPage = () => {
     // Spread <= 1.2% ideal 0.5%
     const spreadHealthStatus: "good" | "warning" | "bad" =
       spread <= 0.5 ? "good" : spread <= 1.2 ? "warning" : "bad";
-    // Economia Líquida (net %) >= 0.3% good
+    // Economia Líquida (net %) >= 0.1% good
     const netHealthStatus: "good" | "warning" | "bad" =
-      netPct >= 0.3 ? "good" : netPct >= 0.1 ? "warning" : "bad";
+      netPct >= 0.1 ? "good" : netPct >= 0 ? "warning" : "bad";
     const volumeHealthStatus: "good" | "warning" | "bad" =
       volume >= 50000 ? "good" : volume >= 10000 ? "warning" : "bad";
 
@@ -657,7 +657,7 @@ const CalculatorPage = () => {
                   ? "Resultado positivo, mas margem apertada"
                   : "Spread consome a economia — renegocie ou aguarde melhor taxa"
               }
-              benchmark=">= 0,3% (ideal)"
+              benchmark=">= 0,1% (ideal)"
               status={metrics.netHealthStatus}
             />
             <HealthItem
