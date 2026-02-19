@@ -154,12 +154,12 @@ const FeedPage = () => {
   return <div className="max-w-2xl mx-auto space-y-5 pb-10">
       {/* Header */}
       <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">
-          Feed da Comunidade
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Compartilhe ideias e descubra análises cambiais
-        </p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Report Semanal
+
+      </h1>
+        <p className="text-sm text-muted-foreground">Receba reports semanais de análises d
+
+      </p>
       </div>
 
       {/* Currency Filters */}
