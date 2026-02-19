@@ -50,10 +50,23 @@ const AdminHeatmap = () => {
   };
 
   const setValues = (profileKey: string, x: number, y: number) => {
-    setLocalValues((prev) => ({
-      ...prev,
-      [`${profileKey}-${currency}-${frequency}`]: { x, y },
-    }));
+    setLocalValues((prev) => {
+      const next = {
+        ...prev,
+        [`${profileKey}-${currency}-${frequency}`]: { x, y },
+      };
+      // Mirror: importador ↔ agente_turismo, exportador ↔ freelancer
+      if (profileKey === "importador") {
+        next[`agente_turismo-${currency}-${frequency}`] = { x, y };
+      } else if (profileKey === "agente_turismo") {
+        next[`importador-${currency}-${frequency}`] = { x, y };
+      } else if (profileKey === "exportador") {
+        next[`freelancer-${currency}-${frequency}`] = { x, y };
+      } else if (profileKey === "freelancer") {
+        next[`exportador-${currency}-${frequency}`] = { x, y };
+      }
+      return next;
+    });
   };
 
   const handlePublish = async (profileKey: string) => {

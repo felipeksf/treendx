@@ -674,7 +674,7 @@ const CalculatorPage = () => {
       {/* Quick Converter */}
       {(() => {
         const convRate = converterCurrency === "USD" ? liveUsd?.bid : converterCurrency === "EUR" ? liveEur?.bid : liveGbp?.bid;
-        const convAmount = parseFloat(converterAmount) || 0;
+        const convAmount = parseFloat(converterAmount.replace(",", ".")) || 0;
         const convSymbol = converterCurrency === "USD" ? "US$" : converterCurrency === "EUR" ? "€" : "£";
         return (
           <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
@@ -701,9 +701,13 @@ const CalculatorPage = () => {
                 <Label className="text-xs text-muted-foreground">Valor em {convSymbol}</Label>
                 <Input
                   type="text"
-                  inputMode="numeric"
-                  value={fmtThousands(converterAmount)}
-                  onChange={(e) => setConverterAmount(parseThousands(e.target.value))}
+                  inputMode="decimal"
+                  value={converterAmount}
+                  onChange={(e) => {
+                    // Allow digits, dots, and commas for decimal input
+                    const raw = e.target.value.replace(/[^0-9.,]/g, "");
+                    setConverterAmount(raw);
+                  }}
                   className="h-10 text-sm bg-muted/40 border-border/40"
                 />
               </div>
@@ -965,6 +969,50 @@ const CalculatorPage = () => {
           Registrar esta decisão
         </Button>
       </div>
+
+      {/* Loss Reduction Simulation - only shown when economy is negative */}
+      {!isPositive && curRate > 0 && trdRate > 0 && (
+        <div className="rounded-2xl bg-card border border-treend-warning/30 p-5 space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-treend-warning/10">
+              <TrendingDown className="h-4 w-4 text-treend-warning" />
+            </div>
+            <div>
+              <span className="text-sm font-semibold text-foreground">Redução de Perda com a Treend</span>
+              <p className="text-[11px] text-muted-foreground">Embora o resultado final seja negativo por conta do spread, a Treend ajudou a minimizar a perda.</p>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div className="rounded-xl border border-treend-danger/20 bg-treend-danger/5 p-3.5 text-center">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Perda sem a Treend</p>
+              <p className="text-lg font-bold text-treend-danger tabular-nums">
+                {fmt(metrics.spreadCost, true, currency)}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Spread integral sobre a cotação do dia</p>
+            </div>
+            <div className="rounded-xl border border-treend-warning/20 bg-treend-warning/5 p-3.5 text-center">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Perda com a Treend</p>
+              <p className="text-lg font-bold text-treend-warning tabular-nums">
+                {fmt(Math.abs(metrics.netMonth), true, currency)}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Spread menos a economia da taxa Treend</p>
+            </div>
+            <div className="rounded-xl border border-treend-success/20 bg-treend-success/5 p-3.5 text-center">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Você economizou</p>
+              <p className="text-lg font-bold text-treend-success tabular-nums">
+                {fmt(metrics.grossMonth, false, currency)}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Redução de {metrics.grossPct.toFixed(2)}% na perda total</p>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-muted-foreground text-center italic">
+            💡 Sem a Treend, você pagaria {fmt(metrics.spreadCost, false, currency)} de spread. Com a taxa estimada da Treend, 
+            o custo líquido caiu para {fmt(Math.abs(metrics.netMonth), false, currency)} — uma economia de {fmt(metrics.grossMonth, false, currency)}.
+          </p>
+        </div>
+      )}
 
       <p className="text-[11px] text-muted-foreground text-center pb-4">
         Esta simulação é meramente ilustrativa. A decisão final é de responsabilidade do usuário.

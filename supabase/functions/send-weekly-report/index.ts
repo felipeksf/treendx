@@ -37,7 +37,7 @@ function buildReportHtml(body: string, imageUrl: string | null, dateFormatted: s
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:44px 48px 36px;text-align:center;position:relative;overflow:hidden;">
       <div style="font-size:38px;font-weight:800;color:#ffffff;letter-spacing:-1.5px;line-height:1;">
-        treend<span style="display:inline-block;width:8px;height:8px;background:#93c5fd;border-radius:50%;margin-left:2px;vertical-align:super;"></span>
+        treend<span style="display:inline-block;width:8px;height:8px;background:#ffffff;border-radius:50%;margin-left:2px;vertical-align:super;opacity:0.8;"></span>
       </div>
       <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:4px;">
         O Seu Guia Definitivo de Câmbio com IA

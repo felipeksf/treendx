@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 const currencySymbol = (c: string) => c === "BRL" ? "R$" : c === "USD" ? "US$" : c === "GBP" ? "£" : c === "EUR" ? "€" : c;
+const currencyFlag = (c: string) => c === "USD" ? "🇺🇸" : c === "EUR" ? "🇪🇺" : c === "GBP" ? "🇬🇧" : c === "BRL" ? "🇧🇷" : "";
 
 const formatDateBR = (dateStr: string) => {
   const d = new Date(dateStr);
@@ -101,11 +102,14 @@ const HistoryPage = () => {
           {Object.keys(savingsByCurrency).length === 0 ? (
             <p className="text-2xl font-bold text-foreground tabular-nums text-center">—</p>
           ) : (
-            <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex flex-col items-center gap-1.5">
               {Object.entries(savingsByCurrency).map(([cur, total]) => (
-                <p key={cur} className={`text-xl font-bold tabular-nums ${total >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
-                  {currencySymbol(cur)} {total.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
+                <div key={cur} className="flex items-center gap-2">
+                  <span className="text-base">{currencyFlag(cur)}</span>
+                  <p className={`text-xl font-bold tabular-nums ${total >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
+                    {currencySymbol(cur)} {total.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
               ))}
             </div>
           )}
@@ -120,9 +124,9 @@ const HistoryPage = () => {
             <SelectTrigger className="w-28 h-8 text-xs bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="USD">USD</SelectItem>
-              <SelectItem value="EUR">EUR</SelectItem>
-              <SelectItem value="GBP">GBP</SelectItem>
+              <SelectItem value="USD"><span className="flex items-center gap-2">🇺🇸 USD</span></SelectItem>
+              <SelectItem value="EUR"><span className="flex items-center gap-2">🇪🇺 EUR</span></SelectItem>
+              <SelectItem value="GBP"><span className="flex items-center gap-2">🇬🇧 GBP</span></SelectItem>
             </SelectContent>
           </Select>
         </div>
