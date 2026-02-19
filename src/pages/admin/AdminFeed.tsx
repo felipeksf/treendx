@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Send, Trash2, BadgeCheck, Loader2 } from "lucide-react";
+import { MessageSquare, Send, Trash2, BadgeCheck, Loader2, ImagePlus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
@@ -20,6 +20,26 @@ const AdminFeed = () => {
   const [submitting, setSubmitting] = useState(false);
   const [newText, setNewText] = useState("");
   const [currency, setCurrency] = useState<"USD" | "EUR" | "general">("USD");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Selecione apenas imagens.", variant: "destructive" });
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const fetchPosts = async () => {
     const { data, error } = await supabase
@@ -41,16 +61,38 @@ const AdminFeed = () => {
   const handlePost = async () => {
     if (!newText.trim() || !user) return;
     setSubmitting(true);
+
+    let imageUrl: string | null = null;
+
+    if (imageFile) {
+      const sanitizedName = imageFile.name
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]/g, "_");
+      const filePath = `${Date.now()}_${sanitizedName}`;
+      const { error: uploadError } = await supabase.storage
+        .from("feed-images")
+        .upload(filePath, imageFile);
+      if (uploadError) {
+        toast({ title: "Erro ao enviar imagem.", description: uploadError.message, variant: "destructive" });
+        setSubmitting(false);
+        return;
+      }
+      const { data: publicData } = supabase.storage.from("feed-images").getPublicUrl(filePath);
+      imageUrl = publicData.publicUrl;
+    }
+
     const { error } = await supabase.from("feed_posts").insert({
       body: newText.trim(),
       currency,
       admin_id: user.id,
+      image_url: imageUrl,
     });
     setSubmitting(false);
     if (error) {
       toast({ title: "Erro ao publicar.", description: error.message, variant: "destructive" });
     } else {
       setNewText("");
+      clearImage();
       toast({ title: "Publicação criada com sucesso!" });
       fetchPosts();
     }
@@ -92,8 +134,39 @@ const AdminFeed = () => {
           onChange={(e) => setNewText(e.target.value)}
           className="resize-none bg-muted/40 border-border/40 min-h-[100px] text-sm"
         />
+
+        {/* Image preview */}
+        {imagePreview && (
+          <div className="relative inline-block">
+            <img src={imagePreview} alt="Preview" className="max-h-40 rounded-lg border border-border/40 object-cover" />
+            <button
+              onClick={clearImage}
+              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageSelect}
+          className="hidden"
+        />
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
           <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1.5 border-border/40"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <ImagePlus className="h-3.5 w-3.5" />
+              Imagem
+            </Button>
             <div className="flex items-center gap-2">
               <Label className="text-[11px] text-muted-foreground">Moeda:</Label>
               <Select value={currency} onValueChange={(v) => setCurrency(v as "USD" | "EUR" | "general")}>
@@ -138,6 +211,9 @@ const AdminFeed = () => {
                     </span>
                   </div>
                   <p className="text-sm text-foreground/85 line-clamp-2">{post.body}</p>
+                  {post.image_url && (
+                    <img src={post.image_url} alt="Post" className="mt-2 max-h-32 rounded-lg border border-border/40 object-cover" />
+                  )}
                 </div>
                 <button onClick={() => handleDelete(post.id)} className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
                   <Trash2 className="h-4 w-4" />
