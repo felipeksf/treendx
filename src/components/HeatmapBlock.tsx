@@ -14,9 +14,8 @@ interface HeatmapBlockProps {
 }
 
 const getHeatColor = (x: number, y: number): string => {
-  // Map position to color: top-left = green (favorable), bottom-right = red (unfavorable)
-  // Using a 2D gradient approach
-  const favorability = 100 - ((x + y) / 2);
+  // Map position to color: top-left = red (unfavorable), bottom-right = green (favorable)
+  const favorability = (x + y) / 2;
   
   if (favorability >= 75) return "hsl(142, 71%, 45%)"; // Green
   if (favorability >= 50) return "hsl(80, 80%, 45%)";  // Yellow-green
@@ -26,14 +25,13 @@ const getHeatColor = (x: number, y: number): string => {
 };
 
 const getZoneMessage = (x: number, y: number): string => {
-  // x determines the column (0=left/green, 100=right/red)
-  // We use x position to map to 5 columns
+  // x determines the column (0=left/red, 100=right/green)
   const column = x / 100; // 0 to 1
-  if (column <= 0.2) return "Cenário interessante para tomada de decisão";
-  if (column <= 0.4) return "Cenário OK para tomada de decisão";
+  if (column <= 0.2) return "Cenário pessimista para tomada de decisão";
+  if (column <= 0.4) return "Cenário não saudável para tomada de decisão";
   if (column <= 0.6) return "Cenário Neutro para tomada de decisão";
-  if (column <= 0.8) return "Cenário não saudável para tomada de decisão";
-  return "Cenário pessimista para tomada de decisão";
+  if (column <= 0.8) return "Cenário OK para tomada de decisão";
+  return "Cenário interessante para tomada de decisão";
 };
 
 const HeatmapBlock = ({
@@ -52,15 +50,15 @@ const HeatmapBlock = ({
   const gradientStyle = useMemo(() => ({
     background: `
       linear-gradient(to right, 
-        hsl(142, 71%, 45%, 0.8), 
-        hsl(80, 80%, 45%, 0.7) 25%,
+        hsl(0, 84%, 55%, 0.8), 
+        hsl(25, 95%, 53%, 0.7) 25%,
         hsl(48, 96%, 53%, 0.7) 50%, 
-        hsl(25, 95%, 53%, 0.7) 75%,
-        hsl(0, 84%, 55%, 0.8)
+        hsl(80, 80%, 45%, 0.7) 75%,
+        hsl(142, 71%, 45%, 0.8)
       ),
       linear-gradient(to bottom,
-        hsl(142, 71%, 45%, 0.4),
-        hsl(0, 84%, 55%, 0.4)
+        hsl(0, 84%, 55%, 0.4),
+        hsl(142, 71%, 45%, 0.4)
       )
     `,
     backgroundBlendMode: "multiply" as const,
@@ -156,16 +154,16 @@ const HeatmapBlock = ({
         {/* Color legend */}
         <div className="flex items-center justify-between mt-2 px-1">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
-            <span className="text-[9px] text-muted-foreground">Ótimo</span>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(0, 84%, 55%)" }} />
+            <span className="text-[9px] text-muted-foreground">Ruim</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(48, 96%, 53%)" }} />
             <span className="text-[9px] text-muted-foreground">Neutro</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(0, 84%, 55%)" }} />
-            <span className="text-[9px] text-muted-foreground">Ruim</span>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
+            <span className="text-[9px] text-muted-foreground">Ótimo</span>
           </div>
         </div>
       </div>

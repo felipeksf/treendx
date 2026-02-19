@@ -34,7 +34,7 @@ const HeatmapEditor = ({ heatX, heatY, onChange }: HeatmapEditorProps) => {
     document.addEventListener("mouseup", handleMouseUp);
   }, [getPosition]);
 
-  const favorability = 100 - ((heatX + heatY) / 2);
+  const favorability = (heatX + heatY) / 2;
   const heatColor = favorability >= 75 ? "hsl(142, 71%, 45%)" 
     : favorability >= 50 ? "hsl(80, 80%, 45%)"
     : favorability >= 35 ? "hsl(48, 96%, 53%)"
@@ -50,15 +50,15 @@ const HeatmapEditor = ({ heatX, heatY, onChange }: HeatmapEditorProps) => {
         style={{
           background: `
             linear-gradient(to right, 
-              hsl(142, 71%, 45%, 0.8), 
-              hsl(80, 80%, 45%, 0.7) 25%,
+              hsl(0, 84%, 55%, 0.8), 
+              hsl(25, 95%, 53%, 0.7) 25%,
               hsl(48, 96%, 53%, 0.7) 50%, 
-              hsl(25, 95%, 53%, 0.7) 75%,
-              hsl(0, 84%, 55%, 0.8)
+              hsl(80, 80%, 45%, 0.7) 75%,
+              hsl(142, 71%, 45%, 0.8)
             ),
             linear-gradient(to bottom,
-              hsl(142, 71%, 45%, 0.4),
-              hsl(0, 84%, 55%, 0.4)
+              hsl(0, 84%, 55%, 0.4),
+              hsl(142, 71%, 45%, 0.4)
             )
           `,
           backgroundBlendMode: "multiply",
@@ -109,24 +109,24 @@ const HeatmapEditor = ({ heatX, heatY, onChange }: HeatmapEditorProps) => {
       {/* Legend */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
-          <span className="text-[10px] text-muted-foreground">Ótimo</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(80, 80%, 45%)" }} />
-          <span className="text-[10px] text-muted-foreground">Bom</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(48, 96%, 53%)" }} />
-          <span className="text-[10px] text-muted-foreground">Neutro</span>
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(0, 84%, 55%)" }} />
+          <span className="text-[10px] text-muted-foreground">Ruim</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(25, 95%, 53%)" }} />
           <span className="text-[10px] text-muted-foreground">Atenção</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(0, 84%, 55%)" }} />
-          <span className="text-[10px] text-muted-foreground">Ruim</span>
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(48, 96%, 53%)" }} />
+          <span className="text-[10px] text-muted-foreground">Neutro</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(80, 80%, 45%)" }} />
+          <span className="text-[10px] text-muted-foreground">Bom</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
+          <span className="text-[10px] text-muted-foreground">Ótimo</span>
         </div>
       </div>
     </div>
