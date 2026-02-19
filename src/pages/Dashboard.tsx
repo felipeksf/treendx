@@ -104,10 +104,10 @@ const Dashboard = () => {
       {/* Top Action Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
+          { label: "Notícias", desc: "Reports Semanais", icon: Newspaper, path: "/news" },
+          { label: "Agenda", desc: "Próximos eventos", icon: CalendarDays, path: "/agenda" },
           { label: "Calculadora", desc: "Simular câmbio", icon: Calculator, path: "/calculator" },
           { label: "Histórico", desc: "Decisões passadas", icon: History, path: "/history" },
-          { label: "Feed", desc: "Reports Semanais", icon: Newspaper, path: "/news" },
-          { label: "Agenda", desc: "Próximos eventos", icon: CalendarDays, path: "/agenda" },
         ].map((item) => (
           <Link
             key={item.path}
