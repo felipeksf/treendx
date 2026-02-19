@@ -10,6 +10,7 @@ interface HeatmapBlockProps {
   heatY: number; // 0-100
   updatedAt?: string | null;
   compact?: boolean;
+  expanded?: boolean;
 }
 
 const getHeatColor = (x: number, y: number): string => {
@@ -40,6 +41,7 @@ const HeatmapBlock = ({
   heatY,
   updatedAt,
   compact = false,
+  expanded = false,
 }: HeatmapBlockProps) => {
   const heatColor = useMemo(() => getHeatColor(heatX, heatY), [heatX, heatY]);
   const zoneMessage = useMemo(() => getZoneMessage(heatX, heatY), [heatX, heatY]);
@@ -65,10 +67,10 @@ const HeatmapBlock = ({
   return (
     <div className="rounded-2xl bg-card border border-primary/40 overflow-hidden transition-all hover:border-primary/60 hover:shadow-lg hover:shadow-primary/10">
       {/* Header */}
-      <div className="p-4 pb-3 flex items-start justify-between gap-2">
+      <div className={`${expanded ? "p-6 pb-4" : "p-4 pb-3"} flex items-start justify-between gap-2`}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-foreground tracking-tight">{profileLabel}</h3>
+            <h3 className={`${expanded ? "text-lg" : "text-sm"} font-bold text-foreground tracking-tight`}>{profileLabel}</h3>
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -89,13 +91,13 @@ const HeatmapBlock = ({
       </div>
 
       {/* Heatmap visualization */}
-      <div className="px-4 pb-4">
+      <div className={`${expanded ? "px-6 pb-6" : "px-4 pb-4"}`}>
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
               <div
-                className="relative w-full rounded-xl overflow-hidden cursor-crosshair"
-                style={{ ...gradientStyle, height: compact ? "120px" : "160px" }}
+                className="relative w-full rounded-xl overflow-hidden cursor-crosshair transition-all duration-300"
+                style={{ ...gradientStyle, height: expanded ? "480px" : compact ? "120px" : "160px" }}
               >
                 {/* Grid overlay for depth */}
                 <div className="absolute inset-0 opacity-10"
@@ -110,7 +112,7 @@ const HeatmapBlock = ({
 
                 {/* Glow behind the point */}
                 <div
-                  className="absolute w-16 h-16 rounded-full blur-xl transition-all duration-500"
+                  className={`absolute ${expanded ? "w-24 h-24" : "w-16 h-16"} rounded-full blur-xl transition-all duration-500`}
                   style={{
                     left: `${heatX}%`,
                     top: `${heatY}%`,
@@ -122,7 +124,7 @@ const HeatmapBlock = ({
 
                 {/* The heat point */}
                 <div
-                  className="absolute w-5 h-5 rounded-full border-2 border-white shadow-lg transition-all duration-500"
+                  className={`absolute ${expanded ? "w-8 h-8" : "w-5 h-5"} rounded-full border-2 border-white shadow-lg transition-all duration-500`}
                   style={{
                     left: `${heatX}%`,
                     top: `${heatY}%`,

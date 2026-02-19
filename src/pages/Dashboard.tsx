@@ -221,9 +221,10 @@ const Dashboard = () => {
       </div>
 
       {/* Heatmap Grid - 4 blocks */}
-      <div className={`grid gap-4 ${filteredProfiles.length === 1 ? "grid-cols-1 max-w-2xl mx-auto" : "grid-cols-1 md:grid-cols-2"}`}>
+      <div className={`grid gap-4 ${filteredProfiles.length === 1 ? "grid-cols-1 max-w-4xl mx-auto" : "grid-cols-1 md:grid-cols-2"}`}>
         {filteredProfiles.map((profile) => {
           const data = getHeatmapData(profile.key);
+          const isExpanded = filteredProfiles.length === 1;
           return (
             <HeatmapBlock
               key={profile.key}
@@ -233,6 +234,7 @@ const Dashboard = () => {
               heatX={data.heatX}
               heatY={data.heatY}
               updatedAt={data.updatedAt}
+              expanded={isExpanded}
             />
           );
         })}
