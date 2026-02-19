@@ -34,9 +34,9 @@ const AppLayout = () => {
       {/* Main content */}
       <div className="flex-1 md:ml-[72px] lg:ml-64 flex flex-col min-h-screen transition-all duration-300">
         {/* Mobile header */}
-        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card sticky top-0 z-20">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <img src={treendLogo} alt="Treend" className="h-20 w-auto" />
+        <header className="md:hidden flex items-center justify-center border-b border-border bg-card sticky top-0 z-20">
+          <Link to="/dashboard" className="flex items-center justify-center">
+            <img src={treendLogo} alt="Treend" className="h-28 w-auto" />
           </Link>
         </header>
 
