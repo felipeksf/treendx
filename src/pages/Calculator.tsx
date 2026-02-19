@@ -39,6 +39,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const RATE_RANGES: Record<string, { min: number; max: number; default: number }> = {
   USD: { min: 4.00, max: 6.50, default: 5.12 },
   EUR: { min: 4.50, max: 7.00, default: 5.58 },
+  GBP: { min: 5.00, max: 8.00, default: 6.50 },
   BRL: { min: 0.15, max: 0.30, default: 0.20 },
 };
 
@@ -214,8 +215,12 @@ const CalculatorPage = () => {
       setCurrentRate(liveEur.bid.toFixed(4));
       setSliderRate([liveEur.bid]);
       setTreendRate(computeTreendRate(liveEur.bid).toFixed(4));
+    } else if (currency === "GBP" && liveGbp) {
+      setCurrentRate(liveGbp.bid.toFixed(4));
+      setSliderRate([liveGbp.bid]);
+      setTreendRate(computeTreendRate(liveGbp.bid).toFixed(4));
     }
-  }, [liveUsd?.bid, liveEur?.bid]);
+  }, [liveUsd?.bid, liveEur?.bid, liveGbp?.bid]);
 
   // Recalculate treend rate when profile changes
   useEffect(() => {
@@ -238,7 +243,7 @@ const CalculatorPage = () => {
   const handleCurrencyChange = (val: string) => {
     setCurrency(val);
     const range = RATE_RANGES[val];
-    const liveRate = val === "USD" && liveUsd ? liveUsd.bid : val === "EUR" && liveEur ? liveEur.bid : range.default;
+    const liveRate = val === "USD" && liveUsd ? liveUsd.bid : val === "EUR" && liveEur ? liveEur.bid : val === "GBP" && liveGbp ? liveGbp.bid : range.default;
     setCurrentRate(liveRate.toFixed(4));
     setSliderRate([liveRate]);
     const prefLower = ["importador", "agente_turismo", "turista"].includes(profile);
@@ -387,6 +392,7 @@ const CalculatorPage = () => {
                 <SelectContent>
                   <SelectItem value="USD"><span className="flex items-center gap-2">{currencyFlag("USD")} USD — Dólar</span></SelectItem>
                   <SelectItem value="EUR"><span className="flex items-center gap-2">{currencyFlag("EUR")} EUR — Euro</span></SelectItem>
+                  <SelectItem value="GBP"><span className="flex items-center gap-2">{currencyFlag("GBP")} GBP — Libra</span></SelectItem>
                   <SelectItem value="BRL"><span className="flex items-center gap-2">{currencyFlag("BRL")} BRL — Real</span></SelectItem>
                 </SelectContent>
               </Select>
