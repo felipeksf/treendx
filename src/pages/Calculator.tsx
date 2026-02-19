@@ -33,6 +33,8 @@ import {
   ComposedChart, Area,
 } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -193,6 +195,7 @@ const CalculatorPage = () => {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [profile, setProfile] = useState<"importador" | "exportador" | "agente_turismo" | "turista" | "freelancer">("importador");
   const { toast } = useToast();
+  const { user } = useAuth();
   const { usd: liveUsd, eur: liveEur, gbp: liveGbp } = useExchangeRates();
   const [converterCurrency, setConverterCurrency] = useState("USD");
   const [converterAmount, setConverterAmount] = useState("1000");
@@ -414,7 +417,7 @@ const CalculatorPage = () => {
           </div>
           <div className="grid sm:grid-cols-3 gap-3 mt-3">
             <div className="space-y-1.5">
-              <TooltipLabel label={`Taxa Atual (${currency === "BRL" ? "R$" : currency === "USD" ? "US$" : "€"})`} tip="Insira a taxa de câmbio comercial do dia abaixo" />
+              <TooltipLabel label={`Taxa Atual (${currencySymbol(currency)})`} tip="Insira a taxa de câmbio comercial do dia abaixo" />
               <Input
                 type="number"
                 value={currentRate}
@@ -430,7 +433,7 @@ const CalculatorPage = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <TooltipLabel label={`Taxa Estimada pela Treend (${currency === "BRL" ? "R$" : currency === "USD" ? "US$" : "€"})`} tip="Taxa estimada pela Treend com base na cotação atual ±0.8%" />
+              <TooltipLabel label={`Taxa Estimada pela Treend (${currencySymbol(currency)})`} tip="Taxa estimada pela Treend com base na cotação atual ±0.8%" />
               <Input type="number" value={treendRate} onChange={(e) => setTreendRate(e.target.value)} step="0.01" className="h-10 text-sm bg-muted/40 border-border/40" />
             </div>
             <div className="space-y-1.5">
@@ -768,7 +771,7 @@ const CalculatorPage = () => {
       {(() => {
         const TREEND_BLUE = "#3B82F6";
         const RATE_ORANGE = "#F97316";
-        const EFFECTIVE_PURPLE = "#A855F7";
+        const EFFECTIVE_RED = "#EF4444";
         const GRID_COLOR = "hsl(var(--border) / 0.3)";
         const TEXT_COLOR = "hsl(var(--muted-foreground))";
 
@@ -922,7 +925,7 @@ const CalculatorPage = () => {
                     <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
                     <Line type="monotone" dataKey="Taxa Atual" stroke={RATE_ORANGE} strokeWidth={2} dot={{ fill: RATE_ORANGE, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
                     <Line type="monotone" dataKey="Taxa Estimada Treend" stroke={TREEND_BLUE} strokeWidth={2.5} dot={{ fill: TREEND_BLUE, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Taxa Efetiva" stroke={EFFECTIVE_PURPLE} strokeWidth={2} strokeDasharray="5 5" dot={{ fill: EFFECTIVE_PURPLE, r: 2.5, strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Taxa Efetiva" stroke={EFFECTIVE_RED} strokeWidth={2} strokeDasharray="5 5" dot={{ fill: EFFECTIVE_RED, r: 2.5, strokeWidth: 0 }} activeDot={{ r: 5 }} />
                   </RechartsLineChart>
                 </ResponsiveContainer>
               </div>
@@ -936,7 +939,27 @@ const CalculatorPage = () => {
           variant="outline"
           size="sm"
           className="gap-1.5"
-          onClick={() => toast({ title: "Decisão registrada!", description: "Salva no seu histórico." })}
+          onClick={async () => {
+            if (!user) {
+              toast({ title: "Faça login para registrar", variant: "destructive" });
+              return;
+            }
+            try {
+              const zone = getZoneLabel(metrics.pct).label;
+              const { error } = await supabase.from("user_decisions").insert({
+                user_id: user.id,
+                currency,
+                amount: volume,
+                rate: curRate,
+                savings: metrics.netMonth,
+                zone,
+              });
+              if (error) throw error;
+              toast({ title: "Decisão registrada!", description: "Salva no seu histórico." });
+            } catch (err: any) {
+              toast({ title: "Erro ao registrar", description: err.message, variant: "destructive" });
+            }
+          }}
         >
           <Save className="h-4 w-4" />
           Registrar esta decisão
