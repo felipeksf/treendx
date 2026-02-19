@@ -189,7 +189,7 @@ const Dashboard = () => {
         </div>
 
         {/* Live rates display - all 3 currencies */}
-        <div className="ml-auto flex items-center gap-3">
+        <div className="w-full flex justify-center gap-3 mt-2">
           {([
             { rate: liveUsd, flag: "🇺🇸", label: "USD" },
             { rate: liveEur, flag: "🇪🇺", label: "EUR" },
