@@ -354,7 +354,7 @@ const CalculatorPage = () => {
   const scenarioToMonthMultiplier = scenarioPeriod === "day" ? 22 : scenarioPeriod === "week" ? 4 : 1;
   const scenarioPeriodLabel = scenarioPeriod === "day" ? "por dia" : scenarioPeriod === "week" ? "por semana" : "por mês";
   const scenarioPeriodVolumeLabel = scenarioPeriod === "day" ? "diário" : scenarioPeriod === "week" ? "semanal" : "mensal";
-  const scenarioTreendEstimate = prefersLower ? scenarioLiveRate * (1 - 0.008) : scenarioLiveRate * (1 + 0.008);
+  const scenarioTreendEstimate = scenarioCurrency === currency ? trdRate : (prefersLower ? scenarioLiveRate * (1 - 0.008) : scenarioLiveRate * (1 + 0.008));
 
   const scenario = useMemo(() => {
     const sRate = sliderRate[0];
