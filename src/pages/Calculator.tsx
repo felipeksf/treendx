@@ -202,6 +202,7 @@ const CalculatorPage = () => {
   const [converterResultCurrency, setConverterResultCurrency] = useState<"foreign" | "BRL">("foreign");
   const [scenarioCurrency, setScenarioCurrency] = useState("USD");
   const [scenarioPeriod, setScenarioPeriod] = useState<"day" | "week" | "month" | "operation">("month");
+  const [impactCurrency, setImpactCurrency] = useState("BRL");
 
   const prefersLower = ["importador", "agente_turismo", "turista"].includes(profile);
 
@@ -1078,10 +1079,36 @@ const CalculatorPage = () => {
                     </div>
                     <div className="p-4 text-center">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Impacto / op</p>
-                      <p className={`text-base font-bold tabular-nums ${treendIsBetter ? "text-treend-success" : "text-treend-danger"}`}>
-                        {fmtFull(Math.abs(volume * curRate - volume * trdRate) / (ops > 0 ? ops : 1), "BRL")}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">por operação</p>
+                      {(() => {
+                        // Impact in BRL = |volume * (curRate - trdRate)| / ops
+                        const impactBRL = Math.abs(volume * curRate - volume * trdRate) / (ops > 0 ? ops : 1);
+                        // Convert from BRL to selected currency
+                        const brlToUsd = liveUsd ? 1 / liveUsd.bid : 1 / curRate;
+                        const brlToEur = liveEur ? 1 / liveEur.bid : 1 / curRate;
+                        const brlToGbp = liveGbp ? 1 / liveGbp.bid : 1 / curRate;
+                        const impactConverted = impactCurrency === "BRL" ? impactBRL
+                          : impactCurrency === "USD" ? impactBRL * brlToUsd
+                          : impactCurrency === "EUR" ? impactBRL * brlToEur
+                          : impactBRL * brlToGbp;
+                        return (
+                          <>
+                            <p className={`text-base font-bold tabular-nums ${treendIsBetter ? "text-treend-success" : "text-treend-danger"}`}>
+                              {fmtFull(impactConverted, impactCurrency)}
+                            </p>
+                            <Select value={impactCurrency} onValueChange={setImpactCurrency}>
+                              <SelectTrigger className="h-6 w-auto mx-auto mt-1.5 px-2 text-[10px] bg-muted/40 border-border/40 gap-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="z-50 bg-popover">
+                                <SelectItem value="BRL"><span className="flex items-center gap-1.5">{currencyFlag("BRL")} BRL</span></SelectItem>
+                                <SelectItem value="USD"><span className="flex items-center gap-1.5">{currencyFlag("USD")} USD</span></SelectItem>
+                                <SelectItem value="EUR"><span className="flex items-center gap-1.5">{currencyFlag("EUR")} EUR</span></SelectItem>
+                                <SelectItem value="GBP"><span className="flex items-center gap-1.5">{currencyFlag("GBP")} GBP</span></SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
