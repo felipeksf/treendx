@@ -930,44 +930,40 @@ const CalculatorPage = () => {
             </span>
           </div>
 
-          {/* Card 3: Economia = Economia com a Treend - 0.8% */}
+          {/* Card 3: Economia sem a Treend = volume × taxa atual − spread% */}
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                Economia {scenarioPeriodVolumeLabel}
+                Economia {scenarioPeriodVolumeLabel} sem a Treend
               </p>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-3 w-3 text-muted-foreground/60 cursor-help shrink-0" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[260px] text-xs">
-                  Economia baseada na cotação atual vs taxa estimada pela Treend.
+                  Volume × taxa atual − spread configurado. Quanto você economizaria sem o diferencial Treend.
                 </TooltipContent>
               </Tooltip>
             </div>
             <div className="flex items-center justify-center gap-1">
               {(() => {
-                // Economy based on current live rate vs Treend estimate
-                const currentBRL = volume * scenarioLiveRate;
-                const treendBRL = volume * scenarioTreendEstimate;
-                const econCurrent = Math.abs(currentBRL - treendBRL);
-                const econIsPositive = prefersLower ? scenarioTreendEstimate < scenarioLiveRate : scenarioTreendEstimate > scenarioLiveRate;
+                const volBRL = volume * curRate;
+                const econSemTreend = volBRL * (spread / 100);
+                const isPos = econSemTreend > 0;
                 return (
                   <>
-                    {econIsPositive ? (
+                    {isPos ? (
                       <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-                    ) : (
-                      <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
-                    )}
-                    <p className={`text-base font-bold tabular-nums ${econIsPositive ? "text-treend-success" : "text-treend-danger"}`}>
-                      {fmtFull(econCurrent, scenarioCurrency)}
+                    ) : null}
+                    <p className={`text-base font-bold tabular-nums ${isPos ? "text-treend-success" : "text-muted-foreground"}`}>
+                      {fmtFull(econSemTreend, currency)}
                     </p>
                   </>
                 );
               })()}
             </div>
             <span className="text-[10px] text-muted-foreground">
-              Cotação atual vs taxa estimada Treend
+              Volume × taxa atual − spread
             </span>
           </div>
         </div>
