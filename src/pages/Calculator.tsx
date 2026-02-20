@@ -27,6 +27,9 @@ import {
   HelpCircle,
   ChevronDown,
   MinusCircle,
+  Bookmark,
+  BookmarkCheck,
+  Trash2,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -183,18 +186,39 @@ const HealthItem = ({ label, value, description, benchmark, status }: HealthItem
   );
 };
 
+const PRESET_KEY = "treend_calc_preset";
+
+interface CalcPreset {
+  currency: string;
+  monthlyVolume: string;
+  opsPerMonth: string;
+  opsFrequency: "month" | "week" | "day";
+  bankSpread: string;
+  projectionMonths: string;
+  profile: string;
+}
+
+const loadPreset = (): CalcPreset | null => {
+  try {
+    const raw = localStorage.getItem(PRESET_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+};
+
 const CalculatorPage = () => {
-  const [currency, setCurrency] = useState("USD");
-  const [monthlyVolume, setMonthlyVolume] = useState("50000");
+  const saved = loadPreset();
+  const [currency, setCurrency] = useState(saved?.currency ?? "USD");
+  const [monthlyVolume, setMonthlyVolume] = useState(saved?.monthlyVolume ?? "50000");
   const [currentRate, setCurrentRate] = useState("5.12");
   const [treendRate, setTreendRate] = useState("5.08");
-  const [opsPerMonth, setOpsPerMonth] = useState("10");
-  const [opsFrequency, setOpsFrequency] = useState<"month" | "week" | "day">("month");
-  const [bankSpread, setBankSpread] = useState("1.0");
-  const [projectionMonths, setProjectionMonths] = useState("12");
+  const [opsPerMonth, setOpsPerMonth] = useState(saved?.opsPerMonth ?? "10");
+  const [opsFrequency, setOpsFrequency] = useState<"month" | "week" | "day">(saved?.opsFrequency ?? "month");
+  const [bankSpread, setBankSpread] = useState(saved?.bankSpread ?? "1.0");
+  const [projectionMonths, setProjectionMonths] = useState(saved?.projectionMonths ?? "12");
   const [sliderRate, setSliderRate] = useState([5.12]);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [profile, setProfile] = useState<"importador" | "exportador" | "agente_turismo" | "turista" | "freelancer">("importador");
+  const [profile, setProfile] = useState<"importador" | "exportador" | "agente_turismo" | "turista" | "freelancer">((saved?.profile as any) ?? "importador");
+  const [hasPreset, setHasPreset] = useState(!!saved);
   const { toast } = useToast();
   const { user } = useAuth();
   const { usd: liveUsd, eur: liveEur, gbp: liveGbp } = useExchangeRates();
@@ -204,6 +228,19 @@ const CalculatorPage = () => {
   const [scenarioCurrency, setScenarioCurrency] = useState("USD");
   const [scenarioPeriod, setScenarioPeriod] = useState<"day" | "week" | "month" | "operation">("month");
   const [impactCurrency, setImpactCurrency] = useState("BRL");
+
+  const handleSavePreset = () => {
+    const preset: CalcPreset = { currency, monthlyVolume, opsPerMonth, opsFrequency, bankSpread, projectionMonths, profile };
+    localStorage.setItem(PRESET_KEY, JSON.stringify(preset));
+    setHasPreset(true);
+    toast({ title: "Predefinição salva", description: "Seus valores padrão serão carregados automaticamente." });
+  };
+
+  const handleClearPreset = () => {
+    localStorage.removeItem(PRESET_KEY);
+    setHasPreset(false);
+    toast({ title: "Predefinição removida", description: "Os valores padrão foram restaurados." });
+  };
 
   const prefersLower = ["importador", "agente_turismo", "turista"].includes(profile);
 
@@ -430,6 +467,33 @@ const CalculatorPage = () => {
                 <SelectItem value="freelancer">Freelancer</SelectItem>
               </SelectContent>
             </Select>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={hasPreset ? "secondary" : "outline"} size="sm" onClick={handleSavePreset} className="gap-1.5 text-xs">
+                    {hasPreset ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
+                    {hasPreset ? "Salvo" : "Salvar"}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Salvar valores atuais como predefinição
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {hasPreset && (
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={handleClearPreset} className="h-9 w-9 text-muted-foreground hover:text-destructive">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    Remover predefinição salva
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 text-xs">
               <RefreshCw className="h-3.5 w-3.5" />
               Resetar
