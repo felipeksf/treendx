@@ -378,7 +378,7 @@ const CalculatorPage = () => {
     const rawPct = ((sRate - scenarioRange.min) / range) * 100;
     const zonePct = prefersLower ? rawPct : 100 - rawPct;
 
-    return { sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, zonePct, monthlysBRL, monthlyCurrentBRL, monthlyImpact, monthlyTreendSaving };
+    return { periodVolume, sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, zonePct, monthlysBRL, monthlyCurrentBRL, monthlyImpact, monthlyTreendSaving };
   }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower, scenarioPeriodMultiplier, scenarioToMonthMultiplier]);
 
   const getZoneLabel = (pct: number) => {
@@ -776,9 +776,19 @@ const CalculatorPage = () => {
             <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
               <SlidersHorizontal className="h-4 w-4 text-primary" />
             </div>
-            <div>
-              <span className="text-sm font-semibold text-foreground">E se o câmbio mudar?</span>
-              <p className="text-[11px] text-muted-foreground">Simule como variações na cotação impactam sua operação mensal</p>
+            <div className="flex items-center gap-1.5">
+              <div>
+                <span className="text-sm font-semibold text-foreground">E se o câmbio mudar?</span>
+                <p className="text-[11px] text-muted-foreground">Simule como variações na cotação impactam sua operação mensal</p>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[280px] text-xs">
+                  Aqui você faz uma simulação de economia/lucro com base no valor inserido em volume mensal no início da calculadora. Você consegue ter uma projeção mensal e quanto economizaria com as estatísticas da Treend no determinado período (dia, semana ou mês).
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -828,15 +838,17 @@ const CalculatorPage = () => {
         <div className="grid sm:grid-cols-3 gap-3">
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {prefersLower ? `Custo ${scenarioPeriodVolumeLabel}` : `Receita ${scenarioPeriodVolumeLabel}`}
+              Volume simulado
             </p>
-            <p className="text-base font-bold text-foreground tabular-nums">{fmtFull(scenario.sBRL, scenarioCurrency)}</p>
+            <p className="text-base font-bold text-foreground tabular-nums">
+              {fmtFull(scenario.periodVolume, scenarioCurrency)}
+            </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              Hoje ({scenarioCurrency}): {fmtFull(scenario.currentBRL, scenarioCurrency)}
+              Cotação: {sliderRate[0].toFixed(4)} BRL
             </p>
             {scenarioPeriod !== "month" && (
               <p className="text-[10px] text-primary font-medium mt-1">
-                Projeção mensal: {fmtFull(scenario.monthlysBRL, scenarioCurrency)}
+                Volume mensal: {fmtFull(volume, scenarioCurrency)}
               </p>
             )}
           </div>
