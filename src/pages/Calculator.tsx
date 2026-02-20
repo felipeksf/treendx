@@ -838,19 +838,16 @@ const CalculatorPage = () => {
         <div className="grid sm:grid-cols-3 gap-3">
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              Volume simulado
+              Volume inserido
             </p>
             <p className="text-base font-bold text-foreground tabular-nums">
-              {fmtFull(scenario.periodVolume, scenarioCurrency)}
+              {fmtFull(volume, scenarioCurrency)}
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              Cotação: {sliderRate[0].toFixed(4)} BRL
+              {scenarioPeriod !== "month"
+                ? `${scenarioPeriod === "day" ? "Diário" : "Semanal"}: ${fmtFull(scenario.periodVolume, scenarioCurrency)}`
+                : `Cotação: ${sliderRate[0].toFixed(4)} BRL`}
             </p>
-            {scenarioPeriod !== "month" && (
-              <p className="text-[10px] text-primary font-medium mt-1">
-                Volume mensal: {fmtFull(volume, scenarioCurrency)}
-              </p>
-            )}
           </div>
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
