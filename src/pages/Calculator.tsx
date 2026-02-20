@@ -838,7 +838,7 @@ const CalculatorPage = () => {
               onClick={() => setSliderRate([scenarioTreendEstimate])}
               className="text-xs font-bold text-primary tabular-nums hover:underline cursor-pointer"
             >
-              {scenarioTreendEstimate.toFixed(4)} BRL
+              {scenarioTreendEstimate.toFixed(4)} {scenarioCurrency}/BRL
             </button>
           </div>
           <Slider value={sliderRate} onValueChange={setSliderRate} min={scenarioRange.min} max={scenarioRange.max} step={0.01} className="py-2" />
