@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
+import { useTreendRate } from "@/hooks/useTreendRate";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -206,10 +207,13 @@ const CalculatorPage = () => {
 
   const prefersLower = ["importador", "agente_turismo", "turista"].includes(profile);
 
-  // Compute Treend estimated rate: ±0.8% from current rate based on profile
+  // Dynamic Treend rate from DB
+  const { data: treendRateData } = useTreendRate();
+  const treendFraction = treendRateData?.rateFraction ?? 0.008;
+
+  // Compute Treend estimated rate: ±X% from current rate based on profile
   const computeTreendRate = (rate: number) => {
-    // importador/agente_turismo → 0.8% below (cheaper buy); exportador/freelancer → 0.8% above (better sell)
-    return prefersLower ? rate * (1 - 0.008) : rate * (1 + 0.008);
+    return prefersLower ? rate * (1 - treendFraction) : rate * (1 + treendFraction);
   };
 
   // Update currentRate and treendRate when live rates load
@@ -227,7 +231,7 @@ const CalculatorPage = () => {
       setSliderRate([liveGbp.bid]);
       setTreendRate(computeTreendRate(liveGbp.bid).toFixed(4));
     }
-  }, [liveUsd?.bid, liveEur?.bid, liveGbp?.bid]);
+  }, [liveUsd?.bid, liveEur?.bid, liveGbp?.bid, treendFraction]);
 
   // Recalculate treend rate when profile changes
   useEffect(() => {
@@ -235,7 +239,7 @@ const CalculatorPage = () => {
     if (rate > 0) {
       setTreendRate(computeTreendRate(rate).toFixed(4));
     }
-  }, [profile]);
+  }, [profile, treendFraction]);
 
   const rateRange = RATE_RANGES[currency];
   const volume = parseFloat(monthlyVolume) || 0;
@@ -254,7 +258,7 @@ const CalculatorPage = () => {
     setCurrentRate(liveRate.toFixed(4));
     setSliderRate([liveRate]);
     const prefLower = ["importador", "agente_turismo", "turista"].includes(profile);
-    setTreendRate((prefLower ? liveRate * (1 - 0.008) : liveRate * (1 + 0.008)).toFixed(4));
+    setTreendRate((prefLower ? liveRate * (1 - treendFraction) : liveRate * (1 + treendFraction)).toFixed(4));
   };
 
   const handleReset = () => {
@@ -349,7 +353,7 @@ const CalculatorPage = () => {
 
   const scenarioPeriodLabel = opsFrequency === "day" ? "por dia" : opsFrequency === "week" ? "por semana" : "por mês";
   const scenarioPeriodVolumeLabel = opsFrequency === "day" ? "diário" : opsFrequency === "week" ? "semanal" : "mensal";
-  const scenarioTreendEstimate = scenarioCurrency === currency ? trdRate : (prefersLower ? scenarioLiveRate * (1 - 0.008) : scenarioLiveRate * (1 + 0.008));
+  const scenarioTreendEstimate = scenarioCurrency === currency ? trdRate : (prefersLower ? scenarioLiveRate * (1 - treendFraction) : scenarioLiveRate * (1 + treendFraction));
 
   // Reset slider to Treend estimate when scenario currency changes
   useEffect(() => {
@@ -370,7 +374,7 @@ const CalculatorPage = () => {
     const currentBRL = periodVolume * scenarioLiveRate;
 
     // Treend rate: 0.8% better than simulated rate
-    const treendRate = prefersLower ? sRate * (1 - 0.008) : sRate * (1 + 0.008);
+    const treendRate = prefersLower ? sRate * (1 - treendFraction) : sRate * (1 + treendFraction);
     const treendBRL = periodVolume * treendRate;
 
     // "Economia mensal" = simulated vs current (without Treend advantage)
@@ -393,7 +397,7 @@ const CalculatorPage = () => {
     const zonePct = prefersLower ? rawPct : 100 - rawPct;
 
     return { periodVolume, sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, treendImpactAbs, treendIsBetter, treendDiffPct, zonePct };
-  }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower]);
+  }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower, treendFraction]);
 
   const getZoneLabel = (pct: number) => {
     if (pct <= 20) return { label: "Zona muito interessante", color: "text-treend-success" };
@@ -921,7 +925,7 @@ const CalculatorPage = () => {
               ) : metrics.economiaMinusSpread === 0 ? null : (
                 <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
               )}
-              <p className={`text-base font-bold tabular-nums ${metrics.economiaMinusSpread > 0 ? "text-primary" : metrics.economiaMinusSpread === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
+              <p className={`text-base font-bold tabular-nums ${metrics.economiaMinusSpread > 0 ? "text-treend-success" : metrics.economiaMinusSpread === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
                 {fmtFull(Math.abs(metrics.economiaMinusSpread), currency)}
               </p>
             </div>
