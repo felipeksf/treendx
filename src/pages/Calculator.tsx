@@ -200,6 +200,7 @@ const CalculatorPage = () => {
   const [converterCurrency, setConverterCurrency] = useState("USD");
   const [converterAmount, setConverterAmount] = useState("1000");
   const [scenarioCurrency, setScenarioCurrency] = useState("USD");
+  const [scenarioPeriod, setScenarioPeriod] = useState<"day" | "week" | "month">("month");
 
   const prefersLower = ["importador", "agente_turismo", "turista"].includes(profile);
 
@@ -349,16 +350,21 @@ const CalculatorPage = () => {
     setSliderRate([scenarioLiveRate]);
   }, [scenarioCurrency, scenarioLiveRate]);
 
+  const scenarioPeriodMultiplier = scenarioPeriod === "day" ? 1 / 22 : scenarioPeriod === "week" ? 1 / 4 : 1;
+  const scenarioPeriodLabel = scenarioPeriod === "day" ? "por dia" : scenarioPeriod === "week" ? "por semana" : "por mês";
+  const scenarioPeriodVolumeLabel = scenarioPeriod === "day" ? "diário" : scenarioPeriod === "week" ? "semanal" : "mensal";
+
   const scenario = useMemo(() => {
     const sRate = sliderRate[0];
-    const sBRL = volume * sRate;
-    const currentBRL = volume * scenarioLiveRate;
+    const periodVolume = volume * scenarioPeriodMultiplier;
+    const sBRL = periodVolume * sRate;
+    const currentBRL = periodVolume * scenarioLiveRate;
     const diffVsCurrent = sBRL - currentBRL;
     const diffPct = currentBRL > 0 ? (diffVsCurrent / currentBRL) * 100 : 0;
     const isBetter = prefersLower ? diffVsCurrent < 0 : diffVsCurrent > 0;
     const impactAbs = Math.abs(diffVsCurrent);
     const treendRate = prefersLower ? sRate * (1 - 0.008) : sRate * (1 + 0.008);
-    const treendBRL = volume * treendRate;
+    const treendBRL = periodVolume * treendRate;
     const treendSaving = Math.abs(sBRL - treendBRL);
 
     const range = scenarioRange.max - scenarioRange.min;
@@ -366,7 +372,7 @@ const CalculatorPage = () => {
     const zonePct = prefersLower ? rawPct : 100 - rawPct;
 
     return { sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, zonePct };
-  }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower]);
+  }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower, scenarioPeriodMultiplier]);
 
   const getZoneLabel = (pct: number) => {
     if (pct <= 20) return { label: "Zona muito interessante", color: "text-treend-success" };
@@ -768,21 +774,34 @@ const CalculatorPage = () => {
               <p className="text-[11px] text-muted-foreground">Simule como variações na cotação impactam sua operação mensal</p>
             </div>
           </div>
-          <div className="flex gap-1">
-            {["USD", "EUR", "GBP"].map((cur) => (
-              <button
-                key={cur}
-                onClick={() => setScenarioCurrency(cur)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  scenarioCurrency === cur
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-muted/60 text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                <span className="text-sm">{currencyFlag(cur)}</span>
-                {cur}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-1">
+              {["USD", "EUR", "GBP"].map((cur) => (
+                <button
+                  key={cur}
+                  onClick={() => setScenarioCurrency(cur)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    scenarioCurrency === cur
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span className="text-sm">{currencyFlag(cur)}</span>
+                  {cur}
+                </button>
+              ))}
+            </div>
+            <Select value={scenarioPeriod} onValueChange={(v) => setScenarioPeriod(v as "day" | "week" | "month")}>
+              <SelectTrigger className="h-8 w-[120px] text-xs bg-muted/40 border-border/40">
+                <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="day">Dia</SelectItem>
+                <SelectItem value="week">Semana</SelectItem>
+                <SelectItem value="month">Mês</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -802,7 +821,7 @@ const CalculatorPage = () => {
         <div className="grid sm:grid-cols-3 gap-3">
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {prefersLower ? "Custo mensal" : "Receita mensal"}
+              {prefersLower ? `Custo ${scenarioPeriodVolumeLabel}` : `Receita ${scenarioPeriodVolumeLabel}`}
             </p>
             <p className="text-base font-bold text-foreground tabular-nums">{fmtFull(scenario.sBRL, "BRL")}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -832,7 +851,7 @@ const CalculatorPage = () => {
               Economia com Treend
             </p>
             <p className="text-base font-bold text-primary tabular-nums">{fmtFull(scenario.treendSaving, "BRL")}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">por mês neste cenário</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{scenarioPeriodLabel} neste cenário</p>
           </div>
         </div>
       </div>
