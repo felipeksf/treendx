@@ -155,15 +155,15 @@ const HeatmapBlock = ({
         <div className="flex items-center justify-between mt-2 px-1">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(0, 84%, 55%)" }} />
-            <span className="text-[9px] text-muted-foreground">Ruim</span>
+            <span className="text-[9px] text-muted-foreground">Zona de pressão cambial</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(48, 96%, 53%)" }} />
-            <span className="text-[9px] text-muted-foreground">Neutro</span>
+            <span className="text-[9px] text-muted-foreground">Zona de equilíbrio</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
-            <span className="text-[9px] text-muted-foreground">Ótimo</span>
+            <span className="text-[9px] text-muted-foreground">Zona favorável estatística</span>
           </div>
         </div>
       </div>
