@@ -987,34 +987,106 @@ const CalculatorPage = () => {
         return (
           <div className="space-y-5">
             {/* Chart 1 - Taxa Atual vs Taxa Estimada pela Treend */}
-            <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-3">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
-                  <BarChart3 className="h-4 w-4 text-primary" />
+            {(() => {
+              const rateDiff = Math.abs(curRate - trdRate);
+              const rateDiffPct = curRate > 0 ? (rateDiff / curRate) * 100 : 0;
+              const treendIsBetter = prefersLower ? trdRate < curRate : trdRate > curRate;
+              const maxRate = Math.max(curRate, trdRate);
+              const minDomain = Math.min(curRate, trdRate) * 0.997;
+              const barMaxWidth = 100;
+              const curBarWidth = maxRate > 0 ? (curRate / maxRate) * barMaxWidth : 0;
+              const trdBarWidth = maxRate > 0 ? (trdRate / maxRate) * barMaxWidth : 0;
+
+              return (
+                <div className="rounded-2xl bg-card border border-border/40 overflow-hidden">
+                  {/* Header */}
+                  <div className="p-5 pb-4 flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10">
+                        <BarChart3 className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground tracking-tight">Taxa Atual vs Taxa Estimada pela Treend</h3>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">Comparação direta entre a cotação do dia e a taxa estimada pela Treend</p>
+                      </div>
+                    </div>
+                    <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${treendIsBetter ? "bg-treend-success/10 text-treend-success" : "bg-treend-danger/10 text-treend-danger"}`}>
+                      {treendIsBetter ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                      {rateDiffPct.toFixed(2)}%
+                    </div>
+                  </div>
+
+                  {/* Visual comparison bars */}
+                  <div className="px-5 pb-4 space-y-4">
+                    {/* Taxa Atual */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: RATE_ORANGE }} />
+                          <span className="text-xs text-muted-foreground font-medium">Taxa Atual</span>
+                        </div>
+                        <span className="text-sm font-bold text-foreground tabular-nums tracking-tight">{curRate.toFixed(4)}</span>
+                      </div>
+                      <div className="h-3 w-full rounded-full bg-muted/40 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          style={{
+                            width: `${curBarWidth}%`,
+                            background: `linear-gradient(90deg, ${RATE_ORANGE}88, ${RATE_ORANGE})`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Taxa Estimada Treend */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: TREEND_BLUE }} />
+                          <span className="text-xs text-muted-foreground font-medium">Taxa Estimada Treend</span>
+                        </div>
+                        <span className="text-sm font-bold text-foreground tabular-nums tracking-tight">{trdRate.toFixed(4)}</span>
+                      </div>
+                      <div className="h-3 w-full rounded-full bg-muted/40 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          style={{
+                            width: `${trdBarWidth}%`,
+                            background: `linear-gradient(90deg, ${TREEND_BLUE}88, ${TREEND_BLUE})`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-border/30" />
+
+                  {/* Bottom stats */}
+                  <div className="grid grid-cols-3 divide-x divide-border/30">
+                    <div className="p-4 text-center">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Diferença</p>
+                      <p className="text-base font-bold text-foreground tabular-nums">{rateDiff.toFixed(4)}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">pontos</p>
+                    </div>
+                    <div className="p-4 text-center">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Variação</p>
+                      <p className={`text-base font-bold tabular-nums ${treendIsBetter ? "text-treend-success" : "text-treend-danger"}`}>
+                        {treendIsBetter ? "−" : "+"}{rateDiffPct.toFixed(2)}%
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{treendIsBetter ? "economia" : "custo"}</p>
+                    </div>
+                    <div className="p-4 text-center">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Impacto / op</p>
+                      <p className={`text-base font-bold tabular-nums ${treendIsBetter ? "text-treend-success" : "text-treend-danger"}`}>
+                        {fmtFull(Math.abs(volume * curRate - volume * trdRate) / (ops > 0 ? ops : 1), "BRL")}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">por operação</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-sm font-semibold text-foreground">Taxa Atual vs Taxa Estimada pela Treend</span>
-                  <p className="text-[11px] text-muted-foreground">Comparação direta entre a cotação comercial do dia e a taxa estimada pela Treend. Quanto menor a taxa (azul), maior a economia.</p>
-                </div>
-              </div>
-              <div className="h-[280px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={barComparisonData} barCategoryGap="30%">
-                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
-                    <XAxis dataKey="name" tick={{ fill: TEXT_COLOR, fontSize: 12 }} />
-                    <YAxis
-                      domain={["auto", "auto"]}
-                      tick={{ fill: TEXT_COLOR, fontSize: 11 }}
-                      tickFormatter={(v: number) => v.toFixed(2)}
-                    />
-                    <RechartsTooltip {...chartTooltipStyle} formatter={(value: number) => value.toFixed(4)} />
-                    <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
-                    <Bar dataKey="Taxa Atual" fill={RATE_ORANGE} radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="Taxa Estimada Treend" fill={TREEND_BLUE} radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Chart 2 - Evolução da Economia/Lucro */}
             <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-3">
