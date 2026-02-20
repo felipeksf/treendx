@@ -1317,62 +1317,45 @@ const CalculatorPage = () => {
                 );
               })()}
 
-              {/* Chart */}
-              <div className="h-[280px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={comparativoData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="gradTaxaAtual" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={RATE_ORANGE} stopOpacity={0.08} />
-                        <stop offset="95%" stopColor={RATE_ORANGE} stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="gradTreend" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={TREEND_BLUE} stopOpacity={0.15} />
-                        <stop offset="95%" stopColor={TREEND_BLUE} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: TEXT_COLOR, fontSize: 10 }} interval={2} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                    <YAxis
-                      domain={["auto", "auto"]}
-                      tick={{ fill: TEXT_COLOR, fontSize: 11 }}
-                      tickFormatter={(v: number) => v.toFixed(2)}
-                      axisLine={false}
-                      tickLine={false}
-                      width={50}
-                    />
-                    <RechartsTooltip
-                      {...chartTooltipStyle}
-                      formatter={(value: number, name: string) => [
-                        value.toFixed(4),
-                        name,
-                      ]}
-                      labelStyle={{ fontWeight: 600, marginBottom: 4 }}
-                    />
-                    <Area type="monotone" dataKey="Taxa Estimada Treend" fill="url(#gradTreend)" stroke="none" />
-                    <Area type="monotone" dataKey="Taxa Atual" fill="url(#gradTaxaAtual)" stroke="none" />
-                    <Line type="monotone" dataKey="Taxa Atual" stroke={RATE_ORANGE} strokeWidth={2} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))" }} />
-                    <Line type="monotone" dataKey="Taxa Estimada Treend" stroke={TREEND_BLUE} strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))" }} />
-                    <Line type="monotone" dataKey="Taxa Efetiva" stroke={EFFECTIVE_RED} strokeWidth={1.5} strokeDasharray="6 3" dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: "hsl(var(--background))" }} />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
+              {/* Visual bar comparison */}
+              {(() => {
+                const rates = [
+                  { label: "Taxa Atual", value: curRate, color: RATE_ORANGE, sub: "Mercado" },
+                  { label: "Taxa Estimada Treend", value: trdRate, color: TREEND_BLUE, sub: "Treend" },
+                  { label: "Taxa Efetiva", value: metrics.effectiveRate, color: EFFECTIVE_RED, sub: "Com spread" },
+                ];
+                const maxRate = Math.max(...rates.map(r => r.value));
+                const minRate = Math.min(...rates.map(r => r.value));
+                const range = maxRate - minRate;
+                const padMin = minRate - range * 0.3;
+                const padMax = maxRate + range * 0.1;
+                const barPct = (v: number) => ((v - padMin) / (padMax - padMin)) * 100;
 
-              {/* Legend */}
-              <div className="flex items-center justify-center gap-5 pt-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: RATE_ORANGE }} />
-                  <span className="text-[10px] text-muted-foreground">Taxa Atual</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: TREEND_BLUE }} />
-                  <span className="text-[10px] text-muted-foreground font-medium">Taxa Estimada Treend</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-[1px] rounded-full border-t border-dashed" style={{ borderColor: EFFECTIVE_RED }} />
-                  <span className="text-[10px] text-muted-foreground">Taxa Efetiva</span>
-                </div>
-              </div>
+                return (
+                  <div className="space-y-3 py-1">
+                    {rates.map((r) => (
+                      <div key={r.label} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: r.color }} />
+                            <span className="text-xs text-muted-foreground font-medium">{r.label}</span>
+                          </div>
+                          <span className="text-sm font-bold text-foreground tabular-nums tracking-tight">{r.value.toFixed(4)}</span>
+                        </div>
+                        <div className="h-3 w-full rounded-full bg-muted/40 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-700 ease-out"
+                            style={{
+                              width: `${Math.max(barPct(r.value), 2)}%`,
+                              background: `linear-gradient(90deg, ${r.color}66, ${r.color})`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         );
