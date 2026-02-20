@@ -201,7 +201,7 @@ const CalculatorPage = () => {
   const [converterAmount, setConverterAmount] = useState("1000");
   const [converterResultCurrency, setConverterResultCurrency] = useState<"foreign" | "BRL">("foreign");
   const [scenarioCurrency, setScenarioCurrency] = useState("USD");
-  const [scenarioPeriod, setScenarioPeriod] = useState<"day" | "week" | "month">("month");
+  const [scenarioPeriod, setScenarioPeriod] = useState<"day" | "week" | "month" | "operation">("month");
 
   const prefersLower = ["importador", "agente_turismo", "turista"].includes(profile);
 
@@ -351,10 +351,10 @@ const CalculatorPage = () => {
     setSliderRate([scenarioLiveRate]);
   }, [scenarioCurrency, scenarioLiveRate]);
 
-  const scenarioPeriodMultiplier = scenarioPeriod === "day" ? 1 / 22 : scenarioPeriod === "week" ? 1 / 4 : 1;
-  const scenarioToMonthMultiplier = scenarioPeriod === "day" ? 22 : scenarioPeriod === "week" ? 4 : 1;
-  const scenarioPeriodLabel = scenarioPeriod === "day" ? "por dia" : scenarioPeriod === "week" ? "por semana" : "por mês";
-  const scenarioPeriodVolumeLabel = scenarioPeriod === "day" ? "diário" : scenarioPeriod === "week" ? "semanal" : "mensal";
+  const scenarioPeriodMultiplier = scenarioPeriod === "day" ? 1 / 22 : scenarioPeriod === "week" ? 1 / 4 : scenarioPeriod === "operation" ? (ops > 0 ? 1 / ops : 1) : 1;
+  const scenarioToMonthMultiplier = scenarioPeriod === "day" ? 22 : scenarioPeriod === "week" ? 4 : scenarioPeriod === "operation" ? (ops > 0 ? ops : 1) : 1;
+  const scenarioPeriodLabel = scenarioPeriod === "day" ? "por dia" : scenarioPeriod === "week" ? "por semana" : scenarioPeriod === "operation" ? "por operação" : "por mês";
+  const scenarioPeriodVolumeLabel = scenarioPeriod === "day" ? "diário" : scenarioPeriod === "week" ? "semanal" : scenarioPeriod === "operation" ? "por operação" : "mensal";
   const scenarioTreendEstimate = scenarioCurrency === currency ? trdRate : (prefersLower ? scenarioLiveRate * (1 - 0.008) : scenarioLiveRate * (1 + 0.008));
 
   const scenario = useMemo(() => {
@@ -851,12 +851,13 @@ const CalculatorPage = () => {
                 </button>
               ))}
             </div>
-            <Select value={scenarioPeriod} onValueChange={(v) => setScenarioPeriod(v as "day" | "week" | "month")}>
-              <SelectTrigger className="h-8 w-[120px] text-xs bg-muted/40 border-border/40">
+            <Select value={scenarioPeriod} onValueChange={(v) => setScenarioPeriod(v as "day" | "week" | "month" | "operation")}>
+              <SelectTrigger className="h-8 w-[140px] text-xs bg-muted/40 border-border/40">
                 <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="operation">Na Operação</SelectItem>
                 <SelectItem value="day">Dia</SelectItem>
                 <SelectItem value="week">Semana</SelectItem>
                 <SelectItem value="month">Mês</SelectItem>
@@ -891,7 +892,7 @@ const CalculatorPage = () => {
           {/* Card 1: Volume */}
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              Volume {scenarioPeriod === "day" ? "diário" : scenarioPeriod === "week" ? "semanal" : "mensal"}
+              Volume {scenarioPeriodVolumeLabel}
             </p>
             <p className="text-base font-bold text-foreground tabular-nums">
               {fmtFull(scenario.periodVolume, scenarioCurrency)}
@@ -911,7 +912,7 @@ const CalculatorPage = () => {
           {/* Card 2: Economia vs cotação atual */}
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {scenario.isBetter ? "Economia" : scenario.diffVsCurrent === 0 ? "Impacto" : "Custo adicional"} {scenarioPeriod === "day" ? "diária" : scenarioPeriod === "week" ? "semanal" : "mensal"}
+              {scenario.isBetter ? "Economia" : scenario.diffVsCurrent === 0 ? "Impacto" : "Custo adicional"} {scenarioPeriodVolumeLabel}
             </p>
             <div className="flex items-center justify-center gap-1">
               {scenario.isBetter ? (
@@ -937,7 +938,7 @@ const CalculatorPage = () => {
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                Economia Treend {scenarioPeriod === "day" ? "diária" : scenarioPeriod === "week" ? "semanal" : "mensal"}
+                Economia Treend {scenarioPeriodVolumeLabel}
               </p>
               <Tooltip>
                 <TooltipTrigger asChild>
