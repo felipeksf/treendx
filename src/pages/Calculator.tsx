@@ -915,7 +915,7 @@ const CalculatorPage = () => {
           </div>
 
           {/* Card 2: Economia com a Treend = same as main "Economia" block */}
-          <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
+          <div className="rounded-xl bg-treend-success/5 border border-treend-success/20 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
               Economia {scenarioPeriodVolumeLabel} com a Treend
             </p>
@@ -929,7 +929,7 @@ const CalculatorPage = () => {
                 {fmtFull(Math.abs(metrics.economiaMinusSpread), currency)}
               </p>
             </div>
-            <span className="text-[10px] text-primary">
+            <span className="text-[10px] text-treend-success">
               Quanto você economizaria com a Treend
             </span>
           </div>
