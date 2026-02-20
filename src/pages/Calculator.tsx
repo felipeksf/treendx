@@ -882,7 +882,7 @@ const CalculatorPage = () => {
                 <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
               )}
               <p className={`text-base font-bold tabular-nums ${scenario.isBetter ? "text-treend-success" : scenario.diffVsCurrent === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
-                {scenario.diffVsCurrent === 0 ? "Sem alteração" : `R$ ${scenario.impactAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                {scenario.diffVsCurrent === 0 ? "Sem alteração" : fmtFull(scenario.impactAbs, scenarioCurrency)}
               </p>
             </div>
             <span className={`text-[10px] ${scenario.isBetter ? "text-treend-success" : "text-muted-foreground"}`}>
@@ -890,7 +890,7 @@ const CalculatorPage = () => {
             </span>
             {scenarioPeriod !== "month" && scenario.diffVsCurrent !== 0 && (
               <p className={`text-[10px] font-medium mt-1 ${scenario.isBetter ? "text-treend-success" : "text-treend-danger"}`}>
-                Projeção mensal: R$ {scenario.monthlyImpact.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                Projeção mensal: {fmtFull(scenario.monthlyImpact, scenarioCurrency)}
               </p>
             )}
           </div>
@@ -901,12 +901,12 @@ const CalculatorPage = () => {
               Economia Treend {scenarioPeriod === "day" ? "diária" : scenarioPeriod === "week" ? "semanal" : "mensal"}
             </p>
             <p className="text-base font-bold text-primary tabular-nums">
-              R$ {scenario.treendSaving.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {fmtFull(scenario.treendSaving, scenarioCurrency)}
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">±0,8% sobre a cotação simulada</p>
             {scenarioPeriod !== "month" && (
               <p className="text-[10px] text-primary font-medium mt-1">
-                Projeção mensal: R$ {scenario.monthlyTreendSaving.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                Projeção mensal: {fmtFull(scenario.monthlyTreendSaving, scenarioCurrency)}
               </p>
             )}
           </div>
