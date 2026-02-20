@@ -550,7 +550,7 @@ const CalculatorPage = () => {
               subtitle="Por transação (líquida)"
               icon={<Clock className="h-4 w-4 text-muted-foreground" />}
               color={isPositive ? "success" : "danger"}
-              tooltip="(% diferença - % spread) × volume mensal ÷ operações. Economia líquida por operação."
+              tooltip="(% diferença - % spread) × volume ÷ operações. Economia líquida por operação."
             />
             <MetricCard
               title="Economia Mensal"
