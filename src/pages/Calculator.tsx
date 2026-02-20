@@ -363,27 +363,36 @@ const CalculatorPage = () => {
 
   const scenario = useMemo(() => {
     const sRate = sliderRate[0];
-    // Always use the full volume as entered by the user
     const periodVolume = volume;
 
     // BRL values at simulated rate vs current live rate
     const sBRL = periodVolume * sRate;
     const currentBRL = periodVolume * scenarioLiveRate;
+
+    // Treend rate: 0.8% better than simulated rate
+    const treendRate = prefersLower ? sRate * (1 - 0.008) : sRate * (1 + 0.008);
+    const treendBRL = periodVolume * treendRate;
+
+    // "Economia mensal" = simulated vs current (without Treend advantage)
     const diffVsCurrent = sBRL - currentBRL;
     const diffPct = currentBRL > 0 ? (diffVsCurrent / currentBRL) * 100 : 0;
     const isBetter = prefersLower ? diffVsCurrent < 0 : diffVsCurrent > 0;
     const impactAbs = Math.abs(diffVsCurrent);
 
-    // Treend saving: how much Treend saves vs the simulated rate (0.8% improvement)
-    const treendRate = prefersLower ? sRate * (1 - 0.008) : sRate * (1 + 0.008);
-    const treendBRL = periodVolume * treendRate;
+    // "Economia com a Treend" = Treend rate vs current (always >= impactAbs)
+    const treendVsCurrent = treendBRL - currentBRL;
+    const treendImpactAbs = Math.abs(treendVsCurrent);
+    const treendIsBetter = prefersLower ? treendVsCurrent < 0 : treendVsCurrent > 0;
+    const treendDiffPct = currentBRL > 0 ? (treendVsCurrent / currentBRL) * 100 : 0;
+
+    // Pure Treend advantage (treend rate vs simulated rate)
     const treendSaving = Math.abs(sBRL - treendBRL);
 
     const range = scenarioRange.max - scenarioRange.min;
     const rawPct = ((sRate - scenarioRange.min) / range) * 100;
     const zonePct = prefersLower ? rawPct : 100 - rawPct;
 
-    return { periodVolume, sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, zonePct };
+    return { periodVolume, sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, treendImpactAbs, treendIsBetter, treendDiffPct, zonePct };
   }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower]);
 
   const getZoneLabel = (pct: number) => {
@@ -901,11 +910,41 @@ const CalculatorPage = () => {
             </p>
           </div>
 
-          {/* Card 2: Economia vs cotação atual */}
-          <div className="rounded-xl bg-muted/40 p-3 text-center">
+          {/* Card 2: Economia com a Treend (treend rate vs current = always bigger) */}
+          <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {scenario.isBetter ? "Economia" : scenario.diffVsCurrent === 0 ? "Impacto" : "Custo adicional"} {scenarioPeriodVolumeLabel} com a Treend
+              {scenario.treendIsBetter ? "Economia" : scenario.treendDiffPct === 0 ? "Impacto" : "Custo adicional"} {scenarioPeriodVolumeLabel} com a Treend
             </p>
+            <div className="flex items-center justify-center gap-1">
+              {scenario.treendIsBetter ? (
+                <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
+              ) : scenario.treendDiffPct === 0 ? null : (
+                <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
+              )}
+              <p className={`text-base font-bold tabular-nums ${scenario.treendIsBetter ? "text-primary" : scenario.treendDiffPct === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
+                {scenario.treendDiffPct === 0 ? "Sem alteração" : fmtFull(scenario.treendImpactAbs, scenarioCurrency)}
+              </p>
+            </div>
+            <span className={`text-[10px] ${scenario.treendIsBetter ? "text-primary" : "text-muted-foreground"}`}>
+              {scenario.treendDiffPct !== 0 ? `(${Math.abs(scenario.treendDiffPct).toFixed(1)}%) vs cotação atual` : ""}
+            </span>
+          </div>
+
+          {/* Card 3: Economia sem Treend (simulated vs current) */}
+          <div className="rounded-xl bg-muted/40 p-3 text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Economia {scenarioPeriodVolumeLabel}
+              </p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground/60 cursor-help shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[260px] text-xs">
+                  Economia baseada apenas na cotação simulada vs cotação atual, sem o diferencial Treend.
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <div className="flex items-center justify-center gap-1">
               {scenario.isBetter ? (
                 <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
@@ -919,27 +958,6 @@ const CalculatorPage = () => {
             <span className={`text-[10px] ${scenario.isBetter ? "text-treend-success" : "text-muted-foreground"}`}>
               {scenario.diffVsCurrent !== 0 ? `(${Math.abs(scenario.diffPct).toFixed(1)}%) vs cotação atual` : ""}
             </span>
-          </div>
-
-          {/* Card 3: Economia com Treend */}
-          <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                Economia {scenarioPeriodVolumeLabel}
-              </p>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="h-3 w-3 text-muted-foreground/60 cursor-help shrink-0" />
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[260px] text-xs">
-                  Aqui seria a economia que você teria com a taxa estimada da Treend além da sua economia principal.
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <p className="text-base font-bold text-primary tabular-nums">
-              {fmtFull(scenario.treendSaving, scenarioCurrency)}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">vs cotação simulada ({sliderRate[0].toFixed(4)})</p>
           </div>
         </div>
       </div>
