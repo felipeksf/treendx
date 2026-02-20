@@ -228,6 +228,7 @@ const CalculatorPage = () => {
   const [scenarioCurrency, setScenarioCurrency] = useState("USD");
   const [scenarioPeriod, setScenarioPeriod] = useState<"day" | "week" | "month" | "operation">("month");
   const [impactCurrency, setImpactCurrency] = useState("BRL");
+  const [evolutionCurrency, setEvolutionCurrency] = useState("BRL");
 
   const handleSavePreset = () => {
     const preset: CalcPreset = { currency, monthlyVolume, opsPerMonth, opsFrequency, bankSpread, projectionMonths, profile };
@@ -1042,10 +1043,18 @@ const CalculatorPage = () => {
           { name: currency, "Taxa Atual": curRate, "Taxa Estimada Treend": trdRate },
         ];
 
+        // Currency conversion for evolution chart
+        const evoBrlToTarget = (() => {
+          if (evolutionCurrency === "BRL") return 1;
+          if (evolutionCurrency === "USD") return liveUsd ? 1 / liveUsd.bid : 1 / curRate;
+          if (evolutionCurrency === "EUR") return liveEur ? 1 / liveEur.bid : 1 / curRate;
+          return liveGbp ? 1 / liveGbp.bid : 1 / curRate;
+        })();
+
         // Economy evolution based on economia per transaction * ops * months
         const economyEvolutionData = Array.from({ length: 24 }, (_, i) => ({
           name: `Mês ${i + 1}`,
-          economia: Math.abs(metrics.netMonth) * (i + 1),
+          economia: Math.abs(metrics.netMonth) * (i + 1) * evoBrlToTarget,
         }));
 
         const comparativoData = Array.from({ length: 24 }, (_, i) => {
@@ -1069,7 +1078,7 @@ const CalculatorPage = () => {
           },
         };
 
-        const economyCurrencySymbol = currencySymbol(currency);
+        const evoCurrencySymbol = currencySymbol(evolutionCurrency);
 
         return (
           <div className="space-y-5">
@@ -1187,10 +1196,20 @@ const CalculatorPage = () => {
                 <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
                   <TrendingUp className="h-4 w-4 text-primary" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <span className="text-sm font-semibold text-foreground">Evolução da Economia/Lucro</span>
                   <p className="text-[11px] text-muted-foreground">Projeção acumulada com base na economia mensal (já descontando spread).</p>
                 </div>
+                <Select value={evolutionCurrency} onValueChange={setEvolutionCurrency}>
+                  <SelectTrigger className="h-7 w-auto px-2.5 text-[11px] bg-muted/40 border-border/40 gap-1 shrink-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-50 bg-popover">
+                    <SelectItem value="BRL"><span className="flex items-center gap-1.5">{currencyFlag("BRL")} BRL</span></SelectItem>
+                    <SelectItem value="USD"><span className="flex items-center gap-1.5">{currencyFlag("USD")} USD</span></SelectItem>
+                    <SelectItem value="EUR"><span className="flex items-center gap-1.5">{currencyFlag("EUR")} EUR</span></SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -1212,7 +1231,7 @@ const CalculatorPage = () => {
                     <RechartsTooltip
                       {...chartTooltipStyle}
                       formatter={(value: number) => [
-                        `${economyCurrencySymbol} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        `${evoCurrencySymbol} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                         isPositive ? "Economia" : "Custo",
                       ]}
                     />
