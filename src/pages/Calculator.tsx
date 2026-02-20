@@ -732,7 +732,7 @@ const CalculatorPage = () => {
               <span className="text-sm font-semibold text-foreground">Conversor Rápido</span>
               <span className="text-xs text-muted-foreground ml-1">({converterCurrency} → BRL com cotação do dia)</span>
             </div>
-            <div className="grid sm:grid-cols-4 gap-3 items-end">
+            <div className="grid sm:grid-cols-5 gap-3 items-end">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Moeda</Label>
                 <Select value={converterCurrency} onValueChange={setConverterCurrency}>
@@ -767,6 +767,12 @@ const CalculatorPage = () => {
                 <Label className="text-xs text-muted-foreground">Resultado em R$</Label>
                 <div className="h-10 flex items-center justify-center rounded-md border border-primary/30 bg-primary/5 text-sm font-bold tabular-nums text-foreground">
                   {convRate ? fmtFull(convAmount * convRate, "BRL") : "—"}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Impacto em 12 Meses</Label>
+                <div className="h-10 flex items-center justify-center rounded-md border border-primary/30 bg-primary/5 text-sm font-bold tabular-nums text-foreground">
+                  {convRate ? fmtFull(convAmount * convRate * 12, "BRL") : "—"}
                 </div>
               </div>
             </div>
