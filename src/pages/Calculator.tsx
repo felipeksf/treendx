@@ -722,7 +722,7 @@ const CalculatorPage = () => {
       {/* Quick Converter */}
       {(() => {
         const convRate = converterCurrency === "USD" ? liveUsd?.bid : converterCurrency === "EUR" ? liveEur?.bid : liveGbp?.bid;
-        const convAmount = parseFloat(converterAmount) || 0;
+        const convAmount = parseFloat(converterAmount.replace(/\./g, "").replace(",", ".")) || 0;
         const convSymbol = converterCurrency === "USD" ? "US$" : converterCurrency === "EUR" ? "€" : "£";
         return (
           <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
@@ -749,10 +749,22 @@ const CalculatorPage = () => {
                 <Label className="text-xs text-muted-foreground">Valor em {convSymbol}</Label>
                 <Input
                   type="text"
-                  inputMode="numeric"
-                  value={fmtThousands(converterAmount.replace(/[^0-9]/g, ""))}
+                  inputMode="decimal"
+                  value={(() => {
+                    const parts = converterAmount.split(",");
+                    const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    return parts.length > 1 ? `${intPart},${parts[1]}` : intPart;
+                  })()}
                   onChange={(e) => {
-                    const raw = parseThousands(e.target.value).replace(/[^0-9]/g, "");
+                    // Remove dots (thousands), keep comma (decimal), keep digits
+                    let raw = e.target.value.replace(/\./g, "");
+                    // Allow only digits and one comma
+                    raw = raw.replace(/[^0-9,]/g, "");
+                    // Ensure only one comma
+                    const commaIdx = raw.indexOf(",");
+                    if (commaIdx !== -1) {
+                      raw = raw.slice(0, commaIdx + 1) + raw.slice(commaIdx + 1).replace(/,/g, "").slice(0, 2);
+                    }
                     setConverterAmount(raw);
                   }}
                   className="h-10 text-sm bg-muted/40 border-border/40"
