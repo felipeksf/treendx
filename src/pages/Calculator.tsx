@@ -199,6 +199,7 @@ const CalculatorPage = () => {
   const { usd: liveUsd, eur: liveEur, gbp: liveGbp } = useExchangeRates();
   const [converterCurrency, setConverterCurrency] = useState("USD");
   const [converterAmount, setConverterAmount] = useState("1000");
+  const [converterResultCurrency, setConverterResultCurrency] = useState<"foreign" | "BRL">("foreign");
   const [scenarioCurrency, setScenarioCurrency] = useState("USD");
   const [scenarioPeriod, setScenarioPeriod] = useState<"day" | "week" | "month">("month");
 
@@ -730,7 +731,7 @@ const CalculatorPage = () => {
                 <CalcIcon className="h-4 w-4 text-primary" />
               </div>
               <span className="text-sm font-semibold text-foreground">Conversor Rápido</span>
-              <span className="text-xs text-muted-foreground ml-1">({converterCurrency} → BRL com cotação do dia)</span>
+              <span className="text-xs text-muted-foreground ml-1">({converterCurrency} → {converterResultCurrency === "BRL" ? "BRL" : converterCurrency} com cotação do dia)</span>
             </div>
             <div className="grid sm:grid-cols-5 gap-3 items-end">
               <div className="space-y-1.5">
@@ -764,15 +765,34 @@ const CalculatorPage = () => {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Resultado em R$</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">Resultado</Label>
+                  <Select value={converterResultCurrency} onValueChange={(v) => setConverterResultCurrency(v as "foreign" | "BRL")}>
+                    <SelectTrigger className="h-5 w-auto gap-1 border-0 bg-transparent px-1 text-[10px] font-medium text-primary hover:text-primary/80">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="foreign">{converterCurrency}</SelectItem>
+                      <SelectItem value="BRL">BRL (R$)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="h-10 flex items-center justify-center rounded-md border border-primary/30 bg-primary/5 text-sm font-bold tabular-nums text-foreground">
-                  {convRate ? fmtFull(convAmount * convRate, "BRL") : "—"}
+                  {convRate
+                    ? converterResultCurrency === "BRL"
+                      ? fmtFull(convAmount * convRate, "BRL")
+                      : fmtFull(convAmount, converterCurrency)
+                    : "—"}
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Impacto em 12 Meses</Label>
                 <div className="h-10 flex items-center justify-center rounded-md border border-primary/30 bg-primary/5 text-sm font-bold tabular-nums text-foreground">
-                  {convRate ? fmtFull(convAmount * convRate * 12, "BRL") : "—"}
+                  {convRate
+                    ? converterResultCurrency === "BRL"
+                      ? fmtFull(convAmount * convRate * 12, "BRL")
+                      : fmtFull(convAmount * 12, converterCurrency)
+                    : "—"}
                 </div>
               </div>
             </div>
