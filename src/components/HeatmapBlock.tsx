@@ -163,7 +163,7 @@ const HeatmapBlock = ({
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
-            <span className="text-[9px] text-muted-foreground">Zona favorável estatística</span>
+            <span className="text-[9px] text-muted-foreground">Zona estatisticamente interessante</span>
           </div>
         </div>
       </div>
