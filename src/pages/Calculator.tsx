@@ -188,7 +188,7 @@ const CalculatorPage = () => {
   const [currentRate, setCurrentRate] = useState("5.12");
   const [treendRate, setTreendRate] = useState("5.08");
   const [opsPerMonth, setOpsPerMonth] = useState("10");
-  const [opsFrequency, setOpsFrequency] = useState<"month" | "week">("month");
+  const [opsFrequency, setOpsFrequency] = useState<"month" | "week" | "day">("month");
   const [bankSpread, setBankSpread] = useState("1.0");
   const [projectionMonths, setProjectionMonths] = useState("12");
   const [sliderRate, setSliderRate] = useState([5.12]);
@@ -240,7 +240,7 @@ const CalculatorPage = () => {
   const curRate = parseFloat(currentRate) || 0;
   const trdRate = parseFloat(treendRate) || 0;
   const opsRaw = parseFloat(opsPerMonth) || 1;
-  const ops = opsFrequency === "week" ? opsRaw * 4 : opsRaw;
+  const ops = opsFrequency === "week" ? opsRaw * 4 : opsFrequency === "day" ? opsRaw * 22 : opsRaw;
   const spread = parseFloat(bankSpread) || 0;
   const projMonths = parseInt(projectionMonths) || 12;
   const sliderRateNum = sliderRate[0];
@@ -443,14 +443,15 @@ const CalculatorPage = () => {
               <Input type="text" inputMode="numeric" value={fmtThousands(monthlyVolume)} onChange={(e) => setMonthlyVolume(parseThousands(e.target.value))} className="h-10 text-sm bg-muted/40 border-border/40" />
             </div>
             <div className="space-y-1.5">
-              <TooltipLabel label={`Operações/${opsFrequency === "week" ? "Semana" : "Mês"}`} tip="Quantidade de operações de câmbio no período selecionado" />
+              <TooltipLabel label={`Operações/${opsFrequency === "day" ? "Dia" : opsFrequency === "week" ? "Semana" : "Mês"}`} tip="Quantidade de operações de câmbio no período selecionado" />
               <div className="flex gap-1.5">
                 <Input type="number" value={opsPerMonth} onChange={(e) => setOpsPerMonth(e.target.value)} className="h-10 text-sm bg-muted/40 border-border/40 flex-1" />
-                <Select value={opsFrequency} onValueChange={(v) => setOpsFrequency(v as "month" | "week")}>
+                <Select value={opsFrequency} onValueChange={(v) => setOpsFrequency(v as "month" | "week" | "day")}>
                   <SelectTrigger className="h-10 w-[100px] text-xs bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="month">Mês</SelectItem>
+                    <SelectItem value="day">Dia</SelectItem>
                     <SelectItem value="week">Semana</SelectItem>
+                    <SelectItem value="month">Mês</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
