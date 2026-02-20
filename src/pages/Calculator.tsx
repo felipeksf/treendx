@@ -721,7 +721,7 @@ const CalculatorPage = () => {
       {/* Quick Converter */}
       {(() => {
         const convRate = converterCurrency === "USD" ? liveUsd?.bid : converterCurrency === "EUR" ? liveEur?.bid : liveGbp?.bid;
-        const convAmount = parseFloat(converterAmount.replace(",", ".")) || 0;
+        const convAmount = parseFloat(converterAmount) || 0;
         const convSymbol = converterCurrency === "USD" ? "US$" : converterCurrency === "EUR" ? "€" : "£";
         return (
           <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
@@ -748,11 +748,10 @@ const CalculatorPage = () => {
                 <Label className="text-xs text-muted-foreground">Valor em {convSymbol}</Label>
                 <Input
                   type="text"
-                  inputMode="decimal"
-                  value={converterAmount}
+                  inputMode="numeric"
+                  value={fmtThousands(converterAmount.replace(/[^0-9]/g, ""))}
                   onChange={(e) => {
-                    // Allow digits, dots, and commas for decimal input
-                    const raw = e.target.value.replace(/[^0-9.,]/g, "");
+                    const raw = parseThousands(e.target.value).replace(/[^0-9]/g, "");
                     setConverterAmount(raw);
                   }}
                   className="h-10 text-sm bg-muted/40 border-border/40"
