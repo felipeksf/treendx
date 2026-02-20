@@ -36,12 +36,18 @@ const roleLabel: Record<string, string> = {
 const AdminUsers = () => {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRow | null>(null);
-  const [newRole, setNewRole] = useState<AppRole>("editor");
   const [searchEmail, setSearchEmail] = useState("");
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
+
+  // Add user dialog state
+  const [addOpen, setAddOpen] = useState(false);
+  const [addName, setAddName] = useState("");
+  const [addEmail, setAddEmail] = useState("");
+  const [addRole, setAddRole] = useState<AppRole>("editor");
+  const [addLoading, setAddLoading] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -117,6 +123,32 @@ const AdminUsers = () => {
     fetchUsers();
   };
 
+  const handleAddUser = async () => {
+    if (!addName.trim() || !addEmail.trim()) {
+      toast({ title: "Preencha nome e email", variant: "destructive" });
+      return;
+    }
+    setAddLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-user", {
+        body: { name: addName.trim(), email: addEmail.trim().toLowerCase(), role: addRole },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      setTempPassword(data.temp_password);
+      toast({ title: "Usuário criado com sucesso!" });
+      setAddName("");
+      setAddEmail("");
+      setAddRole("editor");
+      fetchUsers();
+    } catch (err: any) {
+      toast({ title: "Erro ao criar usuário", description: err.message, variant: "destructive" });
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
   const adminEditorUsers = users.filter(
     (u) => u.roles.includes("admin") || u.roles.includes("editor")
   );
@@ -137,6 +169,70 @@ const AdminUsers = () => {
           <Users className="h-5 w-5 text-primary" />
           Gestão de Usuários
         </h1>
+        <Dialog open={addOpen} onOpenChange={(open) => { setAddOpen(open); if (!open) setTempPassword(null); }}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-1.5 text-xs">
+              <Plus className="h-3.5 w-3.5" />
+              Adicionar Usuário
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+            </DialogHeader>
+            {tempPassword ? (
+              <div className="space-y-4 pt-2">
+                <div className="rounded-xl bg-treend-success/10 border border-treend-success/20 p-4 text-center space-y-2">
+                  <p className="text-sm font-semibold text-treend-success">Usuário criado com sucesso!</p>
+                  <p className="text-xs text-muted-foreground">Senha temporária:</p>
+                  <code className="block text-sm font-mono font-bold text-foreground bg-muted px-3 py-2 rounded-lg select-all">{tempPassword}</code>
+                  <p className="text-[11px] text-muted-foreground">Copie e envie ao usuário. Recomende alterar no primeiro acesso.</p>
+                </div>
+                <Button className="w-full" onClick={() => { setAddOpen(false); setTempPassword(null); }}>
+                  Fechar
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Nome completo</label>
+                  <Input
+                    placeholder="João Silva"
+                    value={addName}
+                    onChange={(e) => setAddName(e.target.value)}
+                    maxLength={100}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">E-mail</label>
+                  <Input
+                    type="email"
+                    placeholder="joao@email.com"
+                    value={addEmail}
+                    onChange={(e) => setAddEmail(e.target.value)}
+                    maxLength={255}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Role</label>
+                  <Select value={addRole} onValueChange={(v) => setAddRole(v as AppRole)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Administrador</SelectItem>
+                      <SelectItem value="editor">Editor</SelectItem>
+                      <SelectItem value="user">Usuário</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button className="w-full" onClick={handleAddUser} disabled={addLoading}>
+                  {addLoading ? "Criando..." : "Criar Usuário"}
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Metrics */}
