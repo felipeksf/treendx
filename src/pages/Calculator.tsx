@@ -212,26 +212,21 @@ const CalculatorPage = () => {
   const treendFraction = treendRateData?.rateFraction ?? 0.008;
 
   // Compute Treend estimated rate: ±X% from current rate based on profile
-  const computeTreendRate = (rate: number) => {
-    return prefersLower ? rate * (1 - treendFraction) : rate * (1 + treendFraction);
+  const computeTreendRate = (rate: number, fraction: number = treendFraction) => {
+    return prefersLower ? rate * (1 - fraction) : rate * (1 + fraction);
   };
 
-  // Update currentRate and treendRate when live rates load
+  // Update currentRate and treendRate when live rates load or treend fraction changes
   useEffect(() => {
-    if (currency === "USD" && liveUsd) {
-      setCurrentRate(liveUsd.bid.toFixed(4));
-      setSliderRate([liveUsd.bid]);
-      setTreendRate(computeTreendRate(liveUsd.bid).toFixed(4));
-    } else if (currency === "EUR" && liveEur) {
-      setCurrentRate(liveEur.bid.toFixed(4));
-      setSliderRate([liveEur.bid]);
-      setTreendRate(computeTreendRate(liveEur.bid).toFixed(4));
-    } else if (currency === "GBP" && liveGbp) {
-      setCurrentRate(liveGbp.bid.toFixed(4));
-      setSliderRate([liveGbp.bid]);
-      setTreendRate(computeTreendRate(liveGbp.bid).toFixed(4));
+    const liveRate = currency === "USD" && liveUsd ? liveUsd.bid
+      : currency === "EUR" && liveEur ? liveEur.bid
+      : currency === "GBP" && liveGbp ? liveGbp.bid
+      : null;
+    if (liveRate) {
+      setCurrentRate(liveRate.toFixed(4));
+      setTreendRate((prefersLower ? liveRate * (1 - treendFraction) : liveRate * (1 + treendFraction)).toFixed(4));
     }
-  }, [liveUsd?.bid, liveEur?.bid, liveGbp?.bid, treendFraction]);
+  }, [liveUsd?.bid, liveEur?.bid, liveGbp?.bid, treendFraction, currency, prefersLower]);
 
   // Recalculate treend rate when profile changes
   useEffect(() => {
