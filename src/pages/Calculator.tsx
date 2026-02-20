@@ -937,7 +937,7 @@ const CalculatorPage = () => {
               </Tooltip>
             </div>
             <p className="text-base font-bold text-primary tabular-nums">
-              {fmtFull(scenario.treendSaving, scenarioCurrency)}
+              {fmt(metrics.economiaMinusSpread, metrics.economiaMinusSpread < 0, currency)}
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">±0,8% sobre a cotação simulada</p>
           </div>
@@ -1009,6 +1009,7 @@ const CalculatorPage = () => {
                       <div>
                         <h3 className="text-sm font-semibold text-foreground tracking-tight">Taxa Atual vs Taxa Estimada pela Treend</h3>
                         <p className="text-[11px] text-muted-foreground mt-0.5">Comparação direta entre a cotação do dia e a taxa estimada pela Treend</p>
+                        <p className="text-[10px] text-muted-foreground/70 mt-0.5">Volume de referência: <span className="font-semibold text-muted-foreground">{fmtFull(volume, currency)}</span></p>
                       </div>
                     </div>
                     <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${treendIsBetter ? "bg-treend-success/10 text-treend-success" : "bg-treend-danger/10 text-treend-danger"}`}>
