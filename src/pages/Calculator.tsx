@@ -447,17 +447,17 @@ const CalculatorPage = () => {
   const healthColors = { good: "bg-treend-success/10 text-treend-success border-treend-success/30", warning: "bg-treend-warning/10 text-treend-warning border-treend-warning/30", bad: "bg-treend-danger/10 text-treend-danger border-treend-danger/30" };
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto">
+    <div className="space-y-5 max-w-5xl mx-auto overflow-x-hidden">
       {/* Input Card */}
       <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-lg font-bold text-foreground tracking-tight">Simulação Interativa</h1>
             <p className="text-xs text-muted-foreground mt-0.5">Ajuste os valores e veja as mudanças em tempo real</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Select value={profile} onValueChange={(v) => setProfile(v as "importador" | "exportador")}>
-              <SelectTrigger className="h-9 w-[150px] text-xs bg-muted/40 border-border/40">
+              <SelectTrigger className="h-9 w-full sm:w-[150px] text-xs bg-muted/40 border-border/40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -523,9 +523,9 @@ const CalculatorPage = () => {
             <div className="space-y-1.5">
               <TooltipLabel label={`Operações/${opsFrequency === "day" ? "Dia" : opsFrequency === "week" ? "Semana" : "Mês"}`} tip="Quantidade de operações de câmbio no período selecionado" />
               <div className="flex gap-1.5">
-                <Input type="number" value={opsPerMonth} onChange={(e) => setOpsPerMonth(e.target.value)} className="h-10 text-sm bg-muted/40 border-border/40 flex-1" />
+                <Input type="number" value={opsPerMonth} onChange={(e) => setOpsPerMonth(e.target.value)} className="h-10 text-sm bg-muted/40 border-border/40 flex-1 min-w-0" />
                 <Select value={opsFrequency} onValueChange={(v) => setOpsFrequency(v as "month" | "week" | "day")}>
-                  <SelectTrigger className="h-10 w-[100px] text-xs bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-10 w-[80px] shrink-0 text-xs bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="day">Dia</SelectItem>
                     <SelectItem value="week">Semana</SelectItem>
@@ -805,7 +805,7 @@ const CalculatorPage = () => {
               <span className="text-sm font-semibold text-foreground">Conversor Rápido</span>
               <span className="text-xs text-muted-foreground ml-1">({converterCurrency} → {converterResultCurrency === "BRL" ? "BRL" : converterCurrency} com cotação do dia)</span>
             </div>
-            <div className="grid sm:grid-cols-5 gap-3 items-end">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Moeda</Label>
                 <Select value={converterCurrency} onValueChange={setConverterCurrency}>
@@ -886,13 +886,13 @@ const CalculatorPage = () => {
 
       {/* Scenario Slider */}
       <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-1">
           <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 shrink-0">
               <SlidersHorizontal className="h-4 w-4 text-primary" />
             </div>
-            <div className="flex items-center gap-1.5">
-              <div>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="min-w-0">
                 <span className="text-sm font-semibold text-foreground">E se o câmbio mudar?</span>
                 <p className="text-[11px] text-muted-foreground">Simule como variações na cotação impactam sua operação mensal</p>
               </div>
@@ -924,7 +924,7 @@ const CalculatorPage = () => {
               ))}
             </div>
             <Select value={scenarioPeriod} onValueChange={(v) => setScenarioPeriod(v as "day" | "week" | "month" | "operation")}>
-              <SelectTrigger className="h-8 w-[140px] text-xs bg-muted/40 border-border/40">
+              <SelectTrigger className="h-8 w-[120px] shrink-0 text-xs bg-muted/40 border-border/40">
                 <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
                 <SelectValue />
               </SelectTrigger>
@@ -1160,7 +1160,7 @@ const CalculatorPage = () => {
                   <div className="border-t border-border/30" />
 
                   {/* Bottom stats */}
-                  <div className="grid grid-cols-3 divide-x divide-border/30">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-border/30">
                     <div className="p-4 text-center">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Diferença</p>
                       <p className="text-base font-bold text-foreground tabular-nums">{rateDiff.toFixed(4)}</p>
@@ -1270,7 +1270,7 @@ const CalculatorPage = () => {
               </div>
 
               {/* Summary cards */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="rounded-xl border border-border/30 bg-muted/20 p-3 text-center space-y-1">
                   <div className="flex items-center justify-center gap-1.5">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: RATE_ORANGE }} />
@@ -1303,14 +1303,14 @@ const CalculatorPage = () => {
                 const diffPct = curRate > 0 ? (diff / curRate) * 100 : 0;
                 const spreadDiff = Math.abs(metrics.effectiveRate - curRate);
                 return (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 border border-border/20">
-                    <div className="flex-1 flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Vantagem Treend</span>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 border border-border/20">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider whitespace-nowrap">Vantagem Treend</span>
                       <span className="text-xs font-bold text-treend-success tabular-nums">{diff.toFixed(4)} pts ({diffPct.toFixed(2)}%)</span>
                     </div>
-                    <div className="w-px h-4 bg-border/40" />
-                    <div className="flex-1 flex items-center gap-2 justify-end">
-                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Custo Spread</span>
+                    <div className="hidden sm:block w-px h-4 bg-border/40" />
+                    <div className="flex items-center gap-2 flex-1 min-w-0 sm:justify-end">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider whitespace-nowrap">Custo Spread</span>
                       <span className="text-xs font-bold text-treend-danger tabular-nums">{spreadDiff.toFixed(4)} pts</span>
                     </div>
                   </div>
