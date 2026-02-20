@@ -101,11 +101,25 @@ const AdminAgenda = () => {
         description,
         admin_id: user.id,
       });
-      setSubmitting(false);
       if (error) {
+        setSubmitting(false);
         toast({ title: "Erro ao criar evento.", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "Evento criado com sucesso!" });
+        // Send email for macroeconomico events
+        if (category === "macroeconomico") {
+          try {
+            await supabase.functions.invoke("send-event-email", {
+              body: { title, event_date: eventDate, description },
+            });
+            toast({ title: "Evento criado e e-mail enviado à base!" });
+          } catch (emailErr) {
+            console.error("Erro ao enviar e-mail do evento:", emailErr);
+            toast({ title: "Evento criado, mas houve erro ao enviar o e-mail.", variant: "destructive" });
+          }
+        } else {
+          toast({ title: "Evento criado com sucesso!" });
+        }
+        setSubmitting(false);
         resetForm();
         fetchEvents();
       }
