@@ -351,6 +351,7 @@ const CalculatorPage = () => {
   }, [scenarioCurrency, scenarioLiveRate]);
 
   const scenarioPeriodMultiplier = scenarioPeriod === "day" ? 1 / 22 : scenarioPeriod === "week" ? 1 / 4 : 1;
+  const scenarioToMonthMultiplier = scenarioPeriod === "day" ? 22 : scenarioPeriod === "week" ? 4 : 1;
   const scenarioPeriodLabel = scenarioPeriod === "day" ? "por dia" : scenarioPeriod === "week" ? "por semana" : "por mês";
   const scenarioPeriodVolumeLabel = scenarioPeriod === "day" ? "diário" : scenarioPeriod === "week" ? "semanal" : "mensal";
 
@@ -367,12 +368,18 @@ const CalculatorPage = () => {
     const treendBRL = periodVolume * treendRate;
     const treendSaving = Math.abs(sBRL - treendBRL);
 
+    // Monthly projections
+    const monthlysBRL = sBRL * scenarioToMonthMultiplier;
+    const monthlyCurrentBRL = currentBRL * scenarioToMonthMultiplier;
+    const monthlyImpact = impactAbs * scenarioToMonthMultiplier;
+    const monthlyTreendSaving = treendSaving * scenarioToMonthMultiplier;
+
     const range = scenarioRange.max - scenarioRange.min;
     const rawPct = ((sRate - scenarioRange.min) / range) * 100;
     const zonePct = prefersLower ? rawPct : 100 - rawPct;
 
-    return { sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, zonePct };
-  }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower, scenarioPeriodMultiplier]);
+    return { sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, zonePct, monthlysBRL, monthlyCurrentBRL, monthlyImpact, monthlyTreendSaving };
+  }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower, scenarioPeriodMultiplier, scenarioToMonthMultiplier]);
 
   const getZoneLabel = (pct: number) => {
     if (pct <= 20) return { label: "Zona muito interessante", color: "text-treend-success" };
@@ -827,10 +834,15 @@ const CalculatorPage = () => {
             <p className="text-[10px] text-muted-foreground mt-0.5">
               Hoje ({scenarioCurrency}): {fmtFull(scenario.currentBRL, "BRL")}
             </p>
+            {scenarioPeriod !== "month" && (
+              <p className="text-[10px] text-primary font-medium mt-1">
+                Projeção mensal: {fmtFull(scenario.monthlysBRL, "BRL")}
+              </p>
+            )}
           </div>
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {scenario.isBetter ? "Economia vs hoje" : "Custo adicional vs hoje"}
+              {scenario.isBetter ? `Economia ${scenarioPeriodVolumeLabel.slice(0, 1).toLowerCase() + scenarioPeriodVolumeLabel.slice(1)}` : `Custo adicional ${scenarioPeriodVolumeLabel.slice(0, 1).toLowerCase() + scenarioPeriodVolumeLabel.slice(1)}`}
             </p>
             <div className="flex items-center justify-center gap-1">
               {scenario.isBetter ? (
@@ -845,6 +857,11 @@ const CalculatorPage = () => {
             <span className={`text-[10px] ${scenario.isBetter ? "text-treend-success" : "text-muted-foreground"}`}>
               {scenario.diffVsCurrent !== 0 ? `(${Math.abs(scenario.diffPct).toFixed(1)}%)` : ""}
             </span>
+            {scenarioPeriod !== "month" && scenario.diffVsCurrent !== 0 && (
+              <p className={`text-[10px] font-medium mt-1 ${scenario.isBetter ? "text-treend-success" : "text-treend-danger"}`}>
+                Projeção mensal: {fmtFull(scenario.monthlyImpact, "BRL")}
+              </p>
+            )}
           </div>
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
@@ -852,6 +869,11 @@ const CalculatorPage = () => {
             </p>
             <p className="text-base font-bold text-primary tabular-nums">{fmtFull(scenario.treendSaving, "BRL")}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">{scenarioPeriodLabel} neste cenário</p>
+            {scenarioPeriod !== "month" && (
+              <p className="text-[10px] text-primary font-medium mt-1">
+                Projeção mensal: {fmtFull(scenario.monthlyTreendSaving, "BRL")}
+              </p>
+            )}
           </div>
         </div>
       </div>
