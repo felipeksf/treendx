@@ -358,28 +358,32 @@ const CalculatorPage = () => {
 
   const scenario = useMemo(() => {
     const sRate = sliderRate[0];
+    // Volume for the selected period (volume is always monthly from the main calculator)
     const periodVolume = volume * scenarioPeriodMultiplier;
+
+    // BRL values at simulated rate vs current live rate, for the selected period
     const sBRL = periodVolume * sRate;
     const currentBRL = periodVolume * scenarioLiveRate;
     const diffVsCurrent = sBRL - currentBRL;
     const diffPct = currentBRL > 0 ? (diffVsCurrent / currentBRL) * 100 : 0;
     const isBetter = prefersLower ? diffVsCurrent < 0 : diffVsCurrent > 0;
     const impactAbs = Math.abs(diffVsCurrent);
+
+    // Treend saving: how much Treend saves vs the simulated rate (0.8% improvement)
     const treendRate = prefersLower ? sRate * (1 - 0.008) : sRate * (1 + 0.008);
     const treendBRL = periodVolume * treendRate;
     const treendSaving = Math.abs(sBRL - treendBRL);
 
-    // Monthly projections
-    const monthlysBRL = sBRL * scenarioToMonthMultiplier;
-    const monthlyCurrentBRL = currentBRL * scenarioToMonthMultiplier;
+    // Monthly totals (for projections when viewing day/week)
     const monthlyImpact = impactAbs * scenarioToMonthMultiplier;
     const monthlyTreendSaving = treendSaving * scenarioToMonthMultiplier;
+    const monthlyVolume = volume; // always the full monthly volume
 
     const range = scenarioRange.max - scenarioRange.min;
     const rawPct = ((sRate - scenarioRange.min) / range) * 100;
     const zonePct = prefersLower ? rawPct : 100 - rawPct;
 
-    return { periodVolume, sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, zonePct, monthlysBRL, monthlyCurrentBRL, monthlyImpact, monthlyTreendSaving };
+    return { periodVolume, sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, zonePct, monthlyImpact, monthlyTreendSaving, monthlyVolume };
   }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower, scenarioPeriodMultiplier, scenarioToMonthMultiplier]);
 
   const getZoneLabel = (pct: number) => {
@@ -847,22 +851,30 @@ const CalculatorPage = () => {
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
+          {/* Card 1: Volume */}
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              Volume inserido
+              Volume {scenarioPeriod === "day" ? "diário" : scenarioPeriod === "week" ? "semanal" : "mensal"}
             </p>
             <p className="text-base font-bold text-foreground tabular-nums">
-              {fmtFull(volume, scenarioCurrency)}
+              {fmtFull(scenario.periodVolume, scenarioCurrency)}
             </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {scenarioPeriod !== "month"
-                ? `${scenarioPeriod === "day" ? "Diário" : "Semanal"}: ${fmtFull(scenario.periodVolume, scenarioCurrency)}`
-                : `Cotação: ${sliderRate[0].toFixed(4)} BRL`}
-            </p>
+            {scenarioPeriod !== "month" && (
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Volume mensal: {fmtFull(volume, scenarioCurrency)}
+              </p>
+            )}
+            {scenarioPeriod === "month" && (
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Cotação simulada: {sliderRate[0].toFixed(4)} BRL
+              </p>
+            )}
           </div>
+
+          {/* Card 2: Economia vs cotação atual */}
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {scenario.isBetter ? `Economia ${scenarioPeriodVolumeLabel.slice(0, 1).toLowerCase() + scenarioPeriodVolumeLabel.slice(1)}` : `Custo adicional ${scenarioPeriodVolumeLabel.slice(0, 1).toLowerCase() + scenarioPeriodVolumeLabel.slice(1)}`}
+              {scenario.isBetter ? "Economia" : scenario.diffVsCurrent === 0 ? "Impacto" : "Custo adicional"} {scenarioPeriod === "day" ? "diária" : scenarioPeriod === "week" ? "semanal" : "mensal"}
             </p>
             <div className="flex items-center justify-center gap-1">
               {scenario.isBetter ? (
@@ -871,27 +883,31 @@ const CalculatorPage = () => {
                 <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
               )}
               <p className={`text-base font-bold tabular-nums ${scenario.isBetter ? "text-treend-success" : scenario.diffVsCurrent === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
-                {scenario.diffVsCurrent === 0 ? "Sem alteração" : fmtFull(scenario.impactAbs, scenarioCurrency)}
+                {scenario.diffVsCurrent === 0 ? "Sem alteração" : `R$ ${scenario.impactAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               </p>
             </div>
             <span className={`text-[10px] ${scenario.isBetter ? "text-treend-success" : "text-muted-foreground"}`}>
-              {scenario.diffVsCurrent !== 0 ? `(${Math.abs(scenario.diffPct).toFixed(1)}%)` : ""}
+              {scenario.diffVsCurrent !== 0 ? `(${Math.abs(scenario.diffPct).toFixed(1)}%) vs cotação atual` : ""}
             </span>
             {scenarioPeriod !== "month" && scenario.diffVsCurrent !== 0 && (
               <p className={`text-[10px] font-medium mt-1 ${scenario.isBetter ? "text-treend-success" : "text-treend-danger"}`}>
-                Projeção mensal: {fmtFull(scenario.monthlyImpact, scenarioCurrency)}
+                Projeção mensal: R$ {scenario.monthlyImpact.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             )}
           </div>
+
+          {/* Card 3: Economia com Treend */}
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              Economia com Treend
+              Economia Treend {scenarioPeriod === "day" ? "diária" : scenarioPeriod === "week" ? "semanal" : "mensal"}
             </p>
-            <p className="text-base font-bold text-primary tabular-nums">{fmtFull(scenario.treendSaving, scenarioCurrency)}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{scenarioPeriodLabel} neste cenário</p>
+            <p className="text-base font-bold text-primary tabular-nums">
+              R$ {scenario.treendSaving.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">±0,8% sobre a cotação simulada</p>
             {scenarioPeriod !== "month" && (
               <p className="text-[10px] text-primary font-medium mt-1">
-                Projeção mensal: {fmtFull(scenario.monthlyTreendSaving, scenarioCurrency)}
+                Projeção mensal: R$ {scenario.monthlyTreendSaving.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             )}
           </div>
