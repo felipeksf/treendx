@@ -222,10 +222,16 @@ const AdminAnalise = () => {
 
     try {
       for (const p of profilesToPublish) {
-        // Mirror: same profile gets same values, mirrored profile gets inverted
+        // For mirrored profile, recalculate heatmap position using that profile's own rules
         const isMirror = p !== profile;
-        const finalX = isMirror ? (100 - heatX) : heatX;
-        const finalY = isMirror ? (100 - heatY) : heatY;
+        let finalX = heatX;
+        let finalY = heatY;
+
+        if (isMirror && analysis) {
+          const mapped = mapRsiToHeatmap(analysis.rsi_value, analysis.rsi_zone, p, frequency);
+          finalX = mapped.x;
+          finalY = mapped.y;
+        }
 
         await publishMutation.mutateAsync({
           profileType: p,
