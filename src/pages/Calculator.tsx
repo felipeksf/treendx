@@ -356,10 +356,8 @@ const CalculatorPage = () => {
     setScenarioPeriod(opsFrequency);
   }, [opsFrequency]);
 
-  const scenarioPeriodMultiplier = scenarioPeriod === "day" ? 1 / 22 : scenarioPeriod === "week" ? 1 / 4 : scenarioPeriod === "operation" ? (ops > 0 ? 1 / ops : 1) : 1;
-  const scenarioToMonthMultiplier = scenarioPeriod === "day" ? 22 : scenarioPeriod === "week" ? 4 : scenarioPeriod === "operation" ? (ops > 0 ? ops : 1) : 1;
-  const scenarioPeriodLabel = scenarioPeriod === "day" ? "por dia" : scenarioPeriod === "week" ? "por semana" : scenarioPeriod === "operation" ? "por operação" : "por mês";
-  const scenarioPeriodVolumeLabel = scenarioPeriod === "day" ? "diário" : scenarioPeriod === "week" ? "semanal" : scenarioPeriod === "operation" ? "por operação" : "mensal";
+  const scenarioPeriodLabel = opsFrequency === "day" ? "por dia" : opsFrequency === "week" ? "por semana" : "por mês";
+  const scenarioPeriodVolumeLabel = opsFrequency === "day" ? "diário" : opsFrequency === "week" ? "semanal" : "mensal";
   const scenarioTreendEstimate = scenarioCurrency === currency ? trdRate : (prefersLower ? scenarioLiveRate * (1 - 0.008) : scenarioLiveRate * (1 + 0.008));
 
   const scenario = useMemo(() => {
