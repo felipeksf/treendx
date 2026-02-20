@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { Users, MessageSquare, CalendarDays, BarChart3, ArrowLeft, Shield, Menu, X, LogOut, PlayCircle, Flame, Percent } from "lucide-react";
+import { Users, MessageSquare, CalendarDays, BarChart3, ArrowLeft, Shield, Menu, X, LogOut, PlayCircle, Flame, Percent, ScanSearch } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +10,7 @@ import treendLogo from "@/assets/treend-logo.png";
 
 const allAdminNavItems = [
   { label: "Heatmap", icon: Flame, path: "/admin/heatmap", editorAllowed: true },
+  { label: "Análise", icon: ScanSearch, path: "/admin/analise", editorAllowed: true },
   { label: "Feed", icon: MessageSquare, path: "/admin/feed", editorAllowed: false },
   { label: "Agenda", icon: CalendarDays, path: "/admin/agenda", editorAllowed: false },
   { label: "Tutoriais", icon: PlayCircle, path: "/admin/tutorials", editorAllowed: false },
