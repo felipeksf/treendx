@@ -904,7 +904,7 @@ const CalculatorPage = () => {
           {/* Card 2: Economia vs cotação atual */}
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {scenario.isBetter ? "Economia" : scenario.diffVsCurrent === 0 ? "Impacto" : "Custo adicional"} {scenarioPeriodVolumeLabel}
+              {scenario.isBetter ? "Economia" : scenario.diffVsCurrent === 0 ? "Impacto" : "Custo adicional"} {scenarioPeriodVolumeLabel} com a Treend
             </p>
             <div className="flex items-center justify-center gap-1">
               {scenario.isBetter ? (
