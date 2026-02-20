@@ -99,7 +99,7 @@ const AppSidebar = ({
           const active = location.pathname === item.path;
           const badge = "badge" in item ? (item as any).badge as number : undefined;
           const badgeColor = "badgeColor" in item ? (item as any).badgeColor as string : undefined;
-          return <Link key={item.path} to={item.path} title={collapsed ? item.label : undefined} className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-display font-medium transition-all duration-200 ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}>
+          return <Link key={item.path} to={item.path} title={collapsed ? item.label : undefined} className={`group flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] tracking-wide font-medium transition-all duration-200 ${active ? "bg-primary/10 text-primary" : "text-muted-foreground/80 hover:bg-primary/5 hover:text-foreground"}`}>
                 <item.icon className="h-5 w-5 shrink-0" />
                 {!collapsed && <>
                     <span className="truncate">{item.label}</span>
