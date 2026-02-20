@@ -64,7 +64,7 @@ const AdminLayout = () => {
           className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm font-display font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
         >
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          {theme === "dark" ? "Modo Light" : "Modo Dark"}
+          {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
         </button>
 
         <Link to="/dashboard" onClick={() => setMobileOpen(false)}>

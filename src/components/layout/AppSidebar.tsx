@@ -119,7 +119,7 @@ const AppSidebar = ({
           {/* Theme Toggle */}
           <button onClick={toggleTheme} className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm font-display font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200">
             {theme === "dark" ? <Sun className="h-5 w-5 shrink-0" /> : <Moon className="h-5 w-5 shrink-0" />}
-            {!collapsed && <span>{theme === "dark" ? "Modo Light" : "Modo Dark"}</span>}
+            {!collapsed && <span>{theme === "dark" ? "Modo Claro" : "Modo Escuro"}</span>}
           </button>
 
           {/* User Profile */}
