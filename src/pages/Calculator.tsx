@@ -895,16 +895,16 @@ const CalculatorPage = () => {
               Volume {scenarioPeriodVolumeLabel}
             </p>
             <p className="text-base font-bold text-foreground tabular-nums">
-              {fmtFull(scenario.periodVolume, scenarioCurrency)}
+              {fmtFull(scenario.periodVolume, currency)}
             </p>
             {scenarioPeriod !== "month" && (
               <p className="text-[10px] text-muted-foreground mt-1">
-                Volume mensal: {fmtFull(volume, scenarioCurrency)}
+                Volume mensal: {fmtFull(volume, currency)}
               </p>
             )}
             {scenarioPeriod === "month" && (
               <p className="text-[10px] text-muted-foreground mt-0.5">
-                Cotação simulada: {sliderRate[0].toFixed(4)} BRL
+                Cotação simulada: {sliderRate[0].toFixed(4)} {scenarioCurrency}
               </p>
             )}
           </div>
