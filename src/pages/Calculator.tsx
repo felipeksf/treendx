@@ -892,7 +892,7 @@ const CalculatorPage = () => {
           {/* Card 1: Volume */}
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              Volume inserido
+              Volume {opsFrequency === "day" ? "diário" : opsFrequency === "week" ? "semanal" : "mensal"}
             </p>
             <p className="text-base font-bold text-foreground tabular-nums">
               {fmtFull(volume, currency)}
