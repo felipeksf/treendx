@@ -199,6 +199,7 @@ const CalculatorPage = () => {
   const { usd: liveUsd, eur: liveEur, gbp: liveGbp } = useExchangeRates();
   const [converterCurrency, setConverterCurrency] = useState("USD");
   const [converterAmount, setConverterAmount] = useState("1000");
+  const [scenarioCurrency, setScenarioCurrency] = useState("USD");
 
   const prefersLower = ["importador", "agente_turismo", "turista"].includes(profile);
 
@@ -294,25 +295,9 @@ const CalculatorPage = () => {
     const proj12m = netMonth * 12;
     const proj24m = netMonth * 24;
 
-    // Slider scenario – profile-aware
-    const sliderBRL = volume * sliderRateNum;
-    const sliderDiffVsCurrent = sliderBRL - curBRL; // positive = costs/yields more BRL
-    const sliderDiffPct = curBRL > 0 ? (sliderDiffVsCurrent / curBRL) * 100 : 0;
-
-    // For importers (buy foreign currency): lower rate = better → diff negative = good
-    // For exporters (sell foreign currency): higher rate = better → diff positive = good
-    const sliderIsBetter = prefersLower ? sliderDiffVsCurrent < 0 : sliderDiffVsCurrent > 0;
-    const sliderImpactAbs = Math.abs(sliderDiffVsCurrent);
-
-    // Treend economy at slider rate
-    const sliderTreendRate = prefersLower ? sliderRateNum * (1 - 0.008) : sliderRateNum * (1 + 0.008);
-    const sliderTreendBRL = volume * sliderTreendRate;
-    const sliderTreendSaving = Math.abs(sliderBRL - sliderTreendBRL);
-
-    // Zone info – profile-aware
+    // Zone info (kept for health – based on main currency)
     const range = rateRange.max - rateRange.min;
-    const rawPct = ((sliderRateNum - rateRange.min) / range) * 100;
-    // For importers, low % = good; for exporters, high % = good
+    const rawPct = ((curRate - rateRange.min) / range) * 100;
     const pct = prefersLower ? rawPct : 100 - rawPct;
 
     // Health scores
@@ -346,12 +331,42 @@ const CalculatorPage = () => {
       spreadCost, effectiveRate,
       economiaMinusSpread,
       proj6m, proj12m, proj24m,
-      sliderBRL, sliderDiffVsCurrent, sliderDiffPct, sliderIsBetter, sliderImpactAbs, sliderTreendSaving,
       pct,
       savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus,
       overallHealth,
     };
-  }, [volume, curRate, trdRate, ops, spread, sliderRateNum, rateRange, profile, prefersLower]);
+  }, [volume, curRate, trdRate, ops, spread, rateRange, profile, prefersLower]);
+
+  // Scenario slider – independent currency
+  const scenarioRange = RATE_RANGES[scenarioCurrency] || RATE_RANGES.USD;
+  const scenarioLiveRate = scenarioCurrency === "USD" && liveUsd ? liveUsd.bid
+    : scenarioCurrency === "EUR" && liveEur ? liveEur.bid
+    : scenarioCurrency === "GBP" && liveGbp ? liveGbp.bid
+    : scenarioRange.default;
+
+  // Reset slider when scenario currency changes
+  useEffect(() => {
+    setSliderRate([scenarioLiveRate]);
+  }, [scenarioCurrency, scenarioLiveRate]);
+
+  const scenario = useMemo(() => {
+    const sRate = sliderRate[0];
+    const sBRL = volume * sRate;
+    const currentBRL = volume * scenarioLiveRate;
+    const diffVsCurrent = sBRL - currentBRL;
+    const diffPct = currentBRL > 0 ? (diffVsCurrent / currentBRL) * 100 : 0;
+    const isBetter = prefersLower ? diffVsCurrent < 0 : diffVsCurrent > 0;
+    const impactAbs = Math.abs(diffVsCurrent);
+    const treendRate = prefersLower ? sRate * (1 - 0.008) : sRate * (1 + 0.008);
+    const treendBRL = volume * treendRate;
+    const treendSaving = Math.abs(sBRL - treendBRL);
+
+    const range = scenarioRange.max - scenarioRange.min;
+    const rawPct = ((sRate - scenarioRange.min) / range) * 100;
+    const zonePct = prefersLower ? rawPct : 100 - rawPct;
+
+    return { sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, zonePct };
+  }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower]);
 
   const getZoneLabel = (pct: number) => {
     if (pct <= 20) return { label: "Zona muito interessante", color: "text-treend-success" };
@@ -361,7 +376,7 @@ const CalculatorPage = () => {
     return { label: "Zona de alta pressão", color: "text-treend-danger" };
   };
 
-  const zoneInfo = getZoneLabel(metrics.pct);
+  const scenarioZoneInfo = getZoneLabel(scenario.zonePct);
   const profileActionLabel = prefersLower ? "custo mensal" : "receita mensal";
   const isPositive = metrics.netMonth > 0;
   const healthLabels = { good: "Saudável", warning: "Atenção", bad: "Crítico" };
@@ -743,26 +758,44 @@ const CalculatorPage = () => {
 
       {/* Scenario Slider */}
       <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
-            <SlidersHorizontal className="h-4 w-4 text-primary" />
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+              <SlidersHorizontal className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <span className="text-sm font-semibold text-foreground">E se o câmbio mudar?</span>
+              <p className="text-[11px] text-muted-foreground">Simule como variações na cotação impactam sua operação mensal</p>
+            </div>
           </div>
-          <div>
-            <span className="text-sm font-semibold text-foreground">E se o câmbio mudar?</span>
-            <p className="text-[11px] text-muted-foreground">Simule como variações na cotação impactam sua operação mensal</p>
+          <div className="flex gap-1">
+            {["USD", "EUR", "GBP"].map((cur) => (
+              <button
+                key={cur}
+                onClick={() => setScenarioCurrency(cur)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  scenarioCurrency === cur
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <span className="text-sm">{currencyFlag(cur)}</span>
+                {cur}
+              </button>
+            ))}
           </div>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label className="text-xs text-muted-foreground">Cotação simulada ({currency}/BRL)</Label>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${zoneInfo.color} ${metrics.sliderIsBetter ? "bg-treend-success/10" : metrics.pct <= 60 ? "bg-treend-warning/10" : "bg-treend-danger/10"}`}>{zoneInfo.label}</span>
+            <Label className="text-xs text-muted-foreground">Cotação simulada ({scenarioCurrency}/BRL)</Label>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${scenarioZoneInfo.color} ${scenario.isBetter ? "bg-treend-success/10" : scenario.zonePct <= 60 ? "bg-treend-warning/10" : "bg-treend-danger/10"}`}>{scenarioZoneInfo.label}</span>
           </div>
-          <Slider value={sliderRate} onValueChange={setSliderRate} min={rateRange.min} max={rateRange.max} step={0.01} className="py-2" />
+          <Slider value={sliderRate} onValueChange={setSliderRate} min={scenarioRange.min} max={scenarioRange.max} step={0.01} className="py-2" />
           <div className="flex justify-between text-[11px] text-muted-foreground">
-            <span>{prefersLower ? "Melhor ←" : ""} {rateRange.min.toFixed(2)}</span>
-            <span className="text-base font-bold text-foreground tabular-nums">{sliderRateNum.toFixed(4)}</span>
-            <span>{rateRange.max.toFixed(2)} {prefersLower ? "" : "→ Melhor"}</span>
+            <span>{prefersLower ? "Melhor ←" : ""} {scenarioRange.min.toFixed(2)}</span>
+            <span className="text-base font-bold text-foreground tabular-nums">{sliderRate[0].toFixed(4)}</span>
+            <span>{scenarioRange.max.toFixed(2)} {prefersLower ? "" : "→ Melhor"}</span>
           </div>
         </div>
 
@@ -771,34 +804,34 @@ const CalculatorPage = () => {
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
               {prefersLower ? "Custo mensal" : "Receita mensal"}
             </p>
-            <p className="text-base font-bold text-foreground tabular-nums">{fmtFull(metrics.sliderBRL, "BRL")}</p>
+            <p className="text-base font-bold text-foreground tabular-nums">{fmtFull(scenario.sBRL, "BRL")}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              Hoje: {fmtFull(metrics.curBRL, "BRL")}
+              Hoje ({scenarioCurrency}): {fmtFull(scenario.currentBRL, "BRL")}
             </p>
           </div>
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {metrics.sliderIsBetter ? "Economia vs hoje" : "Custo adicional vs hoje"}
+              {scenario.isBetter ? "Economia vs hoje" : "Custo adicional vs hoje"}
             </p>
             <div className="flex items-center justify-center gap-1">
-              {metrics.sliderIsBetter ? (
+              {scenario.isBetter ? (
                 <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-              ) : metrics.sliderDiffVsCurrent === 0 ? null : (
+              ) : scenario.diffVsCurrent === 0 ? null : (
                 <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
               )}
-              <p className={`text-base font-bold tabular-nums ${metrics.sliderIsBetter ? "text-treend-success" : metrics.sliderDiffVsCurrent === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
-                {metrics.sliderDiffVsCurrent === 0 ? "Sem alteração" : fmtFull(metrics.sliderImpactAbs, "BRL")}
+              <p className={`text-base font-bold tabular-nums ${scenario.isBetter ? "text-treend-success" : scenario.diffVsCurrent === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
+                {scenario.diffVsCurrent === 0 ? "Sem alteração" : fmtFull(scenario.impactAbs, "BRL")}
               </p>
             </div>
-            <span className={`text-[10px] ${metrics.sliderIsBetter ? "text-treend-success" : "text-muted-foreground"}`}>
-              {metrics.sliderDiffVsCurrent !== 0 ? `(${Math.abs(metrics.sliderDiffPct).toFixed(1)}%)` : ""}
+            <span className={`text-[10px] ${scenario.isBetter ? "text-treend-success" : "text-muted-foreground"}`}>
+              {scenario.diffVsCurrent !== 0 ? `(${Math.abs(scenario.diffPct).toFixed(1)}%)` : ""}
             </span>
           </div>
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
               Economia com Treend
             </p>
-            <p className="text-base font-bold text-primary tabular-nums">{fmtFull(metrics.sliderTreendSaving, "BRL")}</p>
+            <p className="text-base font-bold text-primary tabular-nums">{fmtFull(scenario.treendSaving, "BRL")}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">por mês neste cenário</p>
           </div>
         </div>
