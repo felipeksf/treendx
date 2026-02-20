@@ -952,11 +952,9 @@ const CalculatorPage = () => {
                 const isPos = econSemTreend > 0;
                 return (
                   <>
-                    {isPos ? (
-                      <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-                    ) : null}
-                    <p className={`text-base font-bold tabular-nums ${isPos ? "text-treend-success" : "text-muted-foreground"}`}>
-                      {fmtFull(econSemTreend, currency)}
+                    <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
+                    <p className="text-base font-bold tabular-nums text-treend-danger">
+                      -{fmtFull(econSemTreend, currency)}
                     </p>
                   </>
                 );
