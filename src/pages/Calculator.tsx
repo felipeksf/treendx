@@ -925,7 +925,7 @@ const CalculatorPage = () => {
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                Economia Treend {scenarioPeriodVolumeLabel}
+                Economia {scenarioPeriodVolumeLabel}
               </p>
               <Tooltip>
                 <TooltipTrigger asChild>
