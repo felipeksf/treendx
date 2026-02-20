@@ -351,6 +351,11 @@ const CalculatorPage = () => {
     setSliderRate([scenarioLiveRate]);
   }, [scenarioCurrency, scenarioLiveRate]);
 
+  // Sync scenario period with main calculator ops frequency
+  useEffect(() => {
+    setScenarioPeriod(opsFrequency);
+  }, [opsFrequency]);
+
   const scenarioPeriodMultiplier = scenarioPeriod === "day" ? 1 / 22 : scenarioPeriod === "week" ? 1 / 4 : scenarioPeriod === "operation" ? (ops > 0 ? 1 / ops : 1) : 1;
   const scenarioToMonthMultiplier = scenarioPeriod === "day" ? 22 : scenarioPeriod === "week" ? 4 : scenarioPeriod === "operation" ? (ops > 0 ? ops : 1) : 1;
   const scenarioPeriodLabel = scenarioPeriod === "day" ? "por dia" : scenarioPeriod === "week" ? "por semana" : scenarioPeriod === "operation" ? "por operação" : "por mês";
