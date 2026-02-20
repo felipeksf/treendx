@@ -926,7 +926,7 @@ const CalculatorPage = () => {
               </p>
             </div>
             <span className="text-[10px] text-primary">
-              Mesmo valor do bloco Economia
+              Quanto você economizaria com a Treend
             </span>
           </div>
 
