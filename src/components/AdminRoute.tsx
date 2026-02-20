@@ -1,8 +1,9 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, isAdmin, isLoading } = useAuth();
+  const { session, isAdmin, isEditor, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -14,6 +15,16 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!session) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Editors can only access heatmap
+  if (isEditor && !isAdmin) {
+    const allowed = ["/admin/heatmap", "/admin"];
+    const isAllowed = allowed.some(p => location.pathname.startsWith(p) && (location.pathname === p || location.pathname === "/admin/heatmap"));
+    if (!isAllowed) {
+      return <Navigate to="/admin/heatmap" replace />;
+    }
+    return <>{children}</>;
   }
 
   if (!isAdmin) {

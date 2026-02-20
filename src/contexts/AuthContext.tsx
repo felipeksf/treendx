@@ -13,6 +13,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   isAdmin: boolean;
+  isEditor: boolean;
   isLoading: boolean;
   subscription: SubscriptionState;
   signOut: () => Promise<void>;
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   isAdmin: false,
+  isEditor: false,
   isLoading: true,
   subscription: { subscribed: false, productId: null, subscriptionEnd: null, isLoading: true },
   signOut: async () => {},
@@ -53,6 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isEditor, setIsEditor] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [subscription, setSubscription] = useState<SubscriptionState>({
     subscribed: false,
@@ -61,14 +64,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading: true,
   });
 
-  const checkAdminRole = async (userId: string) => {
+  const checkRoles = async (userId: string) => {
     const { data } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
+      .eq("user_id", userId);
+    const roles = data?.map((r) => r.role) ?? [];
+    setIsAdmin(roles.includes("admin"));
+    setIsEditor(roles.includes("editor"));
   };
 
   const checkSubscription = useCallback(async () => {
@@ -119,10 +122,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          setTimeout(() => checkAdminRole(session.user.id), 0);
+          setTimeout(() => checkRoles(session.user.id), 0);
           setTimeout(() => checkSubscription(), 0);
         } else {
           setIsAdmin(false);
+          setIsEditor(false);
           setSubscription({ subscribed: false, productId: null, subscriptionEnd: null, isLoading: false });
         }
         setIsLoading(false);
@@ -133,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkRoles(session.user.id);
         checkSubscription();
       } else {
         setSubscription((s) => ({ ...s, isLoading: false }));
@@ -154,11 +158,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setIsEditor(false);
     setSubscription({ subscribed: false, productId: null, subscriptionEnd: null, isLoading: false });
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, isAdmin, isLoading, subscription, signOut, checkSubscription }}>
+    <AuthContext.Provider value={{ session, user, isAdmin, isEditor, isLoading, subscription, signOut, checkSubscription }}>
       {children}
     </AuthContext.Provider>
   );
