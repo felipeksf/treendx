@@ -12,7 +12,6 @@ const allAdminNavItems = [
   { label: "Heatmap", icon: Flame, path: "/admin/heatmap", editorAllowed: true },
   { label: "Feed", icon: MessageSquare, path: "/admin/feed", editorAllowed: false },
   { label: "Agenda", icon: CalendarDays, path: "/admin/agenda", editorAllowed: false },
-  { label: "Scores", icon: BarChart3, path: "/admin/scores", editorAllowed: false },
   { label: "Tutoriais", icon: PlayCircle, path: "/admin/tutorials", editorAllowed: false },
   { label: "Taxa", icon: Percent, path: "/admin/taxa", editorAllowed: false },
   { label: "Usuários", icon: Users, path: "/admin/users", editorAllowed: false },
