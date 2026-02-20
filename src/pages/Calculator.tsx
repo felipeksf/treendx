@@ -1257,37 +1257,121 @@ const CalculatorPage = () => {
               </div>
             </div>
 
-            {/* Chart 3 - Comparativo Treend */}
-            <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-3">
-              <div className="flex items-center gap-2 mb-1">
+            {/* Chart 3 - Comparativo Treend — Redesigned */}
+            <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+              <div className="flex items-center gap-2">
                 <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
                   <LineChart className="h-4 w-4 text-primary" />
                 </div>
-                <div>
-                  <span className="text-sm font-semibold text-foreground">Comparativo Treend</span>
-                  <p className="text-[11px] text-muted-foreground">Projeção comparativa ao longo de 24 meses: taxa comercial, taxa estimada pela Treend e taxa efetiva (com spread bancário).</p>
+                <div className="flex-1">
+                  <span className="text-sm font-semibold text-foreground tracking-tight">Comparativo de Taxas</span>
+                  <p className="text-[11px] text-muted-foreground">Visão comparativa entre as taxas do mercado, estimada pela Treend e efetiva (com spread).</p>
                 </div>
               </div>
-              <div className="h-[300px] w-full">
+
+              {/* Summary cards */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-xl border border-border/30 bg-muted/20 p-3 text-center space-y-1">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: RATE_ORANGE }} />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Taxa Atual</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground tabular-nums tracking-tight">{curRate.toFixed(4)}</p>
+                  <p className="text-[10px] text-muted-foreground">Mercado</p>
+                </div>
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-center space-y-1 ring-1 ring-primary/10">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: TREEND_BLUE }} />
+                    <span className="text-[10px] text-primary uppercase tracking-wider font-medium">Treend</span>
+                  </div>
+                  <p className="text-lg font-bold text-primary tabular-nums tracking-tight">{trdRate.toFixed(4)}</p>
+                  <p className="text-[10px] text-muted-foreground">Estimada</p>
+                </div>
+                <div className="rounded-xl border border-border/30 bg-muted/20 p-3 text-center space-y-1">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: EFFECTIVE_RED }} />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Efetiva</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground tabular-nums tracking-tight">{metrics.effectiveRate.toFixed(4)}</p>
+                  <p className="text-[10px] text-muted-foreground">Com spread</p>
+                </div>
+              </div>
+
+              {/* Difference highlight bar */}
+              {(() => {
+                const diff = Math.abs(curRate - trdRate);
+                const diffPct = curRate > 0 ? (diff / curRate) * 100 : 0;
+                const spreadDiff = Math.abs(metrics.effectiveRate - curRate);
+                return (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 border border-border/20">
+                    <div className="flex-1 flex items-center gap-2">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Vantagem Treend</span>
+                      <span className="text-xs font-bold text-treend-success tabular-nums">{diff.toFixed(4)} pts ({diffPct.toFixed(2)}%)</span>
+                    </div>
+                    <div className="w-px h-4 bg-border/40" />
+                    <div className="flex-1 flex items-center gap-2 justify-end">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Custo Spread</span>
+                      <span className="text-xs font-bold text-treend-danger tabular-nums">{spreadDiff.toFixed(4)} pts</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Chart */}
+              <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RechartsLineChart data={comparativoData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
-                    <XAxis dataKey="name" tick={{ fill: TEXT_COLOR, fontSize: 10 }} interval={1} />
+                  <ComposedChart data={comparativoData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gradTaxaAtual" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={RATE_ORANGE} stopOpacity={0.08} />
+                        <stop offset="95%" stopColor={RATE_ORANGE} stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="gradTreend" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={TREEND_BLUE} stopOpacity={0.15} />
+                        <stop offset="95%" stopColor={TREEND_BLUE} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                    <XAxis dataKey="name" tick={{ fill: TEXT_COLOR, fontSize: 10 }} interval={2} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
                     <YAxis
                       domain={["auto", "auto"]}
                       tick={{ fill: TEXT_COLOR, fontSize: 11 }}
                       tickFormatter={(v: number) => v.toFixed(2)}
+                      axisLine={false}
+                      tickLine={false}
+                      width={50}
                     />
                     <RechartsTooltip
                       {...chartTooltipStyle}
-                      formatter={(value: number) => value.toFixed(4)}
+                      formatter={(value: number, name: string) => [
+                        value.toFixed(4),
+                        name,
+                      ]}
+                      labelStyle={{ fontWeight: 600, marginBottom: 4 }}
                     />
-                    <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
-                    <Line type="monotone" dataKey="Taxa Atual" stroke={RATE_ORANGE} strokeWidth={2} dot={{ fill: RATE_ORANGE, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Taxa Estimada Treend" stroke={TREEND_BLUE} strokeWidth={2.5} dot={{ fill: TREEND_BLUE, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Taxa Efetiva" stroke={EFFECTIVE_RED} strokeWidth={2} strokeDasharray="5 5" dot={{ fill: EFFECTIVE_RED, r: 2.5, strokeWidth: 0 }} activeDot={{ r: 5 }} />
-                  </RechartsLineChart>
+                    <Area type="monotone" dataKey="Taxa Estimada Treend" fill="url(#gradTreend)" stroke="none" />
+                    <Area type="monotone" dataKey="Taxa Atual" fill="url(#gradTaxaAtual)" stroke="none" />
+                    <Line type="monotone" dataKey="Taxa Atual" stroke={RATE_ORANGE} strokeWidth={2} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))" }} />
+                    <Line type="monotone" dataKey="Taxa Estimada Treend" stroke={TREEND_BLUE} strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))" }} />
+                    <Line type="monotone" dataKey="Taxa Efetiva" stroke={EFFECTIVE_RED} strokeWidth={1.5} strokeDasharray="6 3" dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: "hsl(var(--background))" }} />
+                  </ComposedChart>
                 </ResponsiveContainer>
+              </div>
+
+              {/* Legend */}
+              <div className="flex items-center justify-center gap-5 pt-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: RATE_ORANGE }} />
+                  <span className="text-[10px] text-muted-foreground">Taxa Atual</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: TREEND_BLUE }} />
+                  <span className="text-[10px] text-muted-foreground font-medium">Taxa Estimada Treend</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-[1px] rounded-full border-t border-dashed" style={{ borderColor: EFFECTIVE_RED }} />
+                  <span className="text-[10px] text-muted-foreground">Taxa Efetiva</span>
+                </div>
               </div>
             </div>
           </div>
