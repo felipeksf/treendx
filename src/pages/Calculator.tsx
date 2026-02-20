@@ -354,6 +354,7 @@ const CalculatorPage = () => {
   const scenarioToMonthMultiplier = scenarioPeriod === "day" ? 22 : scenarioPeriod === "week" ? 4 : 1;
   const scenarioPeriodLabel = scenarioPeriod === "day" ? "por dia" : scenarioPeriod === "week" ? "por semana" : "por mês";
   const scenarioPeriodVolumeLabel = scenarioPeriod === "day" ? "diário" : scenarioPeriod === "week" ? "semanal" : "mensal";
+  const scenarioTreendEstimate = prefersLower ? scenarioLiveRate * (1 - 0.008) : scenarioLiveRate * (1 + 0.008);
 
   const scenario = useMemo(() => {
     const sRate = sliderRate[0];
@@ -827,6 +828,15 @@ const CalculatorPage = () => {
           <div className="flex items-center justify-between">
             <Label className="text-xs text-muted-foreground">Cotação simulada ({scenarioCurrency}/BRL)</Label>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${scenarioZoneInfo.color} ${scenario.isBetter ? "bg-treend-success/10" : scenario.zonePct <= 60 ? "bg-treend-warning/10" : "bg-treend-danger/10"}`}>{scenarioZoneInfo.label}</span>
+          </div>
+          <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-3 py-1.5">
+            <span className="text-[11px] text-muted-foreground">Taxa estimada Treend:</span>
+            <button
+              onClick={() => setSliderRate([scenarioTreendEstimate])}
+              className="text-xs font-bold text-primary tabular-nums hover:underline cursor-pointer"
+            >
+              {scenarioTreendEstimate.toFixed(4)} BRL
+            </button>
           </div>
           <Slider value={sliderRate} onValueChange={setSliderRate} min={scenarioRange.min} max={scenarioRange.max} step={0.01} className="py-2" />
           <div className="flex justify-between text-[11px] text-muted-foreground">
