@@ -268,6 +268,30 @@ export type Database = {
         }
         Relationships: []
       }
+      treend_rate: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: string
+          published_at: string
+          rate_pct: number
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: string
+          published_at?: string
+          rate_pct?: number
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: string
+          published_at?: string
+          rate_pct?: number
+        }
+        Relationships: []
+      }
       tutorials: {
         Row: {
           admin_id: string
