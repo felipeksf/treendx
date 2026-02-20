@@ -1103,8 +1103,8 @@ const CalculatorPage = () => {
                     <div className="p-4 text-center">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Impacto / op</p>
                       {(() => {
-                        // Impact in BRL = |volume * (curRate - trdRate)| / ops
-                        const impactBRL = Math.abs(volume * curRate - volume * trdRate) / (ops > 0 ? ops : 1);
+                        // Impact = Volume de referência × Taxa % de variação
+                        const impactBRL = volume * (rateDiffPct / 100);
                         // Convert from BRL to selected currency
                         const brlToUsd = liveUsd ? 1 / liveUsd.bid : 1 / curRate;
                         const brlToEur = liveEur ? 1 / liveEur.bid : 1 / curRate;
