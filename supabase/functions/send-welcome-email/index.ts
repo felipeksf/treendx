@@ -37,10 +37,8 @@ serve(async (req) => {
 
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:44px 48px 36px;text-align:center;position:relative;overflow:hidden;">
-      <div style="font-size:38px;font-weight:800;color:#ffffff;letter-spacing:-1.5px;line-height:1;">
-        treend<span style="display:inline-block;width:8px;height:8px;background:#ffffff;border-radius:50%;margin-left:2px;vertical-align:super;opacity:0.8;"></span>
-      </div>
-      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:4px;">
+      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:48px;width:auto;" />
+      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:8px;">
         O Seu Guia Definitivo de Câmbio com IA
       </div>
     </div>
@@ -129,14 +127,14 @@ serve(async (req) => {
     </div>
 
     <!-- Footer -->
-    <div style="background:#f8faff;border-top:1px solid #e2e8f0;padding:28px 48px;text-align:center;">
-      <div style="font-size:20px;font-weight:800;color:#3b82f6;letter-spacing:-0.8px;margin-bottom:10px;">treend<span style="display:inline-block;width:6px;height:6px;background:#3b82f6;border-radius:50%;margin-left:1px;vertical-align:super;"></span></div>
+    <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);border-top:1px solid #e2e8f0;padding:28px 48px;text-align:center;">
+      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:28px;width:auto;margin-bottom:10px;" />
       <div style="margin-bottom:14px;">
-        <a href="#" style="font-size:12.5px;color:#64748b;text-decoration:none;margin:0 10px;">Política de Privacidade</a>
-        <a href="#" style="font-size:12.5px;color:#64748b;text-decoration:none;margin:0 10px;">Termos de Uso</a>
-        <a href="#" style="font-size:12.5px;color:#64748b;text-decoration:none;margin:0 10px;">Central de Ajuda</a>
+        <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Política de Privacidade</a>
+        <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Termos de Uso</a>
+        <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Central de Ajuda</a>
       </div>
-      <div style="font-size:11.5px;color:#94a3b8;line-height:1.6;">
+      <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
         © ${new Date().getFullYear()} Treend. Todos os direitos reservados.<br/>
         Você está recebendo este e-mail porque realizou um cadastro em nosso sistema.
       </div>
