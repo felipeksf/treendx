@@ -937,9 +937,9 @@ const CalculatorPage = () => {
               </Tooltip>
             </div>
             <p className="text-base font-bold text-primary tabular-nums">
-              {fmt(metrics.economiaMinusSpread, metrics.economiaMinusSpread < 0, currency)}
+              {fmtFull(scenario.treendSaving, scenarioCurrency)}
             </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">±0,8% sobre a cotação simulada</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">vs cotação simulada ({sliderRate[0].toFixed(4)})</p>
           </div>
         </div>
       </div>
