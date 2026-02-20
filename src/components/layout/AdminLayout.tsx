@@ -8,22 +8,28 @@ import { useToast } from "@/hooks/use-toast";
 import { Sun, Moon } from "lucide-react";
 import treendLogo from "@/assets/treend-logo.png";
 
-const adminNavItems = [
-  { label: "Heatmap", icon: Flame, path: "/admin/heatmap" },
-  { label: "Feed", icon: MessageSquare, path: "/admin/feed" },
-  { label: "Agenda", icon: CalendarDays, path: "/admin/agenda" },
-  { label: "Scores", icon: BarChart3, path: "/admin/scores" },
-  { label: "Tutoriais", icon: PlayCircle, path: "/admin/tutorials" },
-  { label: "Taxa", icon: Percent, path: "/admin/taxa" },
+const allAdminNavItems = [
+  { label: "Heatmap", icon: Flame, path: "/admin/heatmap", editorAllowed: true },
+  { label: "Feed", icon: MessageSquare, path: "/admin/feed", editorAllowed: false },
+  { label: "Agenda", icon: CalendarDays, path: "/admin/agenda", editorAllowed: false },
+  { label: "Scores", icon: BarChart3, path: "/admin/scores", editorAllowed: false },
+  { label: "Tutoriais", icon: PlayCircle, path: "/admin/tutorials", editorAllowed: false },
+  { label: "Taxa", icon: Percent, path: "/admin/taxa", editorAllowed: false },
+  { label: "Usuários", icon: Users, path: "/admin/users", editorAllowed: false },
 ];
 
 const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { signOut } = useAuth();
+  const { signOut, isAdmin, isEditor } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
+
+  // Filter nav items based on role
+  const adminNavItems = isAdmin
+    ? allAdminNavItems
+    : allAdminNavItems.filter((item) => item.editorAllowed);
 
   const handleLogout = async () => {
     await signOut();
@@ -46,10 +52,10 @@ const AdminLayout = () => {
               key={item.path}
               to={item.path}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-display font-medium transition-all duration-200 ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] tracking-wide font-medium transition-all duration-200 ${
                 active
                   ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                  : "text-muted-foreground/80 hover:bg-primary/5 hover:text-foreground"
               }`}
             >
               <item.icon className="h-5 w-5" />
@@ -62,14 +68,14 @@ const AdminLayout = () => {
       <div className="px-3 py-3 border-t border-border/50 space-y-2">
         <button
           onClick={toggleTheme}
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm font-display font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-[13px] tracking-wide font-medium text-muted-foreground/80 hover:bg-primary/5 hover:text-foreground transition-all duration-200"
         >
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
         </button>
 
         <Link to="/dashboard" onClick={() => setMobileOpen(false)}>
-          <Button variant="outline" className="w-full gap-2 border-border text-muted-foreground hover:text-foreground font-display">
+          <Button variant="outline" className="w-full gap-2 border-border text-muted-foreground hover:text-foreground text-[13px] tracking-wide">
             <ArrowLeft className="h-4 w-4" />
             Voltar para o App
           </Button>
@@ -78,7 +84,7 @@ const AdminLayout = () => {
         <Button
           variant="ghost"
           onClick={handleLogout}
-          className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 font-display min-h-[40px]"
+          className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 text-[13px] tracking-wide min-h-[40px]"
         >
           <LogOut className="h-4 w-4" />
           Sair da Conta

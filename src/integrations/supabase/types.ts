@@ -396,7 +396,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "editor"
       currency_tag: "USD" | "EUR" | "general"
       event_category: "mentoria" | "relatorio" | "macroeconomico"
       score_frequency: "weekly" | "biweekly" | "monthly"
@@ -535,7 +535,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "editor"],
       currency_tag: ["USD", "EUR", "general"],
       event_category: ["mentoria", "relatorio", "macroeconomico"],
       score_frequency: ["weekly", "biweekly", "monthly"],
