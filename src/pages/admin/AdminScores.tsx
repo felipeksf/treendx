@@ -192,10 +192,10 @@ const AdminScores = () => {
 
   const getScoreInterpretation = (zone: string) => {
     if (zone === "oversold") {
-      return "RSI abaixo de 30 → Favorável para Importadores (câmbio barato). Score baixo = bom para compra.";
+      return "RSI abaixo de 30 → Zona interessante para Importadores (câmbio barato). Score baixo = bom para compra.";
     }
     if (zone === "overbought") {
-      return "RSI acima de 70 → Favorável para Exportadores (câmbio caro). Score alto = bom para venda.";
+      return "RSI acima de 70 → Zona interessante para Exportadores (câmbio caro). Score alto = bom para venda.";
     }
     return "RSI neutro → Sem sinal claro de oportunidade.";
   };

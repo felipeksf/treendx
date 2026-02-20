@@ -21,7 +21,7 @@ const benefits = [
   {
     icon: Target,
     title: "Score diário",
-    desc: "Saiba se o dólar ou euro está em zona favorável ou desfavorável para operações.",
+    desc: "Saiba se o dólar ou euro está em zona de pressão ou de equilíbrio para operações.",
   },
   {
     icon: Calculator,
@@ -49,7 +49,7 @@ const personas = [
 
 const faqs = [
   { q: "A Treend faz recomendações de compra ou venda?", a: "Não. A Treend é uma ferramenta de consulta que ajuda você a entender o contexto do câmbio. A decisão final é sempre sua." },
-  { q: "Como funciona o Score Treend?", a: "Nosso score analisa indicadores de mercado e posiciona o câmbio em uma escala de 1 a 100, indicando se a moeda está em zona favorável ou desfavorável." },
+  { q: "Como funciona o Score Treend?", a: "Nosso score analisa indicadores de mercado e posiciona o câmbio em uma escala de 1 a 100, indicando se a moeda está em zona de pressão ou de equilíbrio." },
   { q: "Posso cancelar a qualquer momento?", a: "Sim. Não há fidelidade. Cancele quando quiser pelo painel da sua conta." },
   { q: "O trial é realmente gratuito?", a: "Sim, 7 dias de acesso completo sem compromisso. Não pedimos cartão de crédito." },
   { q: "Para quem a Treend é indicada?", a: "Para qualquer profissional que opera com dólar ou euro: importadores, exportadores, freelancers, gestores de comex e empresários." },
