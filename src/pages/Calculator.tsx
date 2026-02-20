@@ -910,27 +910,27 @@ const CalculatorPage = () => {
             </p>
           </div>
 
-          {/* Card 2: Economia com a Treend (treend rate vs current = always bigger) */}
+          {/* Card 2: Economia com a Treend = same as main "Economia" block */}
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {scenario.treendIsBetter ? "Economia" : scenario.treendDiffPct === 0 ? "Impacto" : "Custo adicional"} {scenarioPeriodVolumeLabel} com a Treend
+              Economia {scenarioPeriodVolumeLabel} com a Treend
             </p>
             <div className="flex items-center justify-center gap-1">
-              {scenario.treendIsBetter ? (
+              {metrics.economiaMinusSpread > 0 ? (
                 <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-              ) : scenario.treendDiffPct === 0 ? null : (
+              ) : metrics.economiaMinusSpread === 0 ? null : (
                 <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
               )}
-              <p className={`text-base font-bold tabular-nums ${scenario.treendIsBetter ? "text-primary" : scenario.treendDiffPct === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
-                {scenario.treendDiffPct === 0 ? "Sem alteração" : fmtFull(scenario.treendImpactAbs, scenarioCurrency)}
+              <p className={`text-base font-bold tabular-nums ${metrics.economiaMinusSpread > 0 ? "text-primary" : metrics.economiaMinusSpread === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
+                {fmtFull(Math.abs(metrics.economiaMinusSpread), currency)}
               </p>
             </div>
-            <span className={`text-[10px] ${scenario.treendIsBetter ? "text-primary" : "text-muted-foreground"}`}>
-              {scenario.treendDiffPct !== 0 ? `(${Math.abs(scenario.treendDiffPct).toFixed(1)}%) vs cotação atual` : ""}
+            <span className="text-[10px] text-primary">
+              Mesmo valor do bloco Economia
             </span>
           </div>
 
-          {/* Card 3: Economia sem Treend (simulated vs current) */}
+          {/* Card 3: Economia = Economia com a Treend - 0.8% */}
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -941,22 +941,29 @@ const CalculatorPage = () => {
                   <HelpCircle className="h-3 w-3 text-muted-foreground/60 cursor-help shrink-0" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[260px] text-xs">
-                  Economia baseada apenas na cotação simulada vs cotação atual, sem o diferencial Treend.
+                  Economia com a Treend descontada de 0,8% (diferencial Treend).
                 </TooltipContent>
               </Tooltip>
             </div>
             <div className="flex items-center justify-center gap-1">
-              {scenario.isBetter ? (
-                <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-              ) : scenario.diffVsCurrent === 0 ? null : (
-                <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
-              )}
-              <p className={`text-base font-bold tabular-nums ${scenario.isBetter ? "text-treend-success" : scenario.diffVsCurrent === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
-                {scenario.diffVsCurrent === 0 ? "Sem alteração" : fmtFull(scenario.impactAbs, scenarioCurrency)}
-              </p>
+              {(() => {
+                const econWithout = metrics.economiaMinusSpread * (1 - 0.008);
+                return (
+                  <>
+                    {econWithout > 0 ? (
+                      <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
+                    ) : econWithout === 0 ? null : (
+                      <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
+                    )}
+                    <p className={`text-base font-bold tabular-nums ${econWithout > 0 ? "text-treend-success" : econWithout === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
+                      {fmtFull(Math.abs(econWithout), currency)}
+                    </p>
+                  </>
+                );
+              })()}
             </div>
-            <span className={`text-[10px] ${scenario.isBetter ? "text-treend-success" : "text-muted-foreground"}`}>
-              {scenario.diffVsCurrent !== 0 ? `(${Math.abs(scenario.diffPct).toFixed(1)}%) vs cotação atual` : ""}
+            <span className="text-[10px] text-muted-foreground">
+              Economia com a Treend − 0,8%
             </span>
           </div>
         </div>
