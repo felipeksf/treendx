@@ -935,9 +935,19 @@ const CalculatorPage = () => {
 
           {/* Card 3: Economia com Treend */}
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              Economia Treend {scenarioPeriod === "day" ? "diária" : scenarioPeriod === "week" ? "semanal" : "mensal"}
-            </p>
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Economia Treend {scenarioPeriod === "day" ? "diária" : scenarioPeriod === "week" ? "semanal" : "mensal"}
+              </p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground/60 cursor-help shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[260px] text-xs">
+                  Aqui seria a economia que você teria com a taxa estimada da Treend além da sua economia principal.
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <p className="text-base font-bold text-primary tabular-nums">
               {fmtFull(scenario.treendSaving, scenarioCurrency)}
             </p>
