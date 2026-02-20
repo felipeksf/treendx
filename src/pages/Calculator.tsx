@@ -347,19 +347,19 @@ const CalculatorPage = () => {
     : scenarioCurrency === "GBP" && liveGbp ? liveGbp.bid
     : scenarioRange.default;
 
-  // Reset slider when scenario currency changes
+  const scenarioPeriodLabel = opsFrequency === "day" ? "por dia" : opsFrequency === "week" ? "por semana" : "por mês";
+  const scenarioPeriodVolumeLabel = opsFrequency === "day" ? "diário" : opsFrequency === "week" ? "semanal" : "mensal";
+  const scenarioTreendEstimate = scenarioCurrency === currency ? trdRate : (prefersLower ? scenarioLiveRate * (1 - 0.008) : scenarioLiveRate * (1 + 0.008));
+
+  // Reset slider to Treend estimate when scenario currency changes
   useEffect(() => {
-    setSliderRate([scenarioLiveRate]);
-  }, [scenarioCurrency, scenarioLiveRate]);
+    setSliderRate([scenarioTreendEstimate]);
+  }, [scenarioCurrency, scenarioTreendEstimate]);
 
   // Sync scenario period with main calculator ops frequency
   useEffect(() => {
     setScenarioPeriod(opsFrequency);
   }, [opsFrequency]);
-
-  const scenarioPeriodLabel = opsFrequency === "day" ? "por dia" : opsFrequency === "week" ? "por semana" : "por mês";
-  const scenarioPeriodVolumeLabel = opsFrequency === "day" ? "diário" : opsFrequency === "week" ? "semanal" : "mensal";
-  const scenarioTreendEstimate = scenarioCurrency === currency ? trdRate : (prefersLower ? scenarioLiveRate * (1 - 0.008) : scenarioLiveRate * (1 + 0.008));
 
   const scenario = useMemo(() => {
     const sRate = sliderRate[0];
@@ -941,29 +941,33 @@ const CalculatorPage = () => {
                   <HelpCircle className="h-3 w-3 text-muted-foreground/60 cursor-help shrink-0" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[260px] text-xs">
-                  Economia com a Treend descontada de 0,8% (diferencial Treend).
+                  Economia baseada na cotação atual vs taxa estimada pela Treend.
                 </TooltipContent>
               </Tooltip>
             </div>
             <div className="flex items-center justify-center gap-1">
               {(() => {
-                const econWithout = metrics.economiaMinusSpread * (1 - 0.008);
+                // Economy based on current live rate vs Treend estimate
+                const currentBRL = volume * scenarioLiveRate;
+                const treendBRL = volume * scenarioTreendEstimate;
+                const econCurrent = Math.abs(currentBRL - treendBRL);
+                const econIsPositive = prefersLower ? scenarioTreendEstimate < scenarioLiveRate : scenarioTreendEstimate > scenarioLiveRate;
                 return (
                   <>
-                    {econWithout > 0 ? (
+                    {econIsPositive ? (
                       <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-                    ) : econWithout === 0 ? null : (
+                    ) : (
                       <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
                     )}
-                    <p className={`text-base font-bold tabular-nums ${econWithout > 0 ? "text-treend-success" : econWithout === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
-                      {fmtFull(Math.abs(econWithout), currency)}
+                    <p className={`text-base font-bold tabular-nums ${econIsPositive ? "text-treend-success" : "text-treend-danger"}`}>
+                      {fmtFull(econCurrent, scenarioCurrency)}
                     </p>
                   </>
                 );
               })()}
             </div>
             <span className="text-[10px] text-muted-foreground">
-              Economia com a Treend − 0,8%
+              Cotação atual vs taxa estimada Treend
             </span>
           </div>
         </div>
