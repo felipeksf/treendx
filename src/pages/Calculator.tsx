@@ -439,7 +439,7 @@ const CalculatorPage = () => {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <TooltipLabel label={`Volume Mensal (${currency})`} tip="Total em moeda estrangeira movimentado por mês" />
+              <TooltipLabel label={`Volume (${currency})`} tip="Total em moeda estrangeira movimentado por mês" />
               <Input type="text" inputMode="numeric" value={fmtThousands(monthlyVolume)} onChange={(e) => setMonthlyVolume(parseThousands(e.target.value))} className="h-10 text-sm bg-muted/40 border-border/40" />
             </div>
             <div className="space-y-1.5">
