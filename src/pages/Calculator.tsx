@@ -1167,34 +1167,12 @@ const CalculatorPage = () => {
                     <div className="p-4 text-center">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Impacto / op</p>
                       {(() => {
-                        // Impacto/op = mesmo valor da "Economia com a Treend"
-                        const impactBRL = Math.abs(metrics.economiaMinusSpread);
-                        // Convert from BRL to selected currency
-                        const brlToUsd = liveUsd ? 1 / liveUsd.bid : 1 / curRate;
-                        const brlToEur = liveEur ? 1 / liveEur.bid : 1 / curRate;
-                        const brlToGbp = liveGbp ? 1 / liveGbp.bid : 1 / curRate;
-                        const impactConverted = impactCurrency === "BRL" ? impactBRL
-                          : impactCurrency === "USD" ? impactBRL * brlToUsd
-                          : impactCurrency === "EUR" ? impactBRL * brlToEur
-                          : impactBRL * brlToGbp;
-                        const isPositive = metrics.economiaMinusSpread > 0;
+                        const val = metrics.economiaMinusSpread;
+                        const isPositive = val > 0;
                         return (
-                          <>
-                            <p className={`text-base font-bold tabular-nums ${isPositive ? "text-treend-success" : metrics.economiaMinusSpread === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
-                              {fmtFull(impactConverted, impactCurrency)}
-                            </p>
-                            <Select value={impactCurrency} onValueChange={setImpactCurrency}>
-                              <SelectTrigger className="h-6 w-auto mx-auto mt-1.5 px-2 text-[10px] bg-muted/40 border-border/40 gap-1">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="z-50 bg-popover">
-                                <SelectItem value="BRL"><span className="flex items-center gap-1.5">{currencyFlag("BRL")} BRL</span></SelectItem>
-                                <SelectItem value="USD"><span className="flex items-center gap-1.5">{currencyFlag("USD")} USD</span></SelectItem>
-                                <SelectItem value="EUR"><span className="flex items-center gap-1.5">{currencyFlag("EUR")} EUR</span></SelectItem>
-                                <SelectItem value="GBP"><span className="flex items-center gap-1.5">{currencyFlag("GBP")} GBP</span></SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </>
+                          <p className={`text-base font-bold tabular-nums ${isPositive ? "text-treend-success" : val === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
+                            {fmtFull(Math.abs(val), currency)}
+                          </p>
                         );
                       })()}
                     </div>
