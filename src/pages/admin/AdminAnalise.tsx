@@ -211,14 +211,8 @@ const AdminAnalise = () => {
     if (!user) return;
     setPublishing(true);
 
-    // Publish for the selected profile
-    const profilesToPublish: ProfileType[] = [profile];
-
-    // Mirror logic: importador ↔ agente_turismo, exportador ↔ freelancer
-    if (profile === "importador") profilesToPublish.push("agente_turismo");
-    else if (profile === "agente_turismo") profilesToPublish.push("importador");
-    else if (profile === "exportador") profilesToPublish.push("freelancer");
-    else if (profile === "freelancer") profilesToPublish.push("exportador");
+    // Publish for ALL 4 profiles: selected + same-group mirror + opposite group pair
+    const profilesToPublish: ProfileType[] = ["importador", "agente_turismo", "exportador", "freelancer"];
 
     try {
       for (const p of profilesToPublish) {
@@ -437,9 +431,7 @@ const AdminAnalise = () => {
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>X: {heatX.toFixed(1)} | Y: {heatY.toFixed(1)}</span>
               <span>
-                Espelhado: {profile === "importador" ? "Agente de Turismo" : 
-                  profile === "agente_turismo" ? "Importador" :
-                  profile === "exportador" ? "Freelancer" : "Exportador"}
+                Publica: Importador + Agente + Exportador + Freelancer (oposto)
               </span>
             </div>
 
