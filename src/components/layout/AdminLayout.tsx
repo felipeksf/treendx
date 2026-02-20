@@ -9,10 +9,10 @@ import { Sun, Moon } from "lucide-react";
 import treendLogo from "@/assets/treend-logo.png";
 
 const adminNavItems = [
+  { label: "Heatmap", icon: Flame, path: "/admin/heatmap" },
   { label: "Feed", icon: MessageSquare, path: "/admin/feed" },
   { label: "Agenda", icon: CalendarDays, path: "/admin/agenda" },
   { label: "Scores", icon: BarChart3, path: "/admin/scores" },
-  { label: "Heatmap", icon: Flame, path: "/admin/heatmap" },
   { label: "Tutoriais", icon: PlayCircle, path: "/admin/tutorials" },
   { label: "Taxa", icon: Percent, path: "/admin/taxa" },
 ];

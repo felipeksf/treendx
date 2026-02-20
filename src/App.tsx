@@ -62,7 +62,7 @@ const App = () => (
                 <Route path="/account" element={<Account />} />
               </Route>
               <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                <Route index element={<Navigate to="/admin/users" replace />} />
+                <Route index element={<Navigate to="/admin/heatmap" replace />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="feed" element={<AdminFeed />} />
                 <Route path="agenda" element={<AdminAgenda />} />
