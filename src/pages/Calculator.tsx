@@ -1167,8 +1167,8 @@ const CalculatorPage = () => {
                     <div className="p-4 text-center">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Impacto / op</p>
                       {(() => {
-                        // Impact = Volume de referência × Taxa % de variação
-                        const impactBRL = volume * (rateDiffPct / 100);
+                        // Impacto/op = mesmo valor da "Economia com a Treend"
+                        const impactBRL = Math.abs(metrics.economiaMinusSpread);
                         // Convert from BRL to selected currency
                         const brlToUsd = liveUsd ? 1 / liveUsd.bid : 1 / curRate;
                         const brlToEur = liveEur ? 1 / liveEur.bid : 1 / curRate;
@@ -1177,9 +1177,10 @@ const CalculatorPage = () => {
                           : impactCurrency === "USD" ? impactBRL * brlToUsd
                           : impactCurrency === "EUR" ? impactBRL * brlToEur
                           : impactBRL * brlToGbp;
+                        const isPositive = metrics.economiaMinusSpread > 0;
                         return (
                           <>
-                            <p className={`text-base font-bold tabular-nums ${treendIsBetter ? "text-treend-success" : "text-treend-danger"}`}>
+                            <p className={`text-base font-bold tabular-nums ${isPositive ? "text-treend-success" : metrics.economiaMinusSpread === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
                               {fmtFull(impactConverted, impactCurrency)}
                             </p>
                             <Select value={impactCurrency} onValueChange={setImpactCurrency}>
