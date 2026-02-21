@@ -75,13 +75,12 @@ const NewsPage = () => {
   const handleNewsClick = (e: React.MouseEvent<HTMLAnchorElement>, link: string) => {
     if (!link || link.includes("news.google.com/rss/articles")) {
       e.preventDefault();
-      // Fallback: try opening anyway
       window.open(link, "_blank", "noopener,noreferrer");
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5 pb-10">
+    <div className="max-w-2xl mx-auto space-y-6 pb-10">
       {/* Header */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Notícias</h1>
@@ -100,10 +99,10 @@ const NewsPage = () => {
               key={f.value}
               onClick={() => setCurrencyFilter(f.value)}
               className={cn(
-                "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                "flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/50"
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -121,13 +120,13 @@ const NewsPage = () => {
             placeholder="Buscar notícias..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 bg-muted/50 border-border/40 text-sm"
+            className="pl-9 h-10 bg-muted/30 border-border/50 text-sm rounded-xl"
           />
         </div>
         <Button
           size="sm"
           variant="outline"
-          className="h-9 px-3"
+          className="h-10 px-3 rounded-xl border-border/50"
           onClick={fetchNews}
           disabled={loading}
         >
@@ -139,7 +138,7 @@ const NewsPage = () => {
       {loading && news.length === 0 && (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-2xl bg-card border border-border/40 p-4 space-y-2">
+            <div key={i} className="premium-card p-4 space-y-2">
               <div className="h-4 w-3/4 rounded-md bg-muted animate-pulse" />
               <div className="h-3 w-1/3 rounded-md bg-muted animate-pulse" />
             </div>
@@ -149,7 +148,7 @@ const NewsPage = () => {
 
       {/* Error */}
       {error && !loading && (
-        <div className="rounded-2xl bg-destructive/10 border border-destructive/20 p-4 text-center">
+        <div className="premium-card bg-destructive/5 border-destructive/20 p-4 text-center">
           <p className="text-sm text-destructive">{error}</p>
           <Button size="sm" variant="outline" className="mt-2" onClick={fetchNews}>
             Tentar novamente
@@ -173,9 +172,9 @@ const NewsPage = () => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => handleNewsClick(e, item.link)}
-            className="group flex items-start gap-3 rounded-2xl bg-card border border-border/40 p-4 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+            className="premium-card group flex items-start gap-3 p-4 cursor-pointer"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary mt-0.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary mt-0.5">
               {item.currency === "USD" ? (
                 <DollarSign className="h-4 w-4" />
               ) : item.currency === "EUR" ? (

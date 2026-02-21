@@ -1,8 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calculator, History, Newspaper, CalendarDays, HelpCircle } from "lucide-react";
+import { Calculator, History, Newspaper, CalendarDays, HelpCircle, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
 import { useHeatmapScores } from "@/hooks/useHeatmap";
 import HeatmapBlock from "@/components/HeatmapBlock";
@@ -60,7 +59,6 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTrialDays = async () => {
       if (!user) return;
-      // If user has active subscription, don't show trial banner
       if (subscription.subscribed) {
         setTrialDaysLeft(null);
         return;
@@ -117,20 +115,61 @@ const Dashboard = () => {
   const currencyFlag = CURRENCY_OPTIONS.find((c) => c.value === currency)?.flag;
 
   return (
-    <div className="space-y-5 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground tracking-tight">Dashboard</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Monitoramento de Câmbio 24h por dia
           </p>
+        </div>
+        <div className="hidden sm:flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+            <Activity className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs font-medium text-primary">Live</span>
+          </div>
         </div>
       </div>
 
       {trialDaysLeft !== null && trialDaysLeft > 0 && <TrialBanner daysLeft={trialDaysLeft} />}
 
-      {/* Top Action Cards */}
+      {/* Live Rates Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {([
+          { rate: liveUsd, flag: "🇺🇸", label: "USD", name: "Dólar" },
+          { rate: liveEur, flag: "🇪🇺", label: "EUR", name: "Euro" },
+          { rate: liveGbp, flag: "🇬🇧", label: "GBP", name: "Libra" },
+        ] as const).map(({ rate, flag, label, name }) => rate && (
+          <div key={label} className="premium-stat-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="text-2xl">{flag}</span>
+                <div>
+                  <p className="text-xs text-muted-foreground">{name}</p>
+                  <p className="text-xs font-medium text-foreground">{label}/BRL</p>
+                </div>
+              </div>
+              <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${
+                rate.pctChange >= 0 
+                  ? "text-treend-danger bg-treend-danger/10" 
+                  : "text-treend-success bg-treend-success/10"
+              }`}>
+                {rate.pctChange >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                {rate.pctChange >= 0 ? "+" : ""}{rate.pctChange.toFixed(2)}%
+              </span>
+            </div>
+            <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
+              R$ {rate.bid.toFixed(4)}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {new Date(rate.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: "Notícias", desc: "Reports Semanais", icon: Newspaper, path: "/news" },
@@ -141,111 +180,83 @@ const Dashboard = () => {
           <Link
             key={item.path}
             to={item.path}
-            className="group relative flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/40 hover:border-primary/40 transition-all duration-300"
+            className="premium-card group flex items-center gap-3 p-4"
           >
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-foreground tracking-tight">{item.label}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{item.desc}</p>
-            </div>
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl border border-primary/30 bg-primary/5 group-hover:bg-primary/10 transition-colors shrink-0">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors shrink-0">
               <item.icon className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground tracking-tight">{item.label}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{item.desc}</p>
             </div>
           </Link>
         ))}
       </div>
 
-      {/* Filters Row */}
-      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 rounded-2xl bg-card border border-border/40 p-4 overflow-hidden">
-        {/* Profile filter */}
-        <div className="flex-1 min-w-0">
-          <Select value={profileFilter} onValueChange={(v) => setProfileFilter(v as ProfileFilter)}>
-            <SelectTrigger className="h-9 text-xs bg-muted/40 border-border/40 w-full">
-              <SelectValue placeholder="Filtrar por perfil" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border z-50">
-              <SelectItem value="all">Todos os cenários</SelectItem>
-              <SelectItem value="importador">Importador</SelectItem>
-              <SelectItem value="exportador">Exportador</SelectItem>
-              <SelectItem value="agente_turismo">Agente de Turismo</SelectItem>
-              <SelectItem value="freelancer">Freelancer</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Filters */}
+      <div className="premium-card p-4">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <Select value={profileFilter} onValueChange={(v) => setProfileFilter(v as ProfileFilter)}>
+              <SelectTrigger className="h-10 text-sm bg-muted/30 border-border/50 w-full rounded-xl">
+                <SelectValue placeholder="Filtrar por perfil" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border z-50">
+                <SelectItem value="all">Todos os cenários</SelectItem>
+                <SelectItem value="importador">Importador</SelectItem>
+                <SelectItem value="exportador">Exportador</SelectItem>
+                <SelectItem value="agente_turismo">Agente de Turismo</SelectItem>
+                <SelectItem value="freelancer">Freelancer</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Currency filter */}
-        <div className="flex-1 min-w-0">
-          <Select value={currency} onValueChange={(v) => setCurrency(v as Currency)}>
-            <SelectTrigger className="h-9 text-xs bg-muted/40 border-border/40 w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border z-50">
-              {CURRENCY_OPTIONS.map((c) => (
-                <SelectItem key={c.value} value={c.value}>
-                  <span className="flex items-center gap-2">
-                    <span className="text-base">{c.flag}</span>
-                    <span>{c.label}</span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          <div className="flex-1 min-w-0">
+            <Select value={currency} onValueChange={(v) => setCurrency(v as Currency)}>
+              <SelectTrigger className="h-10 text-sm bg-muted/30 border-border/50 w-full rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border z-50">
+                {CURRENCY_OPTIONS.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    <span className="flex items-center gap-2">
+                      <span className="text-base">{c.flag}</span>
+                      <span>{c.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Frequency filter */}
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <Select value={frequency} onValueChange={(v) => setFrequency(v as Frequency)}>
-            <SelectTrigger className="h-9 text-xs bg-muted/40 border-border/40 w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border z-50">
-              {FREQUENCY_OPTIONS.map((f) => (
-                <SelectItem key={f.value} value={f.value}>
-                  {f.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="h-4 w-4 text-muted-foreground/60 cursor-help shrink-0" />
-              </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-[240px] text-xs">
-                Selecione quantas vezes você tem o costume de tomar decisões cambiais.
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        {/* Live rates display - all 3 currencies */}
-        <div className="w-full flex flex-wrap justify-center gap-2 mt-2">
-          {([
-            { rate: liveUsd, flag: "🇺🇸", label: "USD" },
-            { rate: liveEur, flag: "🇪🇺", label: "EUR" },
-            { rate: liveGbp, flag: "🇬🇧", label: "GBP" },
-          ] as const).map(({ rate, flag, label }) => rate && (
-            <div
-              key={label}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all bg-muted/30 border-border/40 hover:bg-primary/10 hover:border-primary/30"
-            >
-              <span className="text-base">{flag}</span>
-              <div>
-                <p className="text-xs font-bold text-foreground tabular-nums">
-                  R$ {rate.bid.toFixed(4)}
-                </p>
-                <p className="text-[9px] text-muted-foreground">
-                  {new Date(rate.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                </p>
-              </div>
-              <span className={`text-[11px] font-semibold ${rate.pctChange >= 0 ? "text-treend-danger" : "text-treend-success"}`}>
-                {rate.pctChange >= 0 ? "+" : ""}{rate.pctChange.toFixed(2)}%
-              </span>
-            </div>
-          ))}
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <Select value={frequency} onValueChange={(v) => setFrequency(v as Frequency)}>
+              <SelectTrigger className="h-10 text-sm bg-muted/30 border-border/50 w-full rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border z-50">
+                {FREQUENCY_OPTIONS.map((f) => (
+                  <SelectItem key={f.value} value={f.value}>
+                    {f.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground/60 cursor-help shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[240px] text-xs">
+                  Selecione quantas vezes você tem o costume de tomar decisões cambiais.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       </div>
 
-      {/* Heatmap Grid - 4 blocks */}
+      {/* Heatmap Grid */}
       <div className={`grid gap-4 ${filteredProfiles.length === 1 ? "grid-cols-1 max-w-4xl mx-auto" : "grid-cols-1 md:grid-cols-2"}`}>
         {filteredProfiles.map((profile) => {
           const data = getHeatmapData(profile.key);
