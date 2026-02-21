@@ -56,7 +56,6 @@ const HistoryPage = () => {
     return result;
   }, [decisions, filterCurrency, dateFrom, dateTo]);
 
-  // Group savings by currency
   const savingsByCurrency = useMemo(() => {
     const map: Record<string, number> = {};
     filtered.forEach((h) => {
@@ -85,27 +84,27 @@ const HistoryPage = () => {
   };
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto">
+    <div className="space-y-6 max-w-3xl mx-auto">
       <div>
-        <h1 className="text-xl font-bold text-foreground tracking-tight">Histórico de Decisões</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Acompanhe suas operações e economia acumulada</p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Histórico de Decisões</h1>
+        <p className="text-sm text-muted-foreground mt-1">Acompanhe suas operações e economia acumulada</p>
       </div>
 
       {/* Summary */}
       <div className="grid sm:grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-card border border-border/40 p-4 text-center">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Total de decisões</p>
-          <p className="text-2xl font-bold text-foreground tabular-nums">{filtered.length}</p>
+        <div className="premium-stat-card p-5 text-center">
+          <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">Total de decisões</p>
+          <p className="text-3xl font-bold text-foreground tabular-nums">{filtered.length}</p>
         </div>
-        <div className="rounded-2xl border border-border/40 bg-card p-4">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1 text-center">Economia acumulada</p>
+        <div className="premium-stat-card p-5">
+          <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2 text-center">Economia acumulada</p>
           {Object.keys(savingsByCurrency).length === 0 ? (
-            <p className="text-2xl font-bold text-foreground tabular-nums text-center">—</p>
+            <p className="text-3xl font-bold text-foreground tabular-nums text-center">—</p>
           ) : (
             <div className="flex flex-col items-center gap-1.5">
               {Object.entries(savingsByCurrency).map(([cur, total]) => (
                 <div key={cur} className="flex items-center gap-2">
-                  <span className="text-base">{currencyFlag(cur)}</span>
+                  <span className="text-lg">{currencyFlag(cur)}</span>
                   <p className={`text-xl font-bold tabular-nums ${total >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
                     {currencySymbol(cur)} {total.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
@@ -118,10 +117,10 @@ const HistoryPage = () => {
 
       {/* Filters */}
       <div className="flex items-end gap-3 flex-wrap">
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <Label className="text-xs">Moeda</Label>
           <Select value={filterCurrency} onValueChange={setFilterCurrency}>
-            <SelectTrigger className="w-28 h-8 text-xs bg-muted/40 border-border/40"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-28 h-9 text-xs bg-muted/30 border-border/50 rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="USD"><span className="flex items-center gap-2">🇺🇸 USD</span></SelectItem>
@@ -130,15 +129,15 @@ const HistoryPage = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <Label className="text-xs flex items-center gap-1"><CalendarDays className="h-3 w-3" /> De</Label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-36 text-xs bg-muted/40 border-border/40" />
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-9 w-36 text-xs bg-muted/30 border-border/50 rounded-xl" />
         </div>
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <Label className="text-xs">Até</Label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-36 text-xs bg-muted/40 border-border/40" />
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-9 w-36 text-xs bg-muted/30 border-border/50 rounded-xl" />
         </div>
-        <Button variant="outline" size="sm" onClick={handleExportCSV} className="h-8 text-xs">
+        <Button variant="outline" size="sm" onClick={handleExportCSV} className="h-9 text-xs rounded-xl border-border/50">
           <Download className="mr-1.5 h-3.5 w-3.5" />
           Exportar CSV
         </Button>
@@ -152,9 +151,9 @@ const HistoryPage = () => {
       ) : (
         <div className="space-y-2">
           {filtered.map((h) => (
-            <div key={h.id} className="rounded-2xl bg-card border border-border/40 p-4 flex items-center justify-between gap-4">
+            <div key={h.id} className="premium-card p-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <HistoryIcon className="h-4 w-4 text-primary" />
                 </div>
                 <div>

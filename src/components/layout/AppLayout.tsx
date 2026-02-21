@@ -1,26 +1,11 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Calculator,
-  History,
-  Newspaper,
-  CalendarDays,
-  MessageSquare,
-  User,
-  LogOut,
-  MoreVertical,
-} from "lucide-react";
+import { LayoutDashboard, Calculator, History, Newspaper, CalendarDays, MessageSquare, User, LogOut } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import treendLogo from "@/assets/treend-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 type ProfileType = "importer" | "exporter";
 
@@ -50,20 +35,17 @@ const AppLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-background overflow-x-hidden">
-      {/* Desktop Sidebar */}
       <AppSidebar profile={profile} onProfileChange={setProfile} />
 
-      {/* Main content */}
       <div className="flex-1 md:ml-[72px] lg:ml-64 flex flex-col min-h-screen transition-all duration-300">
         {/* Mobile header */}
-        <header className="md:hidden flex items-center justify-between px-4 border-b border-border bg-card sticky top-0 z-20 py-0">
+        <header className="md:hidden flex items-center justify-between px-4 border-b border-border/40 bg-card/80 backdrop-blur-lg sticky top-0 z-20 py-0">
           <Link to="/dashboard" className="flex items-center leading-none">
             <img src={treendLogo} alt="Treend" className="h-28 w-auto -my-4" />
           </Link>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-primary font-display font-bold text-sm">
+              <button className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary font-display font-bold text-sm">
                 {displayName.charAt(0).toUpperCase()}
               </button>
             </DropdownMenuTrigger>
@@ -85,7 +67,7 @@ const AppLayout = () => {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around py-2 z-30">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-lg border-t border-border/40 flex justify-around py-2.5 z-30">
           {mobileNavItems.map((item) => {
             const active = location.pathname === item.path;
             return (
