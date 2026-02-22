@@ -11,6 +11,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const CATEGORIES = [
   { value: "introducao", label: "Introdução" },
@@ -41,6 +58,56 @@ const extractYouTubeId = (url: string): string | null => {
 
 const getCategoryLabel = (val: string) => CATEGORIES.find((c) => c.value === val)?.label ?? val;
 
+// Sortable tutorial row component
+const SortableTutorialRow = ({
+  tutorial,
+  onEdit,
+  onDuplicate,
+  onDelete,
+}: {
+  tutorial: Tutorial;
+  onEdit: (t: Tutorial) => void;
+  onDuplicate: (t: Tutorial) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tutorial.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  const ytId = extractYouTubeId(tutorial.youtube_url);
+  const thumb = tutorial.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
+
+  return (
+    <div ref={setNodeRef} style={style} className="rounded-2xl bg-card border border-border/40 p-4 flex items-center gap-4">
+      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-0.5 touch-none">
+        <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+      </button>
+      {thumb && <img src={thumb} alt={tutorial.title} className="w-20 h-12 rounded-lg object-cover shrink-0" loading="lazy" />}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-foreground truncate">{tutorial.title}</p>
+        {tutorial.description && <p className="text-[11px] text-muted-foreground truncate">{tutorial.description}</p>}
+        <p className="text-[11px] text-muted-foreground mt-0.5">Ordem: {tutorial.sort_order}</p>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <button onClick={() => onEdit(tutorial)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+          <Pencil className="h-4 w-4" />
+        </button>
+        <button onClick={() => onDuplicate(tutorial)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" title="Duplicar">
+          <Copy className="h-4 w-4" />
+        </button>
+        <button onClick={() => onDelete(tutorial.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const AdminTutorials = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -48,6 +115,11 @@ const AdminTutorials = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", description: "", youtube_url: "", sort_order: "0", category: "introducao" as TutorialCategory });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const { data: tutorials = [], isLoading } = useQuery({
     queryKey: ["admin-tutorials"],
@@ -57,6 +129,48 @@ const AdminTutorials = () => {
       return data as Tutorial[];
     },
   });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (updates: { id: string; sort_order: number }[]) => {
+      // Update all sort_orders in parallel
+      const promises = updates.map(({ id, sort_order }) =>
+        supabase.from("tutorials").update({ sort_order }).eq("id", id)
+      );
+      const results = await Promise.all(promises);
+      const error = results.find((r) => r.error)?.error;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-tutorials"] });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Erro ao reordenar", description: err.message, variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: ["admin-tutorials"] });
+    },
+  });
+
+  const handleDragEnd = (categoryValue: string, event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const categoryTutorials = tutorials.filter((t) => t.category === categoryValue);
+    const oldIndex = categoryTutorials.findIndex((t) => t.id === active.id);
+    const newIndex = categoryTutorials.findIndex((t) => t.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(categoryTutorials, oldIndex, newIndex);
+    const updates = reordered.map((t, i) => ({ id: t.id, sort_order: i }));
+
+    // Optimistic update
+    queryClient.setQueryData(["admin-tutorials"], (old: Tutorial[] | undefined) => {
+      if (!old) return old;
+      const otherTutorials = old.filter((t) => t.category !== categoryValue);
+      const updatedCategory = reordered.map((t, i) => ({ ...t, sort_order: i }));
+      return [...otherTutorials, ...updatedCategory].sort((a, b) => a.sort_order - b.sort_order);
+    });
+
+    reorderMutation.mutate(updates);
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -122,7 +236,6 @@ const AdminTutorials = () => {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
     },
   });
-
 
   const resetForm = () => {
     setForm({ title: "", description: "", youtube_url: "", sort_order: "0", category: "introducao" });
@@ -228,34 +341,25 @@ const AdminTutorials = () => {
                 <h2 className="text-sm font-semibold text-foreground">{group.label}</h2>
                 <Badge variant="secondary" className="text-[10px] h-5">{group.tutorials.length}</Badge>
               </div>
-              <div className="space-y-2">
-                {group.tutorials.map((t) => {
-                  const ytId = extractYouTubeId(t.youtube_url);
-                  const thumb = t.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
-                  return (
-                    <div key={t.id} className="rounded-2xl bg-card border border-border/40 p-4 flex items-center gap-4">
-                      <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-                      {thumb && <img src={thumb} alt={t.title} className="w-20 h-12 rounded-lg object-cover shrink-0" loading="lazy" />}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{t.title}</p>
-                        {t.description && <p className="text-[11px] text-muted-foreground truncate">{t.description}</p>}
-                        <p className="text-[11px] text-muted-foreground mt-0.5">Ordem: {t.sort_order}</p>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => openEdit(t)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => duplicateMutation.mutate(t)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" title="Duplicar">
-                          <Copy className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => deleteMutation.mutate(t.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(event) => handleDragEnd(group.value, event)}
+              >
+                <SortableContext items={group.tutorials.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-2">
+                    {group.tutorials.map((t) => (
+                      <SortableTutorialRow
+                        key={t.id}
+                        tutorial={t}
+                        onEdit={openEdit}
+                        onDuplicate={(tutorial) => duplicateMutation.mutate(tutorial)}
+                        onDelete={(id) => deleteMutation.mutate(id)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             </div>
           ))}
         </div>
