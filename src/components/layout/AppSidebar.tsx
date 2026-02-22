@@ -97,7 +97,7 @@ const AppSidebar = ({ profile, onProfileChange }: AppSidebarProps) => {
 
         {/* Footer */}
         <div className="border-t border-border px-2.5 py-3 space-y-1.5">
-          <button onClick={toggleTheme} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-display font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200">
+          <button onClick={toggleTheme} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-[13px] tracking-wide font-normal text-muted-foreground/70 hover:bg-secondary/50 hover:text-foreground transition-all duration-200">
             {theme === "dark" ? <Sun className="h-[18px] w-[18px] shrink-0" /> : <Moon className="h-[18px] w-[18px] shrink-0" />}
             {!collapsed && <span>{theme === "dark" ? "Modo Claro" : "Modo Escuro"}</span>}
           </button>
