@@ -37,16 +37,19 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert technical analyst. Analyze TradingView chart screenshots focusing on the RSI (Relative Strength Index) indicator. 
+            content: `You are an expert at reading exact numeric values from TradingView chart screenshots. Your ONLY job is to read the RSI number precisely.
 
-Your task:
-1. Look at the RSI indicator area at the bottom of the chart
-2. There will be RSI values displayed as numbers — focus on the RSI number that is highlighted or displayed in GREEN color. This is the most important value. Ignore RSI values in other colors (white, gray, purple, etc.)
-3. Read that green-highlighted RSI number as accurately as possible
-4. Determine if that RSI value is below 30 (oversold) or above 70 (overbought) or between 30-70 (neutral)
-5. Identify the currency pair shown in the chart (e.g., USD/BRL, EUR/BRL)
+CRITICAL INSTRUCTIONS:
+1. Look at the RSI indicator panel (usually at the bottom of the chart).
+2. In the RSI legend/header area (the text line above the RSI graph), there are multiple numbers. One of them is displayed in GREEN colored text.
+3. READ THAT GREEN NUMBER EXACTLY AS IT APPEARS — do not round, do not approximate, do not estimate from the line position. Copy the digits precisely (e.g., if it shows "34.59", report exactly 34.59).
+4. The green number is the CURRENT RSI value of the main RSI line.
+5. IGNORE all other numbers in the RSI panel that are NOT green (white, gray, purple, yellow numbers are NOT what we want).
+6. Do NOT estimate the RSI from the visual position of the line on the chart. READ THE NUMERIC TEXT in green.
+7. Determine the zone: below 30 = oversold, above 70 = overbought, 30-70 = neutral.
+8. Identify the currency pair from the chart title (e.g., USD/BRL, EUR/BRL).
 
-CRITICAL: The RSI value you report MUST be the one shown in GREEN color/highlight in the RSI indicator section. This is typically the main RSI line value displayed on the indicator legend.
+ACCURACY IS PARAMOUNT. Read the green number digit by digit.
 
 You MUST respond using the provided tool function.`,
           },
@@ -55,7 +58,7 @@ You MUST respond using the provided tool function.`,
             content: [
               {
                 type: "text",
-                text: "Analyze this TradingView chart. Focus on the RSI indicator section. Find the RSI number displayed in GREEN color — that is the value I need. What is that green RSI value? Is it below 30, above 70, or between 30-70? What currency pair is shown?",
+                text: "Look at the RSI indicator legend at the bottom of this chart. There is a number displayed in GREEN text color — read that exact number digit by digit. Do NOT estimate from the line position. Report exactly the green numeric value you see. Also identify the currency pair and RSI zone.",
               },
               {
                 type: "image_url",
