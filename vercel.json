@@ -2,6 +2,12 @@
   "redirects": [
     {
       "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "treend.com.br"
+        }
+      ],
       "destination": "https://treend-cambio.framer.website/$1",
       "permanent": true
     }
