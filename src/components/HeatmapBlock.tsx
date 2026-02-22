@@ -61,7 +61,7 @@ const HeatmapBlock = ({
   }), []);
 
   return (
-    <div className="premium-card-accent overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/10">
+    <div className="kpi-accent overflow-hidden transition-all">
       {/* Header */}
       <div className={`${expanded ? "p-6 pb-4" : "p-5 pb-3"} flex items-start justify-between gap-2`}>
         <div className="flex-1 min-w-0">

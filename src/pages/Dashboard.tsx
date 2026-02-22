@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calculator, History, Newspaper, CalendarDays, HelpCircle, TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { Calculator, History, Newspaper, CalendarDays, HelpCircle, TrendingUp, TrendingDown, Activity, ArrowUpRight } from "lucide-react";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
 import { useHeatmapScores } from "@/hooks/useHeatmap";
 import HeatmapBlock from "@/components/HeatmapBlock";
@@ -115,55 +115,48 @@ const Dashboard = () => {
   const currencyFlag = CURRENCY_OPTIONS.find((c) => c.value === currency)?.flag;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-5 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Monitoramento de Câmbio 24h por dia
-          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">Monitoramento de Câmbio 24h por dia</p>
         </div>
-        <div className="hidden sm:flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-            <Activity className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs font-medium text-primary">Live</span>
-          </div>
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full kpi-accent">
+          <Activity className="h-3.5 w-3.5 text-primary" />
+          <span className="text-xs font-semibold text-primary">Live</span>
         </div>
       </div>
 
       {trialDaysLeft !== null && trialDaysLeft > 0 && <TrialBanner daysLeft={trialDaysLeft} />}
 
-      {/* Live Rates Row */}
+      {/* KPI Stat Cards - Live Rates */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {([
-          { rate: liveUsd, flag: "🇺🇸", label: "USD", name: "Dólar" },
+          { rate: liveUsd, flag: "🇺🇸", label: "USD", name: "Dólar Americano" },
           { rate: liveEur, flag: "🇪🇺", label: "EUR", name: "Euro" },
-          { rate: liveGbp, flag: "🇬🇧", label: "GBP", name: "Libra" },
+          { rate: liveGbp, flag: "🇬🇧", label: "GBP", name: "Libra Esterlina" },
         ] as const).map(({ rate, flag, label, name }) => rate && (
-          <div key={label} className="premium-stat-card p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2.5">
-                <span className="text-2xl">{flag}</span>
-                <div>
-                  <p className="text-xs text-muted-foreground">{name}</p>
-                  <p className="text-xs font-medium text-foreground">{label}/BRL</p>
-                </div>
+          <div key={label} className="kpi-stat p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs text-muted-foreground">{name}</p>
+                <p className="text-[11px] font-medium text-muted-foreground/70">{label}/BRL</p>
               </div>
-              <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${
-                rate.pctChange >= 0 
-                  ? "text-treend-danger bg-treend-danger/10" 
+              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                rate.pctChange >= 0
+                  ? "text-treend-danger bg-treend-danger/10"
                   : "text-treend-success bg-treend-success/10"
               }`}>
-                {rate.pctChange >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                <ArrowUpRight className={`h-3 w-3 ${rate.pctChange < 0 ? "rotate-180" : ""}`} />
                 {rate.pctChange >= 0 ? "+" : ""}{rate.pctChange.toFixed(2)}%
-              </span>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
+            <p className="text-3xl font-bold text-foreground tabular-nums tracking-tight">
               R$ {rate.bid.toFixed(4)}
             </p>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              {new Date(rate.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Atualizado às {new Date(rate.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
             </p>
           </div>
         ))}
@@ -180,9 +173,9 @@ const Dashboard = () => {
           <Link
             key={item.path}
             to={item.path}
-            className="premium-card group flex items-center gap-3 p-4"
+            className="kpi-card group flex items-center gap-3 p-4 hover:bg-card-elevated"
           >
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors shrink-0">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors shrink-0">
               <item.icon className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
@@ -194,7 +187,7 @@ const Dashboard = () => {
       </div>
 
       {/* Filters */}
-      <div className="premium-card p-4">
+      <div className="kpi-card p-4">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
           <div className="flex-1 min-w-0">
             <Select value={profileFilter} onValueChange={(v) => setProfileFilter(v as ProfileFilter)}>

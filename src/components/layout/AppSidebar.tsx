@@ -46,13 +46,13 @@ const AppSidebar = ({ profile, onProfileChange }: AppSidebarProps) => {
 
   return (
     <aside className={`hidden md:flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300 ${collapsed ? "w-[72px]" : "w-64"}`}>
-      <div className="flex flex-col h-full m-2.5 rounded-2xl border border-border/40 bg-card/90 backdrop-blur-xl overflow-hidden">
+      <div className="flex flex-col h-full m-2.5 rounded-2xl border border-border/40 bg-card overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-4 -my-2 border-b border-border/30">
           <Link to="/dashboard" className="flex items-center gap-2 min-w-0">
             <img src={treendLogo} alt="Treend" className="h-36 w-auto shrink-0 object-contain -my-4" />
           </Link>
-          <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors duration-200">
+          <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors duration-200">
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
         </div>
