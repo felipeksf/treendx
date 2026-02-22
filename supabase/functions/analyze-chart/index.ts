@@ -40,10 +40,13 @@ serve(async (req) => {
             content: `You are an expert technical analyst. Analyze TradingView chart screenshots focusing on the RSI (Relative Strength Index) indicator. 
 
 Your task:
-1. Identify if there is an RSI indicator visible in the chart
-2. Read the current RSI value as accurately as possible
-3. Determine if RSI is below 30 (oversold) or above 70 (overbought) or between 30-70 (neutral)
-4. Identify the currency pair shown in the chart (e.g., USD/BRL, EUR/BRL)
+1. Look at the RSI indicator area at the bottom of the chart
+2. There will be RSI values displayed as numbers — focus on the RSI number that is highlighted or displayed in GREEN color. This is the most important value. Ignore RSI values in other colors (white, gray, purple, etc.)
+3. Read that green-highlighted RSI number as accurately as possible
+4. Determine if that RSI value is below 30 (oversold) or above 70 (overbought) or between 30-70 (neutral)
+5. Identify the currency pair shown in the chart (e.g., USD/BRL, EUR/BRL)
+
+CRITICAL: The RSI value you report MUST be the one shown in GREEN color/highlight in the RSI indicator section. This is typically the main RSI line value displayed on the indicator legend.
 
 You MUST respond using the provided tool function.`,
           },
@@ -52,7 +55,7 @@ You MUST respond using the provided tool function.`,
             content: [
               {
                 type: "text",
-                text: "Analyze this TradingView chart. Focus on the RSI indicator. What is the current RSI value? Is it below 30, above 70, or between 30-70? What currency pair is shown?",
+                text: "Analyze this TradingView chart. Focus on the RSI indicator section. Find the RSI number displayed in GREEN color — that is the value I need. What is that green RSI value? Is it below 30, above 70, or between 30-70? What currency pair is shown?",
               },
               {
                 type: "image_url",
