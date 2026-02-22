@@ -36,7 +36,7 @@ function buildReportHtml(body: string, imageUrl: string | null, dateFormatted: s
 
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:28px 48px 20px;text-align:center;position:relative;overflow:hidden;">
-      <div style="font-size:42px;font-weight:800;color:#ffffff;letter-spacing:-1px;line-height:1;">treend</div>
+      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:80px;width:auto;display:inline-block;" />
       <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:8px;">
         O Seu Guia Definitivo de Câmbio com IA
       </div>
@@ -78,7 +78,7 @@ function buildReportHtml(body: string, imageUrl: string | null, dateFormatted: s
 
     <!-- Footer -->
     <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);border-top:1px solid #e2e8f0;padding:28px 48px;text-align:center;">
-      <div style="font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;line-height:1;margin-bottom:14px;">treend</div>
+      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:48px;width:auto;display:inline-block;margin-bottom:14px;" />
       <div style="margin-bottom:14px;">
         <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Política de Privacidade</a>
         <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Termos de Uso</a>
