@@ -11,7 +11,7 @@ const steps = [{
 }, {
   icon: Target,
   title: "Entenda o Mapa de Calor (Heatmap)",
-  desc: "O Score Treend tem eficácia de 95% e te ajuda a estimar cenários de câmbio de acordo com o seu objetivo escolhido."
+  desc: "O Mapa de Calor traz cenários atualizados sobre Dólar, Euro ou Libra. Selecione o perfil que se adequa ao seu caso (Importador, Exportador, Agente de Turismo ou Freelancer), a moeda (USD, EUR ou GBP) e a sazonalidade (se toma decisão 1x por semana, 2x por mês ou 1x por mês).\n\nCaso a bolinha aponte cenário verde -> significa que temos boas probabilidades. Caso aponte cenário vermelho -> significa que talvez não seja um bom momento.\n\nImportante: o Mapa de Calor não é nenhuma recomendação cambial/financeira. Trazemos cenários probabilísticos com alto índice de assertividade, mas a decisão final é sempre do usuário"
 }, {
   icon: Calculator,
   title: "Use a Calculadora",
