@@ -117,10 +117,8 @@ const MetricCard = ({ title, value, subtitle, icon, highlight, color = "default"
 
   return (
     <div
-      className={`rounded-2xl border p-4 flex flex-col gap-1.5 transition-all ${
-        highlight
-          ? "border-treend-success/30 bg-treend-success/5"
-          : "border-border/40 bg-card"
+      className={`kpi-stat p-4 flex flex-col gap-1.5 ${
+        highlight ? "border-treend-success/30 bg-treend-success/5" : ""
       }`}
     >
       <div className="flex items-center justify-between">
@@ -139,7 +137,7 @@ const MetricCard = ({ title, value, subtitle, icon, highlight, color = "default"
             </TooltipProvider>
           )}
         </div>
-        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-muted/60">
+        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-muted/40">
           {icon}
         </div>
       </div>
@@ -172,7 +170,7 @@ const HealthItem = ({ label, value, description, benchmark, status }: HealthItem
   };
 
   return (
-    <div className={`rounded-xl border p-3.5 ${colors[status]}`}>
+    <div className={`rounded-xl border p-3.5 transition-all ${colors[status]}`}>
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${dotColors[status]}`} />
@@ -449,7 +447,7 @@ const CalculatorPage = () => {
   return (
     <div className="space-y-5 max-w-5xl mx-auto overflow-x-hidden">
       {/* Input Card */}
-      <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+      <div className="kpi-card p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-lg font-bold text-foreground tracking-tight">Simulação Interativa</h1>
@@ -727,7 +725,7 @@ const CalculatorPage = () => {
         </div>
 
         {/* Right - Health Panel */}
-        <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-4 h-fit">
+        <div className="kpi-card p-5 space-y-4 h-fit">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
               <Activity className="h-4 w-4 text-primary" />
@@ -797,7 +795,7 @@ const CalculatorPage = () => {
         const convAmount = parseFloat(converterAmount.replace(/\./g, "").replace(",", ".")) || 0;
         const convSymbol = converterCurrency === "USD" ? "US$" : converterCurrency === "EUR" ? "€" : "£";
         return (
-          <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+          <div className="kpi-card p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
               <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
                 <CalcIcon className="h-4 w-4 text-primary" />
@@ -885,7 +883,7 @@ const CalculatorPage = () => {
       })()}
 
       {/* Scenario Slider */}
-      <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+      <div className="kpi-card p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-1">
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 shrink-0">
@@ -1094,7 +1092,7 @@ const CalculatorPage = () => {
               const trdBarWidth = maxRate > 0 ? (trdRate / maxRate) * barMaxWidth : 0;
 
               return (
-                <div className="rounded-2xl bg-card border border-border/40 overflow-hidden">
+                <div className="kpi-card overflow-hidden">
                   {/* Header */}
                   <div className="p-5 pb-4 flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2.5">
@@ -1191,7 +1189,7 @@ const CalculatorPage = () => {
             })()}
 
             {/* Chart 2 - Evolução da Economia/Lucro */}
-            <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-3">
+            <div className="kpi-card p-5 space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
                   <TrendingUp className="h-4 w-4 text-primary" />
@@ -1258,7 +1256,7 @@ const CalculatorPage = () => {
             </div>
 
             {/* Chart 3 - Comparativo Treend — Redesigned */}
-            <div className="rounded-2xl bg-card border border-border/40 p-5 space-y-4">
+            <div className="kpi-card p-5 space-y-4">
               <div className="flex items-center gap-2">
                 <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
                   <LineChart className="h-4 w-4 text-primary" />
@@ -1395,7 +1393,7 @@ const CalculatorPage = () => {
 
       {/* Loss Reduction Simulation - only shown when economy is negative */}
       {!isPositive && curRate > 0 && trdRate > 0 && (
-        <div className="rounded-2xl bg-card border border-treend-warning/30 p-5 space-y-4">
+        <div className="kpi-card border-treend-warning/30 p-5 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-treend-warning/10">
               <TrendingDown className="h-4 w-4 text-treend-warning" />
