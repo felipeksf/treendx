@@ -1,8 +1,9 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/(.*)",
-      "destination": "https://treend-cambio.framer.website/$1"
+      "destination": "https://treend-cambio.framer.website/$1",
+      "permanent": true
     }
   ]
 }
