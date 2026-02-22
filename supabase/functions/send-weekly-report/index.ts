@@ -35,7 +35,7 @@ function buildReportHtml(body: string, imageUrl: string | null, dateFormatted: s
   <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(59,130,246,0.12);">
 
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:52px 48px 40px;text-align:center;position:relative;overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:24px 48px 20px;text-align:center;position:relative;overflow:hidden;">
       <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:200px;width:auto;display:inline-block;" />
       <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:12px;">
         O Seu Guia Definitivo de Câmbio com IA
