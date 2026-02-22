@@ -10,7 +10,7 @@ const steps = [{
   desc: "Somos seu consultor de timing cambial. Trazemos estatísticas de cenários de câmbio para apoio nas suas decisões.\nImportante: não fazemos nenhuma espécie de recomendação financeira."
 }, {
   icon: Target,
-  title: "Entenda o Score",
+  title: "Entenda o Mapa de Calor (Heatmap)",
   desc: "O Score Treend tem eficácia de 95% e te ajuda a estimar cenários de câmbio de acordo com o seu objetivo escolhido."
 }, {
   icon: Calculator,
