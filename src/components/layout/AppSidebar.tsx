@@ -68,10 +68,10 @@ const AppSidebar = ({ profile, onProfileChange }: AppSidebarProps) => {
                 key={item.path}
                 to={item.path}
                 title={collapsed ? item.label : undefined}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] tracking-wide font-medium transition-all duration-200 ${
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] tracking-wide font-normal transition-all duration-200 ${
                   active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground/70 hover:bg-secondary/50 hover:text-foreground"
                 }`}
               >
                 <item.icon className="h-[18px] w-[18px] shrink-0" />
