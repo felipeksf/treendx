@@ -84,22 +84,22 @@ const HistoryPage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="space-y-5 max-w-3xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Histórico de Decisões</h1>
-        <p className="text-sm text-muted-foreground mt-1">Acompanhe suas operações e economia acumulada</p>
+        <p className="text-sm text-muted-foreground mt-0.5">Acompanhe suas operações e economia acumulada</p>
       </div>
 
-      {/* Summary */}
+      {/* Summary – KPI stat style */}
       <div className="grid sm:grid-cols-2 gap-3">
-        <div className="premium-stat-card p-5 text-center">
+        <div className="kpi-stat p-5 text-center">
           <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">Total de decisões</p>
-          <p className="text-3xl font-bold text-foreground tabular-nums">{filtered.length}</p>
+          <p className="text-4xl font-bold text-foreground tabular-nums">{filtered.length}</p>
         </div>
-        <div className="premium-stat-card p-5">
+        <div className="kpi-stat p-5">
           <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2 text-center">Economia acumulada</p>
           {Object.keys(savingsByCurrency).length === 0 ? (
-            <p className="text-3xl font-bold text-foreground tabular-nums text-center">—</p>
+            <p className="text-4xl font-bold text-foreground tabular-nums text-center">—</p>
           ) : (
             <div className="flex flex-col items-center gap-1.5">
               {Object.entries(savingsByCurrency).map(([cur, total]) => (
@@ -120,7 +120,7 @@ const HistoryPage = () => {
         <div className="space-y-1.5">
           <Label className="text-xs">Moeda</Label>
           <Select value={filterCurrency} onValueChange={setFilterCurrency}>
-            <SelectTrigger className="w-28 h-9 text-xs bg-muted/30 border-border/50 rounded-xl"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-28 h-9 text-xs bg-secondary/50 border-border rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="USD"><span className="flex items-center gap-2">🇺🇸 USD</span></SelectItem>
@@ -131,13 +131,13 @@ const HistoryPage = () => {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs flex items-center gap-1"><CalendarDays className="h-3 w-3" /> De</Label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-9 w-36 text-xs bg-muted/30 border-border/50 rounded-xl" />
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-9 w-36 text-xs bg-secondary/50 border-border rounded-xl" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs">Até</Label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-9 w-36 text-xs bg-muted/30 border-border/50 rounded-xl" />
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-9 w-36 text-xs bg-secondary/50 border-border rounded-xl" />
         </div>
-        <Button variant="outline" size="sm" onClick={handleExportCSV} className="h-9 text-xs rounded-xl border-border/50">
+        <Button variant="outline" size="sm" onClick={handleExportCSV} className="h-9 text-xs rounded-xl border-border">
           <Download className="mr-1.5 h-3.5 w-3.5" />
           Exportar CSV
         </Button>
@@ -151,9 +151,9 @@ const HistoryPage = () => {
       ) : (
         <div className="space-y-2">
           {filtered.map((h) => (
-            <div key={h.id} className="premium-card p-4 flex items-center justify-between gap-4">
+            <div key={h.id} className="kpi-card p-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <div className="h-9 w-9 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
                   <HistoryIcon className="h-4 w-4 text-primary" />
                 </div>
                 <div>

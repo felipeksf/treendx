@@ -83,27 +83,27 @@ const AccountPage = () => {
   const statusLabels: Record<string, string> = { trial: "Trial gratuito", active: "Assinatura ativa", expired: "Expirado" };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-5 max-w-2xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Minha Conta</h1>
-        <p className="text-sm text-muted-foreground mt-1">Gerencie seus dados e assinatura</p>
+        <p className="text-sm text-muted-foreground mt-0.5">Gerencie seus dados e assinatura</p>
       </div>
 
       {/* Personal data */}
-      <div className="premium-card p-6 space-y-4">
+      <div className="kpi-card p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
-          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10">
+          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/8">
             <User className="h-4 w-4 text-primary" />
           </div>
           <span className="text-sm font-semibold text-foreground">Dados pessoais</span>
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs">Nome</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-10 text-sm bg-muted/30 border-border/50 rounded-xl" />
+          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-10 text-sm bg-secondary/50 border-border rounded-xl" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs">E-mail</Label>
-          <Input value={email} readOnly className="h-10 text-sm bg-muted/50 border-border/50 rounded-xl" />
+          <Input value={email} readOnly className="h-10 text-sm bg-muted/50 border-border rounded-xl" />
         </div>
         <Button size="sm" onClick={handleSave} disabled={saving} className="h-9 text-xs rounded-xl">
           {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
@@ -112,9 +112,9 @@ const AccountPage = () => {
       </div>
 
       {/* Subscription */}
-      <div className="premium-card p-6 space-y-4">
+      <div className="kpi-card p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
-          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10">
+          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/8">
             <CreditCard className="h-4 w-4 text-primary" />
           </div>
           <span className="text-sm font-semibold text-foreground">Assinatura</span>
@@ -135,19 +135,19 @@ const AccountPage = () => {
             } catch (err: any) {
               toast({ title: "Erro", description: err.message, variant: "destructive" });
             } finally { setLoadingPortal(false); }
-          }} disabled={loadingPortal} className="h-9 text-xs rounded-xl border-border/50">
+          }} disabled={loadingPortal} className="h-9 text-xs rounded-xl border-border">
             {loadingPortal && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
             Gerenciar Assinatura
           </Button>
         ) : (
-          <Button variant="outline" size="sm" onClick={() => navigate("/pricing")} className="h-9 text-xs rounded-xl border-border/50">Assinar agora</Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/pricing")} className="h-9 text-xs rounded-xl border-border">Assinar agora</Button>
         )}
       </div>
 
       {/* Password */}
-      <div className="premium-card p-6 space-y-4">
+      <div className="kpi-card p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
-          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10">
+          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/8">
             <Lock className="h-4 w-4 text-primary" />
           </div>
           <span className="text-sm font-semibold text-foreground">Redefinir Senha</span>
@@ -155,7 +155,7 @@ const AccountPage = () => {
         <div className="space-y-1.5">
           <Label className="text-xs">Nova Senha</Label>
           <div className="relative">
-            <Input type={showNewPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" className="h-10 text-sm bg-muted/30 border-border/50 pr-9 rounded-xl" />
+            <Input type={showNewPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" className="h-10 text-sm bg-secondary/50 border-border pr-9 rounded-xl" />
             <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
               {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -164,7 +164,7 @@ const AccountPage = () => {
         <div className="space-y-1.5">
           <Label className="text-xs">Confirmar Nova Senha</Label>
           <div className="relative">
-            <Input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" className="h-10 text-sm bg-muted/30 border-border/50 pr-9 rounded-xl" />
+            <Input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" className="h-10 text-sm bg-secondary/50 border-border pr-9 rounded-xl" />
             <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
               {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>

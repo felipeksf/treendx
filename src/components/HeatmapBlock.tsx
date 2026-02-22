@@ -61,7 +61,7 @@ const HeatmapBlock = ({
   }), []);
 
   return (
-    <div className="kpi-accent overflow-hidden transition-all">
+    <div className="kpi-card overflow-hidden">
       {/* Header */}
       <div className={`${expanded ? "p-6 pb-4" : "p-5 pb-3"} flex items-start justify-between gap-2`}>
         <div className="flex-1 min-w-0">
@@ -92,7 +92,7 @@ const HeatmapBlock = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div
-                className="relative w-full rounded-xl overflow-hidden cursor-crosshair transition-all duration-300"
+                className="relative w-full rounded-2xl overflow-hidden cursor-crosshair transition-all duration-300"
                 style={{ ...gradientStyle, height: expanded ? "480px" : compact ? "120px" : "180px" }}
               >
                 {/* Grid overlay */}

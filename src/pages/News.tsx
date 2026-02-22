@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { ExternalLink, Newspaper, RefreshCw, Search, DollarSign, Euro, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +79,7 @@ const NewsPage = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-10">
+    <div className="max-w-2xl mx-auto space-y-5 pb-10">
       {/* Header */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Notícias</h1>
@@ -101,8 +100,8 @@ const NewsPage = () => {
               className={cn(
                 "flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
-                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/50"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -120,13 +119,13 @@ const NewsPage = () => {
             placeholder="Buscar notícias..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-10 bg-muted/30 border-border/50 text-sm rounded-xl"
+            className="pl-9 h-10 bg-secondary/50 border-border text-sm rounded-xl"
           />
         </div>
         <Button
           size="sm"
           variant="outline"
-          className="h-10 px-3 rounded-xl border-border/50"
+          className="h-10 px-3 rounded-xl border-border"
           onClick={fetchNews}
           disabled={loading}
         >
@@ -138,7 +137,7 @@ const NewsPage = () => {
       {loading && news.length === 0 && (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="premium-card p-4 space-y-2">
+            <div key={i} className="kpi-card p-4 space-y-2">
               <div className="h-4 w-3/4 rounded-md bg-muted animate-pulse" />
               <div className="h-3 w-1/3 rounded-md bg-muted animate-pulse" />
             </div>
@@ -148,7 +147,7 @@ const NewsPage = () => {
 
       {/* Error */}
       {error && !loading && (
-        <div className="premium-card bg-destructive/5 border-destructive/20 p-4 text-center">
+        <div className="kpi-card bg-destructive/5 border-destructive/20 p-4 text-center">
           <p className="text-sm text-destructive">{error}</p>
           <Button size="sm" variant="outline" className="mt-2" onClick={fetchNews}>
             Tentar novamente
@@ -172,9 +171,9 @@ const NewsPage = () => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => handleNewsClick(e, item.link)}
-            className="premium-card group flex items-start gap-3 p-4 cursor-pointer"
+            className="kpi-card group flex items-start gap-3 p-4 cursor-pointer"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary mt-0.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/8 text-primary mt-0.5">
               {item.currency === "USD" ? (
                 <DollarSign className="h-4 w-4" />
               ) : item.currency === "EUR" ? (

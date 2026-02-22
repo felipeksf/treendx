@@ -39,13 +39,13 @@ const AppLayout = () => {
 
       <div className="flex-1 md:ml-[72px] lg:ml-64 flex flex-col min-h-screen transition-all duration-300">
         {/* Mobile header */}
-        <header className="md:hidden flex items-center justify-between px-4 border-b border-border/30 glass-effect sticky top-0 z-20 py-0">
+        <header className="md:hidden flex items-center justify-between px-4 border-b border-border glass-nav sticky top-0 z-20 py-0">
           <Link to="/dashboard" className="flex items-center leading-none">
             <img src={treendLogo} alt="Treend" className="h-28 w-auto -my-4" />
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary font-display font-bold text-sm">
+              <button className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary font-display font-bold text-sm">
                 {displayName.charAt(0).toUpperCase()}
               </button>
             </DropdownMenuTrigger>
@@ -67,7 +67,7 @@ const AppLayout = () => {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-effect border-t border-border/30 flex justify-around py-2.5 z-30">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-nav border-t border-border flex justify-around py-2.5 z-30">
           {mobileNavItems.map((item) => {
             const active = location.pathname === item.path;
             return (

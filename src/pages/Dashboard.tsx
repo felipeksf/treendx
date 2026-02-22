@@ -120,44 +120,46 @@ const Dashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Monitoramento de Câmbio 24h por dia</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Monitoramento de Câmbio 24h por dia
+          </p>
         </div>
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full kpi-accent">
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
           <Activity className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-semibold text-primary">Live</span>
+          <span className="text-xs font-medium text-primary">Live</span>
         </div>
       </div>
 
       {trialDaysLeft !== null && trialDaysLeft > 0 && <TrialBanner daysLeft={trialDaysLeft} />}
 
-      {/* KPI Stat Cards - Live Rates */}
+      {/* Live Rates – KPI stat style */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {([
-          { rate: liveUsd, flag: "🇺🇸", label: "USD", name: "Dólar Americano" },
+          { rate: liveUsd, flag: "🇺🇸", label: "USD", name: "Dólar" },
           { rate: liveEur, flag: "🇪🇺", label: "EUR", name: "Euro" },
-          { rate: liveGbp, flag: "🇬🇧", label: "GBP", name: "Libra Esterlina" },
+          { rate: liveGbp, flag: "🇬🇧", label: "GBP", name: "Libra" },
         ] as const).map(({ rate, flag, label, name }) => rate && (
           <div key={label} className="kpi-stat p-5">
             <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-xs text-muted-foreground">{name}</p>
-                <p className="text-[11px] font-medium text-muted-foreground/70">{label}/BRL</p>
-              </div>
-              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
-                rate.pctChange >= 0
-                  ? "text-treend-danger bg-treend-danger/10"
+              <p className="text-xs text-muted-foreground font-medium">{name}</p>
+              <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${
+                rate.pctChange >= 0 
+                  ? "text-treend-danger bg-treend-danger/10" 
                   : "text-treend-success bg-treend-success/10"
               }`}>
-                <ArrowUpRight className={`h-3 w-3 ${rate.pctChange < 0 ? "rotate-180" : ""}`} />
+                {rate.pctChange >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                 {rate.pctChange >= 0 ? "+" : ""}{rate.pctChange.toFixed(2)}%
-              </div>
+              </span>
             </div>
             <p className="text-3xl font-bold text-foreground tabular-nums tracking-tight">
               R$ {rate.bid.toFixed(4)}
             </p>
-            <p className="text-[10px] text-muted-foreground mt-2">
-              Atualizado às {new Date(rate.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-            </p>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-[11px] text-muted-foreground">{label}/BRL</p>
+              <p className="text-[10px] text-muted-foreground">
+                {new Date(rate.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+              </p>
+            </div>
           </div>
         ))}
       </div>
@@ -173,9 +175,9 @@ const Dashboard = () => {
           <Link
             key={item.path}
             to={item.path}
-            className="kpi-card group flex items-center gap-3 p-4 hover:bg-card-elevated"
+            className="kpi-card group flex items-center gap-3 p-4"
           >
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors shrink-0">
+            <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/8 group-hover:bg-primary/15 transition-colors shrink-0">
               <item.icon className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
@@ -191,7 +193,7 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
           <div className="flex-1 min-w-0">
             <Select value={profileFilter} onValueChange={(v) => setProfileFilter(v as ProfileFilter)}>
-              <SelectTrigger className="h-10 text-sm bg-muted/30 border-border/50 w-full rounded-xl">
+              <SelectTrigger className="h-10 text-sm bg-secondary/50 border-border w-full rounded-xl">
                 <SelectValue placeholder="Filtrar por perfil" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border z-50">
@@ -206,7 +208,7 @@ const Dashboard = () => {
 
           <div className="flex-1 min-w-0">
             <Select value={currency} onValueChange={(v) => setCurrency(v as Currency)}>
-              <SelectTrigger className="h-10 text-sm bg-muted/30 border-border/50 w-full rounded-xl">
+              <SelectTrigger className="h-10 text-sm bg-secondary/50 border-border w-full rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border z-50">
@@ -224,7 +226,7 @@ const Dashboard = () => {
 
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
             <Select value={frequency} onValueChange={(v) => setFrequency(v as Frequency)}>
-              <SelectTrigger className="h-10 text-sm bg-muted/30 border-border/50 w-full rounded-xl">
+              <SelectTrigger className="h-10 text-sm bg-secondary/50 border-border w-full rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border z-50">

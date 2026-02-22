@@ -54,21 +54,21 @@ const Tutorials = () => {
   })).filter((g) => g.tutorials.length > 0);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Tutoriais</h1>
-          <p className="text-sm text-muted-foreground mt-1">Aprenda a usar a plataforma com nossos vídeos</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Aprenda a usar a plataforma com nossos vídeos</p>
         </div>
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar tutorial..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10 text-sm bg-muted/30 border-border/50 rounded-xl" />
+          <Input placeholder="Buscar tutorial..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10 text-sm bg-secondary/50 border-border rounded-xl" />
         </div>
       </div>
 
       {/* Selected video player */}
       {selectedVideo && (
-        <div className="premium-card overflow-hidden animate-fade-in">
+        <div className="kpi-card overflow-hidden">
           <div className="aspect-video w-full">
             <iframe
               src={`https://www.youtube.com/embed/${extractYouTubeId(selectedVideo.youtube_url)}?autoplay=1`}
@@ -92,7 +92,7 @@ const Tutorials = () => {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="premium-card animate-pulse">
+            <div key={i} className="kpi-card animate-pulse">
               <div className="aspect-video bg-muted rounded-t-2xl" />
               <div className="p-4 space-y-2">
                 <div className="h-4 bg-muted rounded w-3/4" />
@@ -102,7 +102,7 @@ const Tutorials = () => {
           ))}
         </div>
       ) : grouped.length === 0 ? (
-        <div className="premium-card py-12 text-center text-sm text-muted-foreground">
+        <div className="kpi-card py-12 text-center text-sm text-muted-foreground">
           {tutorials.length === 0 ? "Nenhum tutorial disponível ainda." : "Nenhum tutorial encontrado."}
         </div>
       ) : (
@@ -118,7 +118,7 @@ const Tutorials = () => {
                   const ytId = extractYouTubeId(tutorial.youtube_url);
                   const thumb = tutorial.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
                   return (
-                    <div key={tutorial.id} className="premium-card cursor-pointer group overflow-hidden" onClick={() => setSelectedVideo(tutorial)}>
+                    <div key={tutorial.id} className="kpi-card cursor-pointer group overflow-hidden" onClick={() => setSelectedVideo(tutorial)}>
                       <div className="relative aspect-video bg-muted overflow-hidden">
                         {thumb && <img src={thumb} alt={tutorial.title} className="w-full h-full object-cover" loading="lazy" />}
                         <div className="absolute inset-0 bg-background/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
