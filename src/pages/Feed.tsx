@@ -95,7 +95,7 @@ const FeedPage = () => {
     .filter((p) => !searchQuery.trim() || p.body.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-10">
+    <div className="max-w-2xl mx-auto space-y-5 pb-10">
       {/* Header */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Report Semanal</h1>
@@ -106,7 +106,7 @@ const FeedPage = () => {
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar posts..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-10 bg-muted/30 border-border/50 text-sm rounded-xl" />
+          <Input placeholder="Buscar posts..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-10 bg-secondary/50 border-border text-sm rounded-xl" />
         </div>
         <Button size="sm" className="h-10 px-4 text-sm rounded-xl">Buscar</Button>
       </div>
@@ -115,7 +115,7 @@ const FeedPage = () => {
       {loading && (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="premium-card p-5 space-y-3">
+            <div key={i} className="kpi-card p-5 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
                 <div className="space-y-1.5">
@@ -141,9 +141,9 @@ const FeedPage = () => {
           const liked = likedPosts.has(post.id);
           const isPinned = idx === 0;
           return (
-            <div key={post.id} className="premium-card overflow-hidden">
+            <div key={post.id} className="kpi-card overflow-hidden">
               {isPinned && (
-                <div className="flex items-center gap-1.5 px-5 py-2.5 bg-primary/8 border-b border-primary/10">
+                <div className="flex items-center gap-1.5 px-5 py-2.5 bg-primary/5 border-b border-primary/10">
                   <Pin className="h-3.5 w-3.5 text-primary" />
                   <span className="text-xs font-semibold text-primary">Post Fixado</span>
                 </div>
@@ -151,7 +151,7 @@ const FeedPage = () => {
               <div className="p-5 space-y-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/15 text-primary text-sm font-bold">TA</AvatarFallback>
+                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">TA</AvatarFallback>
                   </Avatar>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-bold text-foreground">Treend A.</span>

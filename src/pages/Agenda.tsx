@@ -65,14 +65,14 @@ const Agenda = () => {
   }
 
   return (
-    <div className="max-w-full mx-auto space-y-6">
+    <div className="max-w-full mx-auto space-y-5">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Agenda</h1>
-          <p className="text-sm text-muted-foreground mt-1">Eventos e encontros da comunidade</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Eventos e encontros da comunidade</p>
         </div>
-        <div className="flex items-center gap-0.5 rounded-xl bg-muted/40 border border-border/50 p-1">
+        <div className="flex items-center gap-0.5 rounded-xl bg-secondary p-1">
           <button onClick={() => setView("monthly")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all", view === "monthly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
             Mensal
           </button>
@@ -83,17 +83,17 @@ const Agenda = () => {
       </div>
 
       {/* Calendar */}
-      <div className="premium-card overflow-hidden">
+      <div className="kpi-card overflow-hidden">
         {/* Controls */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-1.5">
-            <button onClick={handlePrev} className="p-2 rounded-xl hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={handlePrev} className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <button onClick={handleNext} className="p-2 rounded-xl hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={handleNext} className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
               <ChevronRight className="h-4 w-4" />
             </button>
-            <button onClick={handleToday} className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+            <button onClick={handleToday} className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
               Hoje
             </button>
           </div>
@@ -103,7 +103,7 @@ const Agenda = () => {
         </div>
 
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 border-b border-border/40">
+        <div className="grid grid-cols-7 border-b border-border">
           {WEEKDAYS.map(d => (
             <div key={d} className="py-2.5 text-center text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{d}</div>
           ))}
@@ -119,11 +119,11 @@ const Agenda = () => {
             const selected = selectedDate && isSameDay(day, selectedDate);
             return (
               <button key={i} onClick={() => setSelectedDate(day)} className={cn(
-                "relative flex flex-col items-start p-2 sm:p-3 border-b border-r border-border/20 transition-colors duration-150 text-left",
+                "relative flex flex-col items-start p-2 sm:p-3 border-b border-r border-border/40 transition-colors duration-150 text-left",
                 view === "monthly" ? "min-h-[80px] sm:min-h-[100px]" : "min-h-[120px] sm:min-h-[160px]",
                 !inMonth && view === "monthly" && "opacity-25",
                 selected && "bg-primary/5",
-                "hover:bg-muted/30"
+                "hover:bg-secondary/50"
               )}>
                 <span className={cn(
                   "inline-flex items-center justify-center text-xs font-medium w-6 h-6 rounded-full",
@@ -150,7 +150,7 @@ const Agenda = () => {
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-4 px-5 py-3 border-t border-border/40">
+        <div className="flex flex-wrap items-center gap-4 px-5 py-3 border-t border-border">
           {Object.entries(categoryConfig).map(([key, val]) => (
             <div key={key} className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <div className={`w-2.5 h-2.5 rounded-full ${val.dot}`} />
@@ -165,11 +165,11 @@ const Agenda = () => {
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-foreground">{format(selectedDate, "dd 'de' MMMM, yyyy", { locale: ptBR })}</h3>
           {selectedEvents.length === 0 ? (
-            <div className="premium-card py-8 text-center text-sm text-muted-foreground">Nenhum evento para esta data.</div>
+            <div className="kpi-card py-8 text-center text-sm text-muted-foreground">Nenhum evento para esta data.</div>
           ) : selectedEvents.map(event => {
             const cat = categoryConfig[event.category];
             return (
-              <div key={event.id} className="premium-card p-5 space-y-2">
+              <div key={event.id} className="kpi-card p-5 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <h4 className="text-sm font-semibold text-foreground">{event.title}</h4>
                   <span className={cn("shrink-0 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-md", cat?.className)}>{cat?.label}</span>

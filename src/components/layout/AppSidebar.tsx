@@ -46,19 +46,19 @@ const AppSidebar = ({ profile, onProfileChange }: AppSidebarProps) => {
 
   return (
     <aside className={`hidden md:flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300 ${collapsed ? "w-[72px]" : "w-64"}`}>
-      <div className="flex flex-col h-full m-2.5 rounded-2xl border border-border/40 bg-card overflow-hidden">
+      <div className="flex flex-col h-full m-2 rounded-2xl border border-border bg-card overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 -my-2 border-b border-border/30">
+        <div className="flex items-center justify-between px-4 -my-2 border-b border-border">
           <Link to="/dashboard" className="flex items-center gap-2 min-w-0">
             <img src={treendLogo} alt="Treend" className="h-36 w-auto shrink-0 object-contain -my-4" />
           </Link>
-          <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors duration-200">
+          <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200">
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-2.5 py-4 space-y-0.5 overflow-y-auto">
           {allItems.map(item => {
             const active = location.pathname === item.path;
             const badge = "badge" in item ? (item as any).badge as number : undefined;
@@ -70,8 +70,8 @@ const AppSidebar = ({ profile, onProfileChange }: AppSidebarProps) => {
                 title={collapsed ? item.label : undefined}
                 className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] tracking-wide font-medium transition-all duration-200 ${
                   active
-                    ? "bg-primary/12 text-primary border border-primary/20"
-                    : "text-muted-foreground/80 hover:bg-muted/40 hover:text-foreground border border-transparent"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
                 <item.icon className="h-[18px] w-[18px] shrink-0" />
@@ -96,14 +96,14 @@ const AppSidebar = ({ profile, onProfileChange }: AppSidebarProps) => {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-border/30 px-3 py-3 space-y-2">
-          <button onClick={toggleTheme} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-display font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-all duration-200">
+        <div className="border-t border-border px-2.5 py-3 space-y-1.5">
+          <button onClick={toggleTheme} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-display font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200">
             {theme === "dark" ? <Sun className="h-[18px] w-[18px] shrink-0" /> : <Moon className="h-[18px] w-[18px] shrink-0" />}
             {!collapsed && <span>{theme === "dark" ? "Modo Claro" : "Modo Escuro"}</span>}
           </button>
 
           <div className="flex items-center gap-3 px-2 py-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary font-display font-bold text-sm">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary font-display font-bold text-sm">
               {displayName.charAt(0).toUpperCase()}
             </div>
             {!collapsed && (
@@ -114,7 +114,7 @@ const AppSidebar = ({ profile, onProfileChange }: AppSidebarProps) => {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors">
+                    <button className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
                       <MoreHorizontal className="h-4 w-4" />
                     </button>
                   </DropdownMenuTrigger>
