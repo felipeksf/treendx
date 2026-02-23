@@ -78,9 +78,12 @@ serve(async (req) => {
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
 <body style="margin:0;padding:0;background-color:#f0f4ff;font-family:'Plus Jakarta Sans',Arial,sans-serif;">
   <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(59,130,246,0.12);">
-    <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:36px 48px 24px;text-align:center;">
-      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:120px;width:auto;display:inline-block;background-color:#2563eb;border:none;border-radius:0;" />
-      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:10px;">Assinatura Confirmada</div>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
+      <tr><td align="center" style="padding:36px 48px 24px;">
+        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="120" style="display:block;border:0;outline:none;height:auto;max-height:120px;" />
+        <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:10px;">Assinatura Confirmada</div>
+      </td></tr>
+    </table>
     </div>
     <div style="padding:40px 48px 32px;">
       <div style="font-size:22px;font-weight:700;color:#1e3a5f;margin-bottom:12px;">
@@ -105,12 +108,14 @@ serve(async (req) => {
         Dúvidas? Fale conosco em <a href="mailto:suporte@treend.com.br" style="color:#3b82f6;font-weight:600;text-decoration:none;">suporte@treend.com.br</a>
       </div>
     </div>
-    <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:28px 48px;text-align:center;">
-      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:60px;width:auto;display:inline-block;margin-bottom:14px;background-color:#2563eb;border:none;border-radius:0;" />
-      <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
-        © ${new Date().getFullYear()} Treend. Todos os direitos reservados.
-      </div>
-    </div>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
+      <tr><td align="center" style="padding:28px 48px;">
+        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="60" style="display:block;border:0;outline:none;height:auto;max-height:60px;margin-bottom:14px;" />
+        <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
+          © ${new Date().getFullYear()} Treend. Todos os direitos reservados.
+        </div>
+      </td></tr>
+    </table>
   </div>
 </body>
 </html>`;

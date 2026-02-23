@@ -34,13 +34,14 @@ function buildEventHtml(title: string, eventDate: string, description: string | 
 <body style="margin:0;padding:0;background-color:#f0f4ff;font-family:'Plus Jakarta Sans',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
   <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(59,130,246,0.12);">
 
-    <!-- Header -->
-    <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:28px 48px 20px;text-align:center;position:relative;overflow:hidden;">
-      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:120px;width:auto;display:inline-block;background-color:#2563eb;border:none;border-radius:0;" />
-      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:8px;">
-        O Seu Guia Definitivo de Câmbio com IA
-      </div>
-    </div>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
+      <tr><td align="center" style="padding:28px 48px 20px;">
+        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="120" style="display:block;border:0;outline:none;height:auto;max-height:120px;" />
+        <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:8px;">
+          O Seu Guia Definitivo de Câmbio com IA
+        </div>
+      </td></tr>
+    </table>
 
     <!-- Hero Strip -->
     <div style="background:#fffbeb;border-bottom:1px solid #fde68a;padding:28px 48px;">
@@ -72,19 +73,20 @@ function buildEventHtml(title: string, eventDate: string, description: string | 
       </div>
     </div>
 
-    <!-- Footer -->
-    <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);border-top:1px solid #e2e8f0;padding:28px 48px;text-align:center;">
-      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:60px;width:auto;display:inline-block;margin-bottom:14px;background-color:#2563eb;border:none;border-radius:0;" />
-      <div style="margin-bottom:14px;">
-        <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Política de Privacidade</a>
-        <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Termos de Uso</a>
-        <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Central de Ajuda</a>
-      </div>
-      <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
-        © ${new Date().getFullYear()} Treend. Todos os direitos reservados.<br/>
-        Você está recebendo este e-mail porque possui uma conta ativa na plataforma Treend.
-      </div>
-    </div>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
+      <tr><td align="center" style="padding:28px 48px;">
+        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="60" style="display:block;border:0;outline:none;height:auto;max-height:60px;margin-bottom:14px;" />
+        <div style="margin-bottom:14px;">
+          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Política de Privacidade</a>
+          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Termos de Uso</a>
+          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Central de Ajuda</a>
+        </div>
+        <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
+          © ${new Date().getFullYear()} Treend. Todos os direitos reservados.<br/>
+          Você está recebendo este e-mail porque possui uma conta ativa na plataforma Treend.
+        </div>
+      </td></tr>
+    </table>
 
   </div>
 </body>
