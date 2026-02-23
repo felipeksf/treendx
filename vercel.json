@@ -1,11 +1,4 @@
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "app.treend.com.br" }],
-      "destination": "/index.html"
-    }
-  ],
   "redirects": [
     {
       "source": "/:path(.*)",
@@ -20,6 +13,12 @@
       "destination": "https://treend-cambio.framer.website/:path",
       "permanent": false,
       "statusCode": 302
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
