@@ -10,6 +10,9 @@ import treendLogo from "@/assets/treend-logo.png";
 import loginMarketVideo from "@/assets/login-market-video.mp4";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { STRIPE_PLANS } from "@/contexts/AuthContext";
+
+type PlanKey = "monthly" | "annual";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -20,6 +23,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [terms, setTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanKey>("monthly");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -56,8 +60,25 @@ const Register = () => {
       body: { email, name },
     }).catch((err) => console.error("Welcome email error:", err));
 
-    toast({ title: "Conta criada com sucesso!", description: "Verifique seu e-mail para confirmar." });
-    navigate("/onboarding");
+    // Redirect to Stripe Checkout with selected plan
+    try {
+      const { data, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: STRIPE_PLANS[selectedPlan].priceId },
+      });
+
+      if (checkoutError || !data?.url) {
+        throw new Error(checkoutError?.message || "Erro ao criar checkout");
+      }
+
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("Checkout redirect error:", err);
+      toast({
+        title: "Conta criada com sucesso!",
+        description: "Redirecionando para escolher seu plano...",
+      });
+      navigate("/pricing");
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -86,9 +107,40 @@ const Register = () => {
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground mb-2">
             Criar conta
           </h1>
-          <p className="text-muted-foreground mb-8">
-            Comece seu trial gratuito de 7 dias.
+          <p className="text-muted-foreground mb-6">
+            Comece seu trial gratuito de 7 dias. Sem cobrança agora.
           </p>
+
+          {/* Plan Selector */}
+          <div className="flex gap-3 mb-6">
+            <button
+              type="button"
+              onClick={() => setSelectedPlan("monthly")}
+              className={`flex-1 rounded-xl border-2 p-4 text-left transition-all ${
+                selectedPlan === "monthly"
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border/60 hover:border-border"
+              }`}
+            >
+              <div className="text-sm font-semibold text-foreground">Mensal</div>
+              <div className="text-lg font-bold text-primary">R$49,90<span className="text-xs font-normal text-muted-foreground">/mês</span></div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedPlan("annual")}
+              className={`flex-1 rounded-xl border-2 p-4 text-left transition-all relative ${
+                selectedPlan === "annual"
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border/60 hover:border-border"
+              }`}
+            >
+              <span className="absolute -top-2.5 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                -50%
+              </span>
+              <div className="text-sm font-semibold text-foreground">Anual</div>
+              <div className="text-lg font-bold text-primary">R$299<span className="text-xs font-normal text-muted-foreground">/ano</span></div>
+            </button>
+          </div>
 
           {/* Social Login */}
           <div className="flex gap-3 mb-6">
@@ -162,6 +214,10 @@ const Register = () => {
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Criar conta e iniciar trial
             </Button>
+
+            <p className="text-center text-xs text-muted-foreground">
+              7 dias grátis • Cancele quando quiser
+            </p>
           </form>
 
           <p className="mt-8 text-center text-sm text-muted-foreground">
