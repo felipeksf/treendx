@@ -1,29 +1,25 @@
 {
-  "redirects": [
+  "rewrites": [
     {
-      "source": "/:path(.*)",
-      "has": [{ "type": "host", "value": "treend.com.br" }],
-      "destination": "https://treend-cambio.framer.website/:path",
-      "permanent": false,
-      "statusCode": 302
-    },
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "app.treend.com.br" }],
+      "destination": "/index.html"
+    }
+  ],
+  "redirects": [
     {
       "source": "/:path(.*)",
       "has": [{ "type": "host", "value": "www.treend.com.br" }],
       "destination": "https://treend-cambio.framer.website/:path",
       "permanent": false,
       "statusCode": 302
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html",
-      "has": [{ "type": "host", "value": "app.treend.com.br" }]
     },
     {
-      "source": "/((?!assets|favicon|robots|placeholder|treend-logo).*)",
-      "destination": "/index.html"
+      "source": "/:path(.*)",
+      "has": [{ "type": "host", "value": "treend.com.br" }],
+      "destination": "https://treend-cambio.framer.website/:path",
+      "permanent": false,
+      "statusCode": 302
     }
   ]
 }
