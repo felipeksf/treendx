@@ -1362,11 +1362,11 @@ const CalculatorPage = () => {
         );
       })()}
 
-      <div className="flex flex-wrap justify-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
         <Button
           variant="outline"
           size="sm"
-          className="gap-1.5"
+          className="gap-1.5 w-full sm:w-auto"
           onClick={async () => {
             if (!user) {
               toast({ title: "Faça login para registrar", variant: "destructive" });
@@ -1396,7 +1396,7 @@ const CalculatorPage = () => {
         <Button
           variant="outline"
           size="sm"
-          className="gap-1.5"
+          className="gap-1.5 w-full sm:w-auto"
           onClick={async () => {
             try {
               const { default: jsPDF } = await import("jspdf");
@@ -1545,7 +1545,7 @@ const CalculatorPage = () => {
         <Button
           variant="outline"
           size="sm"
-          className="gap-1.5"
+          className="gap-1.5 w-full sm:w-auto"
           disabled={!user}
           onClick={async () => {
             if (!user) {
