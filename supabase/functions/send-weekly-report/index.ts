@@ -16,87 +16,42 @@ function formatDatePtBR(dateStr: string): string {
 
 function buildReportHtml(body: string, imageUrl: string | null, dateFormatted: string): string {
   const imageBlock = imageUrl
-    ? `<div style="text-align:center;margin:24px 0;">
-        <img src="${imageUrl}" alt="Report semanal" style="max-width:100%;max-height:400px;border-radius:12px;border:1px solid #dbeafe;" />
+    ? `<div style="text-align:center;margin:0 0 36px;">
+        <img src="${imageUrl}" alt="Report semanal" style="max-width:100%;max-height:400px;border-radius:16px;border:1.5px solid #dbeafe;" />
       </div>`
     : "";
 
-  // Preserve line breaks in the body text
   const formattedBody = body.replace(/\n/g, "<br/>");
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Treend – Report Semanal</title>
-</head>
-<body style="margin:0;padding:0;background-color:#f0f4ff;font-family:'Plus Jakarta Sans',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
-  <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(59,130,246,0.12);">
-
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
-      <tr><td align="center" style="padding:28px 48px 20px;">
-        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="120" style="display:block;border:0;outline:none;height:auto;max-height:120px;" />
-        <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:8px;">
-          O Seu Guia Definitivo de Câmbio com IA
-        </div>
-      </td></tr>
-    </table>
-
-    <!-- Hero Strip -->
-    <div style="background:#eff6ff;border-bottom:1px solid #dbeafe;padding:28px 48px;">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
-        <td valign="middle">
-          <div style="font-size:17px;font-weight:700;color:#1e3a5f;line-height:1.3;">Report Semanal</div>
-          <div style="font-size:13.5px;color:#64748b;margin-top:3px;">Publicado em ${dateFormatted}</div>
-        </td>
-      </tr></table>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#eef2fb;font-family:'Inter',Arial,sans-serif;">
+  <div style="max-width:680px;margin:0 auto;border-radius:24px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.10);">
+    <div style="background:linear-gradient(135deg,#2563eb 0%,#1a40c8 100%);padding:48px 40px 40px;text-align:center;">
+      <div style="font-family:'Inter',Arial,sans-serif;font-size:48px;font-weight:800;color:#ffffff;letter-spacing:-2px;line-height:1;">treend</div>
+      <div style="color:rgba(255,255,255,0.75);font-size:18px;font-weight:500;margin-top:16px;letter-spacing:0.5px;">Report Semanal</div>
     </div>
-
-    <!-- Body -->
-    <div style="padding:40px 48px 32px;">
-      <div style="font-size:15px;color:#475569;line-height:1.7;margin:0 0 24px;">
-        ${formattedBody}
+    <div style="background:#ffffff;padding:52px 48px 48px;">
+      <h1 style="font-size:34px;font-weight:800;color:#1e293b;margin:0 0 20px;">📊 <span style="color:#2563eb;">Report Semanal</span></h1>
+      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:16px;padding:24px 28px;margin-bottom:40px;">
+        <p style="font-size:18px;color:#374151;margin:0;">📅 <strong style="color:#166534;">Publicado em:</strong> ${dateFormatted}</p>
       </div>
-
+      <p style="font-size:20px;color:#475569;line-height:1.7;margin:0 0 36px;">${formattedBody}</p>
       ${imageBlock}
-
-      <!-- CTA -->
-      <div style="text-align:center;margin:8px 0 32px;">
-        <a href="https://app.treend.com.br/feed" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:16px 44px;border-radius:12px;letter-spacing:0.3px;box-shadow:0 4px 20px rgba(59,130,246,0.35);">
-          Ver no Feed →
-        </a>
+      <div style="text-align:center;margin-bottom:36px;">
+        <a href="https://app.treend.com.br/feed" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:20px;font-weight:700;text-decoration:none;padding:20px 48px;border-radius:14px;letter-spacing:0.2px;">Ver no Feed →</a>
       </div>
-
-      <div style="height:1px;background:#e2e8f0;margin:0 0 28px;"></div>
-
-      <!-- Support -->
-      <div style="text-align:center;font-size:13.5px;color:#64748b;margin-bottom:8px;line-height:1.7;">
-        Dúvidas ou problemas? Nossa equipe está pronta para te ajudar.<br/>
-        Fale conosco em <a href="mailto:suporte@treend.com.br" style="color:#3b82f6;font-weight:600;text-decoration:none;">suporte@treend.com.br</a>
-      </div>
+      <p style="text-align:center;font-size:17px;color:#94a3b8;margin:0;">Dúvidas? Fale conosco em <a href="mailto:suporte@treend.com.br" style="color:#2563eb;font-weight:700;text-decoration:none;">suporte@treend.com.br</a></p>
     </div>
-
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
-      <tr><td align="center" style="padding:28px 48px;">
-        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="60" style="display:block;border:0;outline:none;height:auto;max-height:60px;margin-bottom:14px;" />
-        <div style="margin-bottom:14px;">
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Política de Privacidade</a>
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Termos de Uso</a>
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Central de Ajuda</a>
-        </div>
-        <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
-          © ${new Date().getFullYear()} Treend. Todos os direitos reservados.<br/>
-          Você está recebendo este e-mail porque possui uma conta ativa na plataforma Treend.
-        </div>
-      </td></tr>
-    </table>
-
+    <div style="background:linear-gradient(135deg,#2563eb 0%,#1a40c8 100%);padding:40px 40px 36px;text-align:center;">
+      <div style="font-family:'Inter',Arial,sans-serif;font-size:36px;font-weight:800;color:#ffffff;letter-spacing:-2px;line-height:1;margin-bottom:16px;">treend</div>
+      <p style="color:rgba(255,255,255,0.55);font-size:14px;margin-top:12px;">© ${new Date().getFullYear()} Treend. Todos os direitos reservados.</p>
+    </div>
   </div>
 </body>
 </html>`;
 }
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
