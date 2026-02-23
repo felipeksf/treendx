@@ -1430,6 +1430,12 @@ const CalculatorPage = () => {
                 rate: curRate,
                 savings: metrics.netMonth,
                 zone,
+                spread,
+                profile,
+                ops_per_month: opsRaw,
+                ops_frequency: opsFrequency,
+                projection_months: projMonths,
+                treend_rate: trdRate,
               });
               if (error) throw error;
               toast({ title: "Decisão registrada!", description: "Salva no seu histórico." });
