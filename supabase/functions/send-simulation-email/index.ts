@@ -25,6 +25,9 @@ interface SimulationData {
   netPct: number;
   economiaMinusSpread: number;
   overallHealth: string;
+  zone?: string;
+  date?: string;
+  projections?: { label: string; value: number }[];
 }
 
 function currencySymbol(c: string): string {
@@ -50,29 +53,36 @@ function profileLabel(p: string): string {
   return map[p] || p;
 }
 
-function healthLabel(h: string): { text: string; color: string; bg: string } {
-  if (h === "good") return { text: "Saudável", color: "#166534", bg: "#f0fdf4" };
-  if (h === "warning") return { text: "Atenção", color: "#92400e", bg: "#fffbeb" };
-  return { text: "Crítico", color: "#991b1b", bg: "#fef2f2" };
-}
-
 function freqLabel(f: string): string {
-  return f === "day" ? "Dia" : f === "week" ? "Semana" : "Mês";
+  return f === "day" ? "Diário" : f === "week" ? "Semanal" : "Mensal";
 }
 
 function buildSimulationHtml(sim: SimulationData, userName: string): string {
   const sym = currencySymbol(sim.currency);
   const flag = currencyFlag(sim.currency);
-  const health = healthLabel(sim.overallHealth);
-  const isPositive = sim.netMonth > 0;
+  const isPositive = sim.netMonth >= 0;
 
   const now = new Date();
-  const dateStr = now.toLocaleDateString("pt-BR", {
+  const dateStr = sim.date || now.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
     timeZone: "America/Sao_Paulo",
   });
+
+  const projections = sim.projections || [
+    { label: "6 meses", value: sim.netMonth * 6 },
+    { label: "12 meses", value: sim.netYear },
+    { label: "24 meses", value: sim.netMonth * 24 },
+  ];
+
+  const projHtml = projections.map((p) => {
+    const pPos = p.value >= 0;
+    return `<td style="width:33%;text-align:center;padding:16px 8px;border:1px solid #e2e8f0;border-radius:12px;">
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">${p.label}</div>
+      <div style="font-size:16px;font-weight:800;color:${pPos ? '#166534' : '#991b1b'};">${sym} ${fmtBrl(Math.abs(p.value))}</div>
+    </td>`;
+  }).join("");
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -88,12 +98,12 @@ function buildSimulationHtml(sim: SimulationData, userName: string): string {
 
       <!-- Body -->
       <div style="background:#ffffff;padding:52px 48px 48px;">
-        <h1 style="font-size:30px;font-weight:800;color:#1e293b;margin:0 0 8px;">📊 <span style="color:#2563eb;">Simulação Cambial</span></h1>
-        <p style="font-size:14px;color:#94a3b8;margin:0 0 32px;">${dateStr} • ${userName}</p>
+        <h1 style="font-size:26px;font-weight:800;color:#1e293b;margin:0 0 4px;">${flag} <span style="color:#2563eb;">Simulação — ${sim.currency}</span></h1>
+        <p style="font-size:13px;color:#94a3b8;margin:0 0 32px;">${dateStr} • ${userName}</p>
 
         <!-- Parameters -->
         <div style="background:#f8fafc;border-radius:16px;border:1.5px solid #e2e8f0;padding:24px;margin-bottom:28px;">
-          <div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:16px;">Parâmetros da Simulação</div>
+          <div style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">Parâmetros</div>
           <table style="width:100%;border-collapse:collapse;">
             <tr>
               <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Moeda</td>
@@ -104,16 +114,28 @@ function buildSimulationHtml(sim: SimulationData, userName: string): string {
               <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:600;text-align:right;">${profileLabel(sim.profile)}</td>
             </tr>
             <tr>
-              <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Volume Mensal</td>
+              <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Volume</td>
               <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:600;text-align:right;">${sym} ${fmtBrl(sim.volume)}</td>
             </tr>
             <tr>
-              <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Operações</td>
-              <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:600;text-align:right;">${sim.opsPerMonth}/${freqLabel(sim.opsFrequency)}</td>
+              <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Taxa no momento</td>
+              <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:600;text-align:right;">${sim.currentRate.toFixed(4)}</td>
             </tr>
             <tr>
-              <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Spread Bancário</td>
-              <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:600;text-align:right;">${sim.bankSpread.toFixed(1)}%</td>
+              <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Taxa Treend estimada</td>
+              <td style="padding:6px 0;font-size:13px;color:#2563eb;font-weight:600;text-align:right;">${sim.treendRate.toFixed(4)}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Zona</td>
+              <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:600;text-align:right;">${sim.zone || '—'}</td>
+            </tr>
+            <tr style="border-top:1px solid #e2e8f0;">
+              <td style="padding:10px 0 6px;font-size:13px;color:#94a3b8;">Spread bancário</td>
+              <td style="padding:10px 0 6px;font-size:13px;color:#1e293b;font-weight:600;text-align:right;">${sim.bankSpread.toFixed(1)}%</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Operações</td>
+              <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:600;text-align:right;">${sim.opsPerMonth} / ${freqLabel(sim.opsFrequency)}</td>
             </tr>
             <tr>
               <td style="padding:6px 0;font-size:13px;color:#94a3b8;">Projeção</td>
@@ -122,64 +144,53 @@ function buildSimulationHtml(sim: SimulationData, userName: string): string {
           </table>
         </div>
 
-        <!-- Rates -->
-        <div style="display:flex;gap:12px;margin-bottom:28px;">
-          <div style="flex:1;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;padding:16px;text-align:center;">
-            <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Taxa Atual</div>
-            <div style="font-size:22px;font-weight:800;color:#1e293b;">${sim.currentRate.toFixed(4)}</div>
-          </div>
-          <div style="flex:1;background:#eff6ff;border-radius:12px;border:1px solid #bfdbfe;padding:16px;text-align:center;">
-            <div style="font-size:11px;color:#2563eb;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Taxa Treend</div>
-            <div style="font-size:22px;font-weight:800;color:#2563eb;">${sim.treendRate.toFixed(4)}</div>
-          </div>
-          <div style="flex:1;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;padding:16px;text-align:center;">
-            <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Taxa Efetiva</div>
-            <div style="font-size:22px;font-weight:800;color:#1e293b;">${sim.effectiveRate.toFixed(4)}</div>
-          </div>
-        </div>
-
         <!-- Results -->
-        <div style="margin-bottom:28px;">
-          <div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:16px;">Resultados</div>
-          <table style="width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;border:1.5px solid #e2e8f0;">
-            <tr style="background:${isPositive ? '#f0fdf4' : '#fef2f2'};">
-              <td style="padding:14px 20px;font-size:14px;font-weight:600;color:#1e293b;">Economia Mensal</td>
-              <td style="padding:14px 20px;text-align:right;font-size:18px;font-weight:800;color:${isPositive ? '#166534' : '#991b1b'};">${isPositive ? '' : '-'}${sym} ${fmtBrl(Math.abs(sim.netMonth))}</td>
+        <div style="background:#f8fafc;border-radius:16px;border:1.5px solid #e2e8f0;padding:24px;margin-bottom:28px;">
+          <div style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">Resultado da Simulação</div>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr>
+              <td style="padding:8px 0;font-size:13px;color:#94a3b8;">Volume em BRL</td>
+              <td style="padding:8px 0;font-size:14px;color:#1e293b;font-weight:700;text-align:right;">R$ ${fmtBrl(sim.volume * sim.currentRate)}</td>
             </tr>
             <tr>
-              <td style="padding:12px 20px;font-size:13px;color:#64748b;border-top:1px solid #f1f5f9;">Economia Anual</td>
-              <td style="padding:12px 20px;text-align:right;font-size:15px;font-weight:700;color:${isPositive ? '#166534' : '#991b1b'};border-top:1px solid #f1f5f9;">${isPositive ? '' : '-'}${sym} ${fmtBrl(Math.abs(sim.netYear))}</td>
+              <td style="padding:8px 0;font-size:13px;color:#94a3b8;">Volume com Treend</td>
+              <td style="padding:8px 0;font-size:14px;color:#2563eb;font-weight:700;text-align:right;">R$ ${fmtBrl(sim.volume * sim.treendRate)}</td>
             </tr>
             <tr>
-              <td style="padding:12px 20px;font-size:13px;color:#64748b;border-top:1px solid #f1f5f9;">Economia Bruta</td>
-              <td style="padding:12px 20px;text-align:right;font-size:15px;font-weight:700;color:#1e293b;border-top:1px solid #f1f5f9;">${sym} ${fmtBrl(sim.grossMonth)}</td>
+              <td style="padding:8px 0;font-size:13px;color:#94a3b8;">Diferença de taxa</td>
+              <td style="padding:8px 0;font-size:14px;color:#1e293b;font-weight:700;text-align:right;">${(sim.currentRate - sim.treendRate).toFixed(4)} (${sim.rateDiffPct.toFixed(2)}%)</td>
             </tr>
             <tr>
-              <td style="padding:12px 20px;font-size:13px;color:#64748b;border-top:1px solid #f1f5f9;">Custo de Spread</td>
-              <td style="padding:12px 20px;text-align:right;font-size:15px;font-weight:700;color:#dc2626;border-top:1px solid #f1f5f9;">-${sym} ${fmtBrl(sim.spreadCost)}</td>
-            </tr>
-            <tr>
-              <td style="padding:12px 20px;font-size:13px;color:#64748b;border-top:1px solid #f1f5f9;">Diferença de Taxa</td>
-              <td style="padding:12px 20px;text-align:right;font-size:15px;font-weight:700;color:#1e293b;border-top:1px solid #f1f5f9;">${sim.rateDiffPct.toFixed(2)}%</td>
-            </tr>
-            <tr>
-              <td style="padding:12px 20px;font-size:13px;color:#64748b;border-top:1px solid #f1f5f9;">Percentual Líquido</td>
-              <td style="padding:12px 20px;text-align:right;font-size:15px;font-weight:700;color:${sim.netPct >= 0 ? '#166534' : '#991b1b'};border-top:1px solid #f1f5f9;">${sim.netPct.toFixed(2)}%</td>
+              <td style="padding:8px 0;font-size:13px;color:#94a3b8;">Custo do spread (${sim.bankSpread.toFixed(1)}%)</td>
+              <td style="padding:8px 0;font-size:14px;color:#dc2626;font-weight:700;text-align:right;">-R$ ${fmtBrl(sim.spreadCost)}</td>
             </tr>
           </table>
         </div>
 
-        <!-- Health -->
-        <div style="background:${health.bg};border-radius:12px;padding:16px 20px;margin-bottom:36px;text-align:center;">
-          <span style="font-size:13px;color:${health.color};font-weight:700;">Saúde da Operação: ${health.text}</span>
+        <!-- Economy highlight -->
+        <div style="background:${isPositive ? '#f0fdf4' : '#fef2f2'};border:1.5px solid ${isPositive ? '#bbf7d0' : '#fecaca'};border-radius:16px;padding:20px 24px;margin-bottom:28px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <tr>
+              <td style="font-size:14px;font-weight:600;color:#1e293b;">${isPositive ? 'Economia estimada' : 'Custo adicional estimado'}</td>
+              <td style="text-align:right;font-size:22px;font-weight:800;color:${isPositive ? '#166534' : '#991b1b'};">${isPositive ? '+' : ''}${sym} ${fmtBrl(sim.netMonth)}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Projections -->
+        <div style="background:#f8fafc;border-radius:16px;border:1.5px solid #e2e8f0;padding:24px;margin-bottom:36px;">
+          <div style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">Projeções</div>
+          <table style="width:100%;border-collapse:separate;border-spacing:8px 0;">
+            <tr>${projHtml}</tr>
+          </table>
         </div>
 
         <!-- CTA -->
         <div style="text-align:center;margin-bottom:36px;">
-          <a href="https://app.treend.com.br/calculator" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:20px;font-weight:700;text-decoration:none;padding:20px 48px;border-radius:14px;">Abrir Calculadora →</a>
+          <a href="https://app.treend.com.br/calculator" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:18px;font-weight:700;text-decoration:none;padding:18px 44px;border-radius:14px;">Abrir Calculadora →</a>
         </div>
 
-        <p style="text-align:center;font-size:13px;color:#94a3b8;margin:0;font-style:italic;">Esta simulação é meramente ilustrativa. A decisão final é de responsabilidade do usuário.</p>
+        <p style="text-align:center;font-size:12px;color:#94a3b8;margin:0;font-style:italic;">Esta simulação é meramente ilustrativa. A decisão final é de responsabilidade do usuário.</p>
       </div>
 
       <!-- Footer -->
@@ -205,7 +216,6 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No auth header");
 
-    // Get user info
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
       headers: { apikey: Deno.env.get("SUPABASE_ANON_KEY")!, Authorization: authHeader },
