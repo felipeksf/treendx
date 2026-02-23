@@ -226,7 +226,7 @@ const CalculatorPage = () => {
   const [converterCurrency, setConverterCurrency] = useState("USD");
   const [converterAmount, setConverterAmount] = useState("1000");
   const [converterResultCurrency, setConverterResultCurrency] = useState<"foreign" | "BRL">("foreign");
-  const [scenarioCurrency, setScenarioCurrency] = useState("USD");
+  const [scenarioCurrency, setScenarioCurrency] = useState(saved?.currency ?? "USD");
   const [scenarioPeriod, setScenarioPeriod] = useState<"day" | "week" | "month" | "operation">("month");
   const [impactCurrency, setImpactCurrency] = useState("BRL");
   const [evolutionCurrency, setEvolutionCurrency] = useState("BRL");
@@ -293,6 +293,7 @@ const CalculatorPage = () => {
     setSliderRate([liveRate]);
     const prefLower = ["importador", "agente_turismo", "turista"].includes(profile);
     setTreendRate((prefLower ? liveRate * (1 - treendFraction) : liveRate * (1 + treendFraction)).toFixed(4));
+    setScenarioCurrency(val);
   };
 
   const handleReset = () => {
