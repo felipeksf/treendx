@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ExternalLink, Newspaper, RefreshCw, Search, DollarSign, Euro, Globe } from "lucide-react";
+import { ExternalLink, Newspaper, RefreshCw, Search, DollarSign, Euro, PoundSterling, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,15 +10,16 @@ interface NewsItem {
   link: string;
   pubDate: string;
   source: string;
-  currency: "USD" | "EUR" | "general";
+  currency: "USD" | "EUR" | "GBP" | "general";
 }
 
-type CurrencyFilter = "all" | "USD" | "EUR" | "general";
+type CurrencyFilter = "all" | "USD" | "EUR" | "GBP" | "general";
 
 const filters: { value: CurrencyFilter; label: string; icon: React.ElementType }[] = [
   { value: "all", label: "Tudo", icon: Globe },
   { value: "USD", label: "Dólar", icon: DollarSign },
   { value: "EUR", label: "Euro", icon: Euro },
+  { value: "GBP", label: "Libra", icon: PoundSterling },
 ];
 
 function timeAgo(dateStr: string): string {
