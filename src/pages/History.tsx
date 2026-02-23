@@ -3,16 +3,20 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays, Trash2, FileDown } from "lucide-react";
+import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays, Trash2, FileDown, Eye, DollarSign, Target, BarChart3, Wallet, Activity } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useTreendRate } from "@/hooks/useTreendRate";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
 const currencySymbol = (c: string) => c === "BRL" ? "R$" : c === "USD" ? "US$" : c === "GBP" ? "£" : c === "EUR" ? "€" : c;
 const currencyFlag = (c: string) => c === "USD" ? "🇺🇸" : c === "EUR" ? "🇪🇺" : c === "GBP" ? "🇬🇧" : c === "BRL" ? "🇧🇷" : "";
@@ -25,6 +29,21 @@ const formatDateBR = (dateStr: string) => {
   return `${day}/${month}/${year}`;
 };
 
+const RATE_RANGES: Record<string, { min: number; max: number }> = {
+  USD: { min: 4.00, max: 6.50 },
+  EUR: { min: 4.50, max: 7.00 },
+  GBP: { min: 5.00, max: 8.00 },
+  BRL: { min: 0.15, max: 0.30 },
+};
+
+const getZoneLabel = (pct: number) => {
+  if (pct <= 20) return { label: "Zona muito interessante", color: "text-treend-success", bg: "bg-treend-success/10" };
+  if (pct <= 40) return { label: "Zona interessante", color: "text-treend-success", bg: "bg-treend-success/10" };
+  if (pct <= 60) return { label: "Zona neutra", color: "text-treend-warning", bg: "bg-treend-warning/10" };
+  if (pct <= 80) return { label: "Zona de pressão", color: "text-treend-danger", bg: "bg-treend-danger/10" };
+  return { label: "Zona de alta pressão", color: "text-treend-danger", bg: "bg-treend-danger/10" };
+};
+
 const HistoryPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -32,6 +51,9 @@ const HistoryPage = () => {
   const queryClient = useQueryClient();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [viewDecision, setViewDecision] = useState<any | null>(null);
+  const { data: treendRateData } = useTreendRate();
+  const treendFraction = treendRateData?.rateFraction ?? 0.008;
 
   const { data: decisions = [], isLoading } = useQuery({
     queryKey: ["user-decisions", user?.id],
@@ -251,6 +273,9 @@ const HistoryPage = () => {
                     {(h.savings || 0) >= 0 ? "+" : ""}{currencySymbol(h.currency)} {(h.savings || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => setViewDecision(h)} title="Ver simulação">
+                  <Eye className="h-3.5 w-3.5" />
+                </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => handleDownloadPDF(h)} title="Baixar PDF">
                   <FileDown className="h-3.5 w-3.5" />
                 </Button>
@@ -276,6 +301,150 @@ const HistoryPage = () => {
           ))}
         </div>
       )}
+      {/* Simulation Detail Modal */}
+      <Dialog open={!!viewDecision} onOpenChange={(open) => !open && setViewDecision(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          {viewDecision && (() => {
+            const d = viewDecision;
+            const sym = currencySymbol(d.currency);
+            const flag = currencyFlag(d.currency);
+            const rate = Number(d.rate);
+            const amount = Number(d.amount);
+            const savings = d.savings || 0;
+            const treendRate = rate * (1 - treendFraction);
+            const curBRL = amount * rate;
+            const trdBRL = amount * treendRate;
+            const rateDiff = rate - treendRate;
+            const rateDiffPct = rate > 0 ? (Math.abs(rateDiff) / rate) * 100 : 0;
+            const spreadCost = curBRL * 0.01;
+            const economiaSpread = (rateDiffPct / 100) * curBRL - spreadCost;
+            const range = RATE_RANGES[d.currency] || RATE_RANGES.USD;
+            const rawPct = ((rate - range.min) / (range.max - range.min)) * 100;
+            const zoneInfo = getZoneLabel(rawPct);
+
+            return (
+              <div className="space-y-5">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-lg">
+                    <span className="text-xl">{flag}</span>
+                    Simulação — {d.currency}
+                  </DialogTitle>
+                  <p className="text-xs text-muted-foreground">{formatDateBR(d.created_at)}</p>
+                </DialogHeader>
+
+                {/* Parameters */}
+                <div className="kpi-stat p-4 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Parâmetros</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <DollarSign className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Volume</p>
+                        <p className="text-sm font-bold tabular-nums">{sym} {amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Target className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Taxa no momento</p>
+                        <p className="text-sm font-bold tabular-nums">{rate.toFixed(4)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-treend-success/10 flex items-center justify-center">
+                        <Activity className="h-4 w-4 text-treend-success" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Taxa Treend estimada</p>
+                        <p className="text-sm font-bold tabular-nums text-treend-success">{treendRate.toFixed(4)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`h-8 w-8 rounded-lg ${zoneInfo.bg} flex items-center justify-center`}>
+                        <BarChart3 className={`h-4 w-4 ${zoneInfo.color}`} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Zona</p>
+                        <p className={`text-sm font-bold ${zoneInfo.color}`}>{d.zone || zoneInfo.label}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Results */}
+                <div className="kpi-stat p-4 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Resultado da Simulação</p>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    <div className="flex items-center justify-between rounded-xl border border-border/40 p-3">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Volume em BRL</span>
+                      </div>
+                      <span className="text-sm font-bold tabular-nums">R$ {curBRL.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-xl border border-border/40 p-3">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="h-4 w-4 text-treend-success" />
+                        <span className="text-xs text-muted-foreground">Volume com Treend</span>
+                      </div>
+                      <span className="text-sm font-bold tabular-nums text-treend-success">R$ {trdBRL.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-xl border border-border/40 p-3">
+                      <div className="flex items-center gap-2">
+                        <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Diferença de taxa</span>
+                      </div>
+                      <span className="text-sm font-bold tabular-nums">{rateDiff.toFixed(4)} ({rateDiffPct.toFixed(2)}%)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Economy highlight */}
+                <div className={`rounded-xl border p-4 ${savings >= 0 ? "border-treend-success/30 bg-treend-success/5" : "border-treend-danger/30 bg-treend-danger/5"}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {savings >= 0 ? (
+                        <TrendingDown className="h-5 w-5 text-treend-success" />
+                      ) : (
+                        <TrendingUp className="h-5 w-5 text-treend-danger" />
+                      )}
+                      <span className="text-sm font-medium text-foreground">
+                        {savings >= 0 ? "Economia estimada" : "Custo adicional estimado"}
+                      </span>
+                    </div>
+                    <span className={`text-xl font-bold tabular-nums ${savings >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
+                      {savings >= 0 ? "+" : ""}{sym} {savings.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Projections */}
+                <div className="kpi-stat p-4 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Projeções</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "6 meses", value: savings * 6 },
+                      { label: "12 meses", value: savings * 12 },
+                      { label: "24 meses", value: savings * 24 },
+                    ].map((proj) => (
+                      <div key={proj.label} className="text-center rounded-xl border border-border/40 p-3">
+                        <p className="text-[10px] text-muted-foreground mb-1">{proj.label}</p>
+                        <p className={`text-sm font-bold tabular-nums ${proj.value >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
+                          {sym} {Math.abs(proj.value).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
