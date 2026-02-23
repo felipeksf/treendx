@@ -30,6 +30,9 @@ import {
   Bookmark,
   BookmarkCheck,
   Trash2,
+  FileDown,
+  Mail,
+  Loader2,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -1359,7 +1362,7 @@ const CalculatorPage = () => {
         );
       })()}
 
-      <div className="flex justify-center">
+      <div className="flex flex-wrap justify-center gap-3">
         <Button
           variant="outline"
           size="sm"
@@ -1387,7 +1390,201 @@ const CalculatorPage = () => {
           }}
         >
           <Save className="h-4 w-4" />
-          Registrar esta decisão
+          Registrar decisão
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={async () => {
+            try {
+              const { default: jsPDF } = await import("jspdf");
+              const doc = new jsPDF();
+              const sym = currencySymbol(currency);
+              const flag = currencyFlag(currency);
+              const profileLbl = profile === "importador" ? "Importador" : profile === "exportador" ? "Exportador" : profile === "agente_turismo" ? "Agente de Turismo" : profile === "turista" ? "Turista" : "Freelancer";
+              const freqLbl = opsFrequency === "day" ? "Dia" : opsFrequency === "week" ? "Semana" : "Mês";
+
+              // Header
+              doc.setFillColor(37, 99, 235);
+              doc.rect(0, 0, 210, 40, "F");
+              doc.setTextColor(255, 255, 255);
+              doc.setFontSize(28);
+              doc.setFont("helvetica", "bold");
+              doc.text("treend", 105, 22, { align: "center" });
+              doc.setFontSize(12);
+              doc.setFont("helvetica", "normal");
+              doc.text("Resumo da Simulação Cambial", 105, 33, { align: "center" });
+
+              // Date
+              doc.setTextColor(100, 116, 139);
+              doc.setFontSize(10);
+              const dateStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+              doc.text(dateStr, 105, 50, { align: "center" });
+
+              let y = 62;
+
+              // Parameters section
+              doc.setFillColor(248, 250, 252);
+              doc.roundedRect(15, y - 4, 180, 62, 3, 3, "F");
+              doc.setTextColor(30, 41, 59);
+              doc.setFontSize(12);
+              doc.setFont("helvetica", "bold");
+              doc.text("Parâmetros", 20, y + 4);
+              y += 14;
+
+              doc.setFontSize(10);
+              doc.setFont("helvetica", "normal");
+              const params = [
+                ["Moeda", `${flag} ${currency}`],
+                ["Perfil", profileLbl],
+                ["Volume Mensal", `${sym} ${fmtFull(volume, currency).replace(sym + " ", "")}`],
+                ["Operações", `${opsPerMonth}/${freqLbl}`],
+                ["Spread", `${parseFloat(bankSpread).toFixed(1)}%`],
+                ["Projeção", `${projectionMonths} meses`],
+              ];
+              params.forEach(([label, value]) => {
+                doc.setTextColor(148, 163, 184);
+                doc.text(label, 25, y);
+                doc.setTextColor(30, 41, 59);
+                doc.setFont("helvetica", "bold");
+                doc.text(value, 185, y, { align: "right" });
+                doc.setFont("helvetica", "normal");
+                y += 7;
+              });
+
+              y += 10;
+
+              // Rates
+              doc.setFillColor(239, 246, 255);
+              doc.roundedRect(15, y - 4, 180, 28, 3, 3, "F");
+              doc.setTextColor(37, 99, 235);
+              doc.setFontSize(11);
+              doc.setFont("helvetica", "bold");
+              doc.text("Taxas de Câmbio", 20, y + 4);
+              y += 14;
+              doc.setFontSize(10);
+              doc.setFont("helvetica", "normal");
+              doc.setTextColor(100, 116, 139);
+              doc.text(`Taxa Atual: ${curRate.toFixed(4)}`, 25, y);
+              doc.text(`Treend: ${trdRate.toFixed(4)}`, 100, y);
+              doc.text(`Efetiva: ${metrics.effectiveRate.toFixed(4)}`, 160, y);
+
+              y += 18;
+
+              // Results
+              doc.setTextColor(30, 41, 59);
+              doc.setFontSize(12);
+              doc.setFont("helvetica", "bold");
+              doc.text("Resultados", 20, y);
+              y += 10;
+
+              const results = [
+                ["Economia Mensal", `${isPositive ? "" : "-"}${sym} ${fmtFull(Math.abs(metrics.netMonth), currency).replace(sym + " ", "")}`, isPositive],
+                ["Economia Anual", `${isPositive ? "" : "-"}${sym} ${fmtFull(Math.abs(metrics.netYear), currency).replace(sym + " ", "")}`, isPositive],
+                ["Economia Bruta", `${sym} ${fmtFull(metrics.grossMonth, currency).replace(sym + " ", "")}`, true],
+                ["Custo Spread", `-${sym} ${fmtFull(metrics.spreadCost, currency).replace(sym + " ", "")}`, false],
+                ["Diferença de Taxa", `${metrics.rateDiffPct.toFixed(2)}%`, true],
+                ["Percentual Líquido", `${metrics.netPct.toFixed(2)}%`, metrics.netPct >= 0],
+                [`Projeção ${projMonths}m`, `${isPositive ? "" : "-"}${sym} ${fmtFull(Math.abs(metrics.netMonth * projMonths), currency).replace(sym + " ", "")}`, isPositive],
+              ];
+
+              results.forEach(([label, value, positive]) => {
+                doc.setTextColor(148, 163, 184);
+                doc.setFont("helvetica", "normal");
+                doc.text(label as string, 25, y);
+                doc.setTextColor(positive ? 22 : 220, positive ? 163 : 38, positive ? 74 : 38);
+                doc.setFont("helvetica", "bold");
+                doc.text(value as string, 185, y, { align: "right" });
+                y += 8;
+              });
+
+              y += 8;
+
+              // Health
+              const healthMap = { good: { text: "Saudável", r: 22, g: 163, b: 74 }, warning: { text: "Atenção", r: 234, g: 179, b: 8 }, bad: { text: "Crítico", r: 220, g: 38, b: 38 } };
+              const h = healthMap[metrics.overallHealth as keyof typeof healthMap];
+              doc.setFillColor(h.r, h.g, h.b);
+              doc.roundedRect(15, y - 4, 180, 16, 3, 3, "F");
+              doc.setTextColor(255, 255, 255);
+              doc.setFontSize(11);
+              doc.setFont("helvetica", "bold");
+              doc.text(`Saúde da Operação: ${h.text}`, 105, y + 6, { align: "center" });
+
+              y += 24;
+
+              // Disclaimer
+              doc.setTextColor(148, 163, 184);
+              doc.setFontSize(8);
+              doc.setFont("helvetica", "italic");
+              doc.text("Esta simulação é meramente ilustrativa. A decisão final é de responsabilidade do usuário.", 105, y, { align: "center" });
+
+              // Footer
+              doc.setFillColor(37, 99, 235);
+              doc.rect(0, 280, 210, 17, "F");
+              doc.setTextColor(255, 255, 255);
+              doc.setFontSize(10);
+              doc.setFont("helvetica", "bold");
+              doc.text("treend", 105, 290, { align: "center" });
+              doc.setFontSize(7);
+              doc.setFont("helvetica", "normal");
+              doc.text(`© ${new Date().getFullYear()} Treend. Todos os direitos reservados.`, 105, 295, { align: "center" });
+
+              doc.save(`treend-simulacao-${currency.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.pdf`);
+              toast({ title: "PDF gerado!", description: "Download iniciado." });
+            } catch (err: any) {
+              toast({ title: "Erro ao gerar PDF", description: err.message, variant: "destructive" });
+            }
+          }}
+        >
+          <FileDown className="h-4 w-4" />
+          Baixar PDF
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          disabled={!user}
+          onClick={async () => {
+            if (!user) {
+              toast({ title: "Faça login", variant: "destructive" });
+              return;
+            }
+            toast({ title: "Enviando e-mail...", description: "Aguarde um momento." });
+            try {
+              const { error } = await supabase.functions.invoke("send-simulation-email", {
+                body: {
+                  currency,
+                  profile,
+                  volume,
+                  currentRate: curRate,
+                  treendRate: trdRate,
+                  opsPerMonth: parseInt(opsPerMonth),
+                  opsFrequency,
+                  bankSpread: parseFloat(bankSpread),
+                  projectionMonths: parseInt(projectionMonths),
+                  netMonth: metrics.netMonth,
+                  netYear: metrics.netYear,
+                  grossMonth: metrics.grossMonth,
+                  spreadCost: metrics.spreadCost,
+                  effectiveRate: metrics.effectiveRate,
+                  rateDiffPct: metrics.rateDiffPct,
+                  netPct: metrics.netPct,
+                  economiaMinusSpread: metrics.economiaMinusSpread,
+                  overallHealth: metrics.overallHealth,
+                },
+              });
+              if (error) throw error;
+              toast({ title: "E-mail enviado!", description: "Confira sua caixa de entrada." });
+            } catch (err: any) {
+              toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
+            }
+          }}
+        >
+          <Mail className="h-4 w-4" />
+          Enviar por e-mail
         </Button>
       </div>
 
