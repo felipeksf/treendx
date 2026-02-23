@@ -208,8 +208,8 @@ serve(async (req) => {
     const token = emailData.token;
     const emailActionType = emailData.email_action_type;
     const redirectTo = emailActionType === "recovery" 
-      ? "https://treendx.lovable.app/reset-password" 
-      : (emailData.redirect_to || "https://treendx.lovable.app");
+      ? "https://app.treend.com.br/reset-password" 
+      : (emailData.redirect_to || "https://app.treend.com.br");
 
     let subject: string;
     let html: string;

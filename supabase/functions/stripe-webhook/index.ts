@@ -100,7 +100,7 @@ serve(async (req) => {
         </p>
       </div>
       <div style="text-align:center;margin:8px 0 32px;">
-        <a href="https://treendx.lovable.app/dashboard" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:16px 44px;border-radius:12px;box-shadow:0 4px 20px rgba(59,130,246,0.35);">
+        <a href="https://app.treend.com.br/dashboard" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:16px 44px;border-radius:12px;box-shadow:0 4px 20px rgba(59,130,246,0.35);">
           Acessar o Dashboard →
         </a>
       </div>
