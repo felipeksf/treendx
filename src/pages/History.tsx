@@ -150,9 +150,7 @@ const HistoryPage = () => {
   const handleDownloadPDF = useCallback(async (decision: any) => {
     setDownloadingPDF(true);
     try {
-      // Ensure the modal is open so the content is rendered
       setViewDecision(decision);
-      // Wait for DOM to render
       await new Promise((r) => setTimeout(r, 400));
 
       const el = document.getElementById("simulation-detail-content");
@@ -161,6 +159,14 @@ const HistoryPage = () => {
       const { default: html2canvas } = await import("html2canvas");
       const { default: jsPDF } = await import("jspdf");
 
+      // Temporarily compact spacing so everything fits one A4 page
+      el.classList.remove("space-y-5");
+      el.classList.add("space-y-2");
+      el.style.fontSize = "12px";
+      el.style.lineHeight = "1.35";
+
+      await new Promise((r) => setTimeout(r, 100));
+
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -168,42 +174,34 @@ const HistoryPage = () => {
         logging: false,
       });
 
+      // Restore original styles
+      el.classList.remove("space-y-2");
+      el.classList.add("space-y-5");
+      el.style.fontSize = "";
+      el.style.lineHeight = "";
+
       const imgData = canvas.toDataURL("image/png");
       const imgW = canvas.width;
       const imgH = canvas.height;
 
       const A4_W = 210;
-      const MARGIN = 15;
+      const A4_H = 297;
+      const MARGIN = 10;
       const contentW = A4_W - MARGIN * 2;
-      const ratio = contentW / (imgW / 2);
-      const contentH = (imgH / 2) * ratio;
+      const maxH = A4_H - MARGIN * 2;
+      const naturalH = (imgH / imgW) * contentW;
+
+      let finalW = contentW;
+      let finalH = naturalH;
+      if (finalH > maxH) {
+        const shrink = maxH / finalH;
+        finalW *= shrink;
+        finalH = maxH;
+      }
 
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageH = 297 - MARGIN * 2;
-
-      // If content fits one page
-      if (contentH <= pageH) {
-        doc.addImage(imgData, "PNG", MARGIN, MARGIN, contentW, contentH);
-      } else {
-        // Multi-page: slice the canvas
-        const pxPerPage = (pageH / ratio) * 2; // in canvas pixels
-        let srcY = 0;
-        let page = 0;
-        while (srcY < imgH) {
-          if (page > 0) doc.addPage();
-          const sliceH = Math.min(pxPerPage, imgH - srcY);
-          const sliceCanvas = document.createElement("canvas");
-          sliceCanvas.width = imgW;
-          sliceCanvas.height = sliceH;
-          const ctx = sliceCanvas.getContext("2d");
-          ctx?.drawImage(canvas, 0, srcY, imgW, sliceH, 0, 0, imgW, sliceH);
-          const sliceImg = sliceCanvas.toDataURL("image/png");
-          const sliceMM = (sliceH / 2) * ratio;
-          doc.addImage(sliceImg, "PNG", MARGIN, MARGIN, contentW, sliceMM);
-          srcY += sliceH;
-          page++;
-        }
-      }
+      const offsetX = (A4_W - finalW) / 2;
+      doc.addImage(imgData, "PNG", offsetX, MARGIN, finalW, finalH);
 
       doc.save(`simulacao-treend-${decision.currency}-${formatDateBR(decision.created_at).replace(/\//g, "-")}.pdf`);
     } finally {
