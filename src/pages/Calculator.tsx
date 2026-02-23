@@ -1454,138 +1454,164 @@ const CalculatorPage = () => {
           className="gap-1.5 w-full sm:w-auto"
           onClick={async () => {
             try {
+              const { default: html2canvas } = await import("html2canvas");
               const { default: jsPDF } = await import("jspdf");
-              const doc = new jsPDF();
+
               const sym = currencySymbol(currency);
               const flag = currencyFlag(currency);
-              const profileLbl = profile === "importador" ? "Importador" : profile === "exportador" ? "Exportador" : profile === "agente_turismo" ? "Agente de Turismo" : profile === "turista" ? "Turista" : "Freelancer";
-              const freqLbl = opsFrequency === "day" ? "Dia" : opsFrequency === "week" ? "Semana" : "Mês";
+              const zone = getZoneLabel(metrics.pct);
+              const profileLabels: Record<string, string> = {
+                importador: "Importador", exportador: "Exportador",
+                agente_turismo: "Agente de Turismo", turista: "Turista", freelancer: "Freelancer",
+              };
+              const freqLabels: Record<string, string> = { month: "Mensal", week: "Semanal", day: "Diário" };
+              const savings = metrics.netMonth;
+              const spreadCost = metrics.spreadCost;
+              const rateDiff = metrics.rateDiff;
+              const rateDiffPct = metrics.rateDiffPct;
 
-              // Header
-              doc.setFillColor(37, 99, 235);
-              doc.rect(0, 0, 210, 40, "F");
-              doc.setTextColor(255, 255, 255);
-              doc.setFontSize(28);
-              doc.setFont("helvetica", "bold");
-              doc.text("treend", 105, 22, { align: "center" });
-              doc.setFontSize(12);
-              doc.setFont("helvetica", "normal");
-              doc.text("Resumo da Simulação Cambial", 105, 33, { align: "center" });
+              // Build off-screen container mirroring History modal
+              const container = document.createElement("div");
+              container.style.position = "fixed";
+              container.style.left = "-9999px";
+              container.style.top = "0";
+              container.style.width = "420px";
+              container.style.background = "#ffffff";
+              container.style.color = "#1e293b";
+              container.style.fontFamily = "system-ui, -apple-system, sans-serif";
+              container.style.padding = "24px";
+              container.style.fontSize = "10px";
+              container.style.lineHeight = "1.25";
 
-              // Date
-              doc.setTextColor(100, 116, 139);
-              doc.setFontSize(10);
-              const dateStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-              doc.text(dateStr, 105, 50, { align: "center" });
+              const dateStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-              let y = 62;
+              container.innerHTML = `
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;">
+                      <span style="font-size:18px;">${flag}</span> Simulação — ${currency}
+                    </div>
+                    <p style="font-size:10px;color:#94a3b8;margin-top:2px;">${dateStr}</p>
+                  </div>
 
-              // Parameters section
-              doc.setFillColor(248, 250, 252);
-              doc.roundedRect(15, y - 4, 180, 62, 3, 3, "F");
-              doc.setTextColor(30, 41, 59);
-              doc.setFontSize(12);
-              doc.setFont("helvetica", "bold");
-              doc.text("Parâmetros", 20, y + 4);
-              y += 14;
+                  <div style="background:#f8fafc;border-radius:10px;padding:12px;">
+                    <p style="font-size:9px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Parâmetros</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                      ${[
+                        { label: "Volume", value: `${sym} ${volume.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, color: "#2563eb" },
+                        { label: "Taxa no momento", value: curRate.toFixed(4), color: "#2563eb" },
+                        { label: "Taxa Treend estimada", value: trdRate.toFixed(4), color: "#22c55e" },
+                        { label: "Zona", value: zone.label, color: zone.color.includes("success") ? "#22c55e" : zone.color.includes("danger") ? "#ef4444" : "#eab308" },
+                      ].map(i => `
+                        <div style="display:flex;align-items:center;gap:6px;">
+                          <div style="width:28px;height:28px;border-radius:6px;background:${i.color}15;display:flex;align-items:center;justify-content:center;">
+                            <div style="width:12px;height:12px;border-radius:50%;background:${i.color}30;"></div>
+                          </div>
+                          <div>
+                            <p style="font-size:8px;color:#94a3b8;">${i.label}</p>
+                            <p style="font-size:11px;font-weight:700;color:${i.label === 'Taxa Treend estimada' ? '#22c55e' : i.label === 'Zona' ? i.color : '#1e293b'};">${i.value}</p>
+                          </div>
+                        </div>
+                      `).join("")}
+                    </div>
+                    <div style="border-top:1px solid #e2e8f0;margin-top:8px;padding-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                      ${[
+                        { label: "Perfil", value: profileLabels[profile] || profile },
+                        { label: "Spread bancário", value: `${spread.toFixed(1)}%` },
+                        { label: "Operações", value: `${opsRaw} / ${freqLabels[opsFrequency] || opsFrequency}` },
+                        { label: "Projeção", value: `${projMonths} meses` },
+                      ].map(i => `
+                        <div style="display:flex;align-items:center;gap:6px;">
+                          <div style="width:28px;height:28px;border-radius:6px;background:#2563eb15;display:flex;align-items:center;justify-content:center;">
+                            <div style="width:12px;height:12px;border-radius:50%;background:#2563eb30;"></div>
+                          </div>
+                          <div>
+                            <p style="font-size:8px;color:#94a3b8;">${i.label}</p>
+                            <p style="font-size:11px;font-weight:700;">${i.value}</p>
+                          </div>
+                        </div>
+                      `).join("")}
+                    </div>
+                  </div>
 
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "normal");
-              const params = [
-                ["Moeda", `${flag} ${currency}`],
-                ["Perfil", profileLbl],
-                ["Volume Mensal", `${sym} ${fmtFull(volume, currency).replace(sym + " ", "")}`],
-                ["Operações", `${opsPerMonth}/${freqLbl}`],
-                ["Spread", `${parseFloat(bankSpread).toFixed(1)}%`],
-                ["Projeção", `${projectionMonths} meses`],
-              ];
-              params.forEach(([label, value]) => {
-                doc.setTextColor(148, 163, 184);
-                doc.text(label, 25, y);
-                doc.setTextColor(30, 41, 59);
-                doc.setFont("helvetica", "bold");
-                doc.text(value, 185, y, { align: "right" });
-                doc.setFont("helvetica", "normal");
-                y += 7;
+                  <div style="background:#f8fafc;border-radius:10px;padding:12px;">
+                    <p style="font-size:9px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Resultado da Simulação</p>
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                      ${[
+                        { label: "Volume em BRL", value: `R$ ${(volume * curRate).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, color: "#1e293b" },
+                        { label: "Volume com Treend", value: `R$ ${(volume * trdRate).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, color: "#22c55e" },
+                        { label: "Diferença de taxa", value: `${rateDiff.toFixed(4)} (${rateDiffPct.toFixed(2)}%)`, color: "#1e293b" },
+                        { label: `Custo do spread (${spread.toFixed(1)}%)`, value: `-R$ ${spreadCost.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, color: "#ef4444" },
+                      ].map(i => `
+                        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #e2e8f030;border-radius:10px;padding:8px 10px;">
+                          <span style="font-size:10px;color:#94a3b8;">${i.label}</span>
+                          <span style="font-size:11px;font-weight:700;color:${i.color};">${i.value}</span>
+                        </div>
+                      `).join("")}
+                    </div>
+                  </div>
+
+                  <div style="border-radius:10px;padding:12px;border:1px solid ${savings >= 0 ? '#22c55e30' : '#ef444430'};background:${savings >= 0 ? '#22c55e08' : '#ef444408'};display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:11px;font-weight:500;color:#1e293b;">${savings >= 0 ? "Economia estimada" : "Custo adicional estimado"}</span>
+                    <span style="font-size:16px;font-weight:700;color:${savings >= 0 ? '#22c55e' : '#ef4444'};">
+                      ${savings >= 0 ? "+" : ""}${sym} ${savings.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+
+                  <div style="background:#f8fafc;border-radius:10px;padding:12px;">
+                    <p style="font-size:9px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Projeções</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+                      ${[
+                        { label: "6 meses", value: savings * 6 },
+                        { label: "12 meses", value: savings * 12 },
+                        { label: "24 meses", value: savings * 24 },
+                      ].map(p => `
+                        <div style="text-align:center;border:1px solid #e2e8f040;border-radius:10px;padding:8px;">
+                          <p style="font-size:8px;color:#94a3b8;margin-bottom:3px;">${p.label}</p>
+                          <p style="font-size:12px;font-weight:700;color:${p.value >= 0 ? '#22c55e' : '#ef4444'};">
+                            ${sym} ${Math.abs(p.value).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </p>
+                        </div>
+                      `).join("")}
+                    </div>
+                  </div>
+
+                  <p style="font-size:7px;color:#94a3b8;font-style:italic;text-align:center;margin-top:4px;">
+                    Esta simulação é meramente ilustrativa. A decisão final é de responsabilidade do usuário.
+                  </p>
+                </div>
+              `;
+
+              document.body.appendChild(container);
+              await new Promise((r) => setTimeout(r, 100));
+
+              const canvas = await html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#ffffff",
+                logging: false,
               });
 
-              y += 10;
+              document.body.removeChild(container);
 
-              // Rates
-              doc.setFillColor(239, 246, 255);
-              doc.roundedRect(15, y - 4, 180, 28, 3, 3, "F");
-              doc.setTextColor(37, 99, 235);
-              doc.setFontSize(11);
-              doc.setFont("helvetica", "bold");
-              doc.text("Taxas de Câmbio", 20, y + 4);
-              y += 14;
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "normal");
-              doc.setTextColor(100, 116, 139);
-              doc.text(`Taxa Atual: ${curRate.toFixed(4)}`, 25, y);
-              doc.text(`Treend: ${trdRate.toFixed(4)}`, 100, y);
-              doc.text(`Efetiva: ${metrics.effectiveRate.toFixed(4)}`, 160, y);
+              const imgData = canvas.toDataURL("image/png");
+              const A4_W = 210;
+              const A4_H = 297;
+              const MARGIN = 10;
+              const contentW = A4_W - MARGIN * 2;
+              const maxH = A4_H - MARGIN * 2;
+              const naturalH = (canvas.height / canvas.width) * contentW;
+              let finalW = contentW;
+              let finalH = naturalH;
+              if (finalH > maxH) {
+                const shrink = maxH / finalH;
+                finalW *= shrink;
+                finalH = maxH;
+              }
 
-              y += 18;
-
-              // Results
-              doc.setTextColor(30, 41, 59);
-              doc.setFontSize(12);
-              doc.setFont("helvetica", "bold");
-              doc.text("Resultados", 20, y);
-              y += 10;
-
-              const results = [
-                ["Economia Mensal", `${isPositive ? "" : "-"}${sym} ${fmtFull(Math.abs(metrics.netMonth), currency).replace(sym + " ", "")}`, isPositive],
-                ["Economia Anual", `${isPositive ? "" : "-"}${sym} ${fmtFull(Math.abs(metrics.netYear), currency).replace(sym + " ", "")}`, isPositive],
-                ["Economia Bruta", `${sym} ${fmtFull(metrics.grossMonth, currency).replace(sym + " ", "")}`, true],
-                ["Custo Spread", `-${sym} ${fmtFull(metrics.spreadCost, currency).replace(sym + " ", "")}`, false],
-                ["Diferença de Taxa", `${metrics.rateDiffPct.toFixed(2)}%`, true],
-                ["Percentual Líquido", `${metrics.netPct.toFixed(2)}%`, metrics.netPct >= 0],
-                [`Projeção ${projMonths}m`, `${isPositive ? "" : "-"}${sym} ${fmtFull(Math.abs(metrics.netMonth * projMonths), currency).replace(sym + " ", "")}`, isPositive],
-              ];
-
-              results.forEach(([label, value, positive]) => {
-                doc.setTextColor(148, 163, 184);
-                doc.setFont("helvetica", "normal");
-                doc.text(label as string, 25, y);
-                doc.setTextColor(positive ? 22 : 220, positive ? 163 : 38, positive ? 74 : 38);
-                doc.setFont("helvetica", "bold");
-                doc.text(value as string, 185, y, { align: "right" });
-                y += 8;
-              });
-
-              y += 8;
-
-              // Health
-              const healthMap = { good: { text: "Saudável", r: 22, g: 163, b: 74 }, warning: { text: "Atenção", r: 234, g: 179, b: 8 }, bad: { text: "Crítico", r: 220, g: 38, b: 38 } };
-              const h = healthMap[metrics.overallHealth as keyof typeof healthMap];
-              doc.setFillColor(h.r, h.g, h.b);
-              doc.roundedRect(15, y - 4, 180, 16, 3, 3, "F");
-              doc.setTextColor(255, 255, 255);
-              doc.setFontSize(11);
-              doc.setFont("helvetica", "bold");
-              doc.text(`Saúde da Operação: ${h.text}`, 105, y + 6, { align: "center" });
-
-              y += 24;
-
-              // Disclaimer
-              doc.setTextColor(148, 163, 184);
-              doc.setFontSize(8);
-              doc.setFont("helvetica", "italic");
-              doc.text("Esta simulação é meramente ilustrativa. A decisão final é de responsabilidade do usuário.", 105, y, { align: "center" });
-
-              // Footer
-              doc.setFillColor(37, 99, 235);
-              doc.rect(0, 280, 210, 17, "F");
-              doc.setTextColor(255, 255, 255);
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "bold");
-              doc.text("treend", 105, 290, { align: "center" });
-              doc.setFontSize(7);
-              doc.setFont("helvetica", "normal");
-              doc.text(`© ${new Date().getFullYear()} Treend. Todos os direitos reservados.`, 105, 295, { align: "center" });
-
+              const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+              const offsetX = (A4_W - finalW) / 2;
+              doc.addImage(imgData, "PNG", offsetX, MARGIN, finalW, finalH);
               doc.save(`treend-simulacao-${currency.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.pdf`);
               toast({ title: "PDF gerado!", description: "Download iniciado." });
             } catch (err: any) {
