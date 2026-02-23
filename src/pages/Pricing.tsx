@@ -1,20 +1,48 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Shield, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import treendLogo from "@/assets/treend-logo.png";
 import loginMarketVideo from "@/assets/login-market-video.mp4";
-
-const CHECKOUT_URL = "https://buy.stripe.com/3cI00jcdzer12eVeaj0Ny05";
+import { useAuth, STRIPE_PLANS } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const PricingPage = () => {
-  const [loading, setLoading] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { user, subscription } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleCheckout = () => {
-    setLoading(true);
-    window.open(CHECKOUT_URL, "_blank");
-    setTimeout(() => setLoading(false), 2000);
+  const handleCheckout = async (planKey: "monthly" | "annual") => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    setLoadingPlan(planKey);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: STRIPE_PLANS[planKey].priceId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("URL de checkout não retornada");
+      }
+    } catch (err: any) {
+      toast({
+        title: "Erro ao iniciar checkout",
+        description: err.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPlan(null);
+    }
   };
+
+  const currentProductId = subscription.productId;
 
   return (
     <div className="min-h-screen flex">
@@ -32,16 +60,36 @@ const PricingPage = () => {
             Desbloqueie acesso completo à plataforma de consultoria cambial mais inteligente do Brasil.
           </p>
 
+          {/* Monthly Plan */}
           <Button
             size="lg"
-            onClick={handleCheckout}
-            disabled={loading}
+            variant="outline"
+            onClick={() => handleCheckout("monthly")}
+            disabled={loadingPlan !== null || currentProductId === STRIPE_PLANS.monthly.productId}
+            className="w-full h-14 text-base font-semibold rounded-xl mb-3"
+          >
+            {loadingPlan === "monthly" ? (
+              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Abrindo checkout...</>
+            ) : currentProductId === STRIPE_PLANS.monthly.productId ? (
+              "Plano atual — Mensal R$49,90/mês"
+            ) : (
+              <>Mensal — R$49,90/mês</>
+            )}
+          </Button>
+
+          {/* Annual Plan */}
+          <Button
+            size="lg"
+            onClick={() => handleCheckout("annual")}
+            disabled={loadingPlan !== null || currentProductId === STRIPE_PLANS.annual.productId}
             className="w-full h-14 text-base font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            {loading ? (
+            {loadingPlan === "annual" ? (
               <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Abrindo checkout...</>
+            ) : currentProductId === STRIPE_PLANS.annual.productId ? (
+              "Plano atual — Anual R$299/ano"
             ) : (
-              <>Teste Grátis por 7 dias</>
+              <>Anual — R$299/ano <span className="ml-2 text-xs opacity-80">(economize 50%)</span></>
             )}
           </Button>
 
@@ -49,7 +97,7 @@ const PricingPage = () => {
             size="lg"
             variant="outline"
             className="w-full h-14 text-base font-semibold rounded-xl mt-3"
-            onClick={() => window.open("https://app.treend.com.br/login", "_blank")}
+            onClick={() => navigate(user ? "/dashboard" : "/login")}
           >
             <ExternalLink className="mr-2 h-5 w-5" /> Acessar a Plataforma
           </Button>

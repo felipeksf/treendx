@@ -1,9 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import treendLogo from "@/assets/treend-logo.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import PricingCard from "@/components/PricingCard";
+import { useAuth, STRIPE_PLANS } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import {
   TrendingUp,
   BarChart3,
@@ -64,6 +68,33 @@ const pricingFeatures = [
 ];
 
 const Index = () => {
+  const { user, subscription } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const handleCheckout = async (planKey: "monthly" | "annual") => {
+    if (!user) {
+      navigate("/register");
+      return;
+    }
+    setLoadingPlan(planKey);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: STRIPE_PLANS[planKey].priceId },
+      });
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
+      else throw new Error("URL de checkout não retornada");
+    } catch (err: any) {
+      toast({ title: "Erro ao iniciar checkout", description: err.message, variant: "destructive" });
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
+  const currentProductId = subscription.productId;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
@@ -168,6 +199,9 @@ const Index = () => {
               price="R$49,90"
               period="mês"
               features={pricingFeatures}
+              onSelect={() => handleCheckout("monthly")}
+              isCurrentPlan={currentProductId === STRIPE_PLANS.monthly.productId}
+              loading={loadingPlan === "monthly"}
             />
             <PricingCard
               name="Anual"
@@ -176,6 +210,9 @@ const Index = () => {
               features={[...pricingFeatures, "Economia de 50% vs mensal"]}
               highlighted
               badge="Mais popular"
+              onSelect={() => handleCheckout("annual")}
+              isCurrentPlan={currentProductId === STRIPE_PLANS.annual.productId}
+              loading={loadingPlan === "annual"}
             />
           </div>
         </div>
