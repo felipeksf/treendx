@@ -25,47 +25,56 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2025-08-27.basil",
+    });
+
+    // Try to get authenticated user (optional)
+    let user: { id: string; email: string } | null = null;
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data } = await supabaseClient.auth.getUser(token);
+      if (data.user?.email) {
+        user = { id: data.user.id, email: data.user.email };
+        logStep("User authenticated", { userId: user.id, email: user.email });
+      }
+    }
 
     const { priceId } = await req.json();
     if (!priceId) throw new Error("priceId is required");
     logStep("Price requested", { priceId });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
-    });
-
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Existing Stripe customer", { customerId });
-    } else {
-      logStep("No existing customer, will create on checkout");
+    let customerId: string | undefined;
+    if (user) {
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        logStep("Existing Stripe customer", { customerId });
+      } else {
+        logStep("No existing customer, will create on checkout");
+      }
     }
 
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
+    const sessionParams: any = {
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
       subscription_data: {
         trial_period_days: 7,
-        metadata: {
-          user_id: user.id,
-        },
+        ...(user ? { metadata: { user_id: user.id } } : {}),
       },
-      metadata: {
-        user_id: user.id,
-      },
+      ...(user ? { metadata: { user_id: user.id } } : {}),
       success_url: `${req.headers.get("origin")}/dashboard?checkout=success`,
       cancel_url: `${req.headers.get("origin")}/pricing`,
-    });
+    };
+
+    if (customerId) {
+      sessionParams.customer = customerId;
+    } else if (user) {
+      sessionParams.customer_email = user.email;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url }), {
