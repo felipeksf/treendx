@@ -150,128 +150,60 @@ const HistoryPage = () => {
   const handleDownloadPDF = useCallback(async (decision: any) => {
     setDownloadingPDF(true);
     try {
+      // Ensure the modal is open so the content is rendered
+      setViewDecision(decision);
+      // Wait for DOM to render
+      await new Promise((r) => setTimeout(r, 400));
+
+      const el = document.getElementById("simulation-detail-content");
+      if (!el) throw new Error("Conteúdo não encontrado");
+
+      const { default: html2canvas } = await import("html2canvas");
       const { default: jsPDF } = await import("jspdf");
-      const doc = new jsPDF();
-      const sym = currencySymbol(decision.currency);
-      const flag = currencyFlag(decision.currency);
-      const s = getSimData(decision);
 
-      // Header
-      doc.setFillColor(37, 99, 235);
-      doc.rect(0, 0, 210, 40, "F");
-      doc.setFontSize(28);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(255);
-      doc.text("treend", 105, 22, { align: "center" });
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      doc.text("Resumo da Simulação", 105, 32, { align: "center" });
-
-      doc.setTextColor(30, 41, 59);
-      let y = 55;
-
-      // Title
-      doc.setFontSize(16);
-      doc.setFont("helvetica", "bold");
-      doc.text(`${flag} Simulação — ${decision.currency}`, 20, y);
-      y += 8;
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(148, 163, 184);
-      doc.text(formatDateBR(decision.created_at), 20, y);
-      y += 14;
-
-      // Parameters section
-      doc.setTextColor(30, 41, 59);
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "bold");
-      doc.text("PARÂMETROS", 20, y);
-      y += 8;
-
-      doc.setFontSize(9);
-      const params = [
-        ["Moeda", `${flag} ${decision.currency}`],
-        ["Perfil", s.profileLabels[s.savedProfile] || s.savedProfile],
-        ["Volume", `${sym} ${s.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
-        ["Taxa no momento", s.rate.toFixed(4)],
-        ["Taxa Treend estimada", s.savedTreendRate.toFixed(4)],
-        ["Zona", decision.zone || "—"],
-        ["Spread bancário", `${s.savedSpread.toFixed(1)}%`],
-        ["Operações", `${s.savedOps} / ${s.freqLabels[s.savedFreq] || s.savedFreq}`],
-        ["Projeção", `${s.savedProjMonths} meses`],
-      ];
-      params.forEach(([label, value]) => {
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(148, 163, 184);
-        doc.text(String(label), 20, y);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(30, 41, 59);
-        doc.text(String(value), 100, y);
-        y += 7;
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
       });
 
-      y += 6;
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "bold");
-      doc.text("RESULTADO DA SIMULAÇÃO", 20, y);
-      y += 8;
+      const imgData = canvas.toDataURL("image/png");
+      const imgW = canvas.width;
+      const imgH = canvas.height;
 
-      doc.setFontSize(9);
-      const results = [
-        ["Volume em BRL", `R$ ${s.curBRL.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
-        ["Volume com Treend", `R$ ${s.trdBRL.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
-        ["Diferença de taxa", `${s.rateDiff.toFixed(4)} (${s.rateDiffPct.toFixed(2)}%)`],
-        ["Custo do spread", `-R$ ${s.spreadCost.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
-      ];
-      results.forEach(([label, value]) => {
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(148, 163, 184);
-        doc.text(String(label), 20, y);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(30, 41, 59);
-        doc.text(String(value), 100, y);
-        y += 7;
-      });
+      const A4_W = 210;
+      const MARGIN = 15;
+      const contentW = A4_W - MARGIN * 2;
+      const ratio = contentW / (imgW / 2);
+      const contentH = (imgH / 2) * ratio;
 
-      // Economy highlight
-      y += 6;
-      const isPos = s.savings >= 0;
-      doc.setFillColor(isPos ? 240 : 254, isPos ? 253 : 242, isPos ? 244 : 242);
-      doc.roundedRect(20, y - 4, 170, 16, 4, 4, "F");
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(isPos ? 22 : 153, isPos ? 101 : 27, isPos ? 52 : 27);
-      doc.text(isPos ? "Economia estimada" : "Custo adicional estimado", 25, y + 5);
-      doc.text(`${isPos ? "+" : ""}${sym} ${s.savings.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 185, y + 5, { align: "right" });
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageH = 297 - MARGIN * 2;
 
-      // Projections
-      y += 24;
-      doc.setTextColor(30, 41, 59);
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "bold");
-      doc.text("PROJEÇÕES", 20, y);
-      y += 8;
-      doc.setFontSize(9);
-      [
-        { label: "6 meses", value: s.savings * 6 },
-        { label: "12 meses", value: s.savings * 12 },
-        { label: "24 meses", value: s.savings * 24 },
-      ].forEach((proj) => {
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(148, 163, 184);
-        doc.text(proj.label, 20, y);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(proj.value >= 0 ? 22 : 153, proj.value >= 0 ? 101 : 27, proj.value >= 0 ? 52 : 27);
-        doc.text(`${sym} ${Math.abs(proj.value).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, 100, y);
-        y += 7;
-      });
-
-      // Footer
-      y += 10;
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "italic");
-      doc.setTextColor(148, 163, 184);
-      doc.text("Esta simulação é meramente ilustrativa. A decisão final é de responsabilidade do usuário.", 105, y, { align: "center" });
+      // If content fits one page
+      if (contentH <= pageH) {
+        doc.addImage(imgData, "PNG", MARGIN, MARGIN, contentW, contentH);
+      } else {
+        // Multi-page: slice the canvas
+        const pxPerPage = (pageH / ratio) * 2; // in canvas pixels
+        let srcY = 0;
+        let page = 0;
+        while (srcY < imgH) {
+          if (page > 0) doc.addPage();
+          const sliceH = Math.min(pxPerPage, imgH - srcY);
+          const sliceCanvas = document.createElement("canvas");
+          sliceCanvas.width = imgW;
+          sliceCanvas.height = sliceH;
+          const ctx = sliceCanvas.getContext("2d");
+          ctx?.drawImage(canvas, 0, srcY, imgW, sliceH, 0, 0, imgW, sliceH);
+          const sliceImg = sliceCanvas.toDataURL("image/png");
+          const sliceMM = (sliceH / 2) * ratio;
+          doc.addImage(sliceImg, "PNG", MARGIN, MARGIN, contentW, sliceMM);
+          srcY += sliceH;
+          page++;
+        }
+      }
 
       doc.save(`simulacao-treend-${decision.currency}-${formatDateBR(decision.created_at).replace(/\//g, "-")}.pdf`);
     } finally {
@@ -455,7 +387,7 @@ const HistoryPage = () => {
             const zoneInfo = getZoneLabel(rawPct);
 
             return (
-              <div className="space-y-5">
+              <div id="simulation-detail-content" className="space-y-5">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-lg">
                     <span className="text-xl">{flag}</span>
@@ -619,7 +551,7 @@ const HistoryPage = () => {
                   </div>
                 </div>
                 {/* Action buttons */}
-                <div className="flex gap-2 pt-2 border-t border-border/30">
+                <div className="flex gap-2 pt-2 border-t border-border/30" data-html2canvas-ignore="true">
                   <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs" onClick={() => handleDownloadPDF(d)} disabled={downloadingPDF}>
                     {downloadingPDF ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
                     Baixar PDF
