@@ -27,125 +27,36 @@ serve(async (req) => {
 
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Treend – Seus dados de acesso</title>
-</head>
-<body style="margin:0;padding:0;background-color:#f0f4ff;font-family:'Plus Jakarta Sans',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
-  <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(59,130,246,0.12);">
-
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
-      <tr><td align="center" style="padding:28px 48px 20px;">
-        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="120" style="display:block;border:0;outline:none;height:auto;max-height:120px;" />
-        <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:8px;">
-          O Seu Guia Definitivo de Câmbio com IA
-        </div>
-      </td></tr>
-    </table>
-
-    <!-- Hero Strip -->
-    <div style="background:#eff6ff;border-bottom:1px solid #dbeafe;padding:28px 48px;">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
-        <td width="68" valign="middle">
-          <div style="width:52px;height:52px;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:14px;text-align:center;line-height:52px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-        </td>
-        <td valign="middle" style="padding-left:16px;">
-          <div style="font-size:17px;font-weight:700;color:#1e3a5f;line-height:1.3;">Seus dados de acesso chegaram!</div>
-          <div style="font-size:13.5px;color:#64748b;margin-top:3px;">Acesse sua conta e comece a acompanhar o câmbio agora.</div>
-        </td>
-      </tr></table>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#eef2fb;font-family:'Inter',Arial,sans-serif;">
+  <div style="max-width:680px;margin:0 auto;border-radius:24px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.10);">
+    <div style="background:linear-gradient(135deg,#2563eb 0%,#1a40c8 100%);padding:48px 40px 40px;text-align:center;">
+      <div style="font-family:'Inter',Arial,sans-serif;font-size:48px;font-weight:800;color:#ffffff;letter-spacing:-2px;line-height:1;">treend</div>
+      <div style="color:rgba(255,255,255,0.75);font-size:18px;font-weight:500;margin-top:16px;letter-spacing:0.5px;">Seus dados de acesso</div>
     </div>
-
-    <!-- Body -->
-    <div style="padding:40px 48px 32px;">
-      <div style="font-size:22px;font-weight:700;color:#1e3a5f;margin-bottom:12px;">
-        Olá, <span style="color:#3b82f6;">${firstName}</span>! 👋
-      </div>
-      <p style="font-size:15px;color:#475569;line-height:1.7;margin:0 0 32px;">
-        Sua conta no Treend foi criada com sucesso. Abaixo você encontra
-        seu e-mail de acesso. Clique no botão para entrar na plataforma e começar a acompanhar
-        o câmbio em tempo real com inteligência artificial.
+    <div style="background:#ffffff;padding:52px 48px 48px;">
+      <h1 style="font-size:34px;font-weight:800;color:#1e293b;margin:0 0 20px;">Olá, <span style="color:#2563eb;">${firstName}</span>! 👋</h1>
+      <p style="font-size:20px;color:#475569;line-height:1.7;margin:0 0 36px;">
+        Sua conta no Treend foi criada com sucesso. Abaixo você encontra seu e-mail de acesso. Clique no botão para entrar na plataforma e começar a acompanhar o câmbio em tempo real com inteligência artificial.
       </p>
-
-      <!-- Credentials Card -->
-      <div style="background:#f8faff;border:1.5px solid #dbeafe;border-radius:16px;overflow:hidden;margin-bottom:28px;">
-        <div style="background:#eff6ff;padding:14px 24px;font-size:11px;font-weight:700;color:#3b82f6;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid #dbeafe;">
-          ✉️  Seu E-mail de Acesso
-        </div>
-        <!-- Email row -->
-        <table cellpadding="0" cellspacing="0" border="0" width="100%">
-          <tr>
-            <td style="padding:18px 24px;">
-              <table cellpadding="0" cellspacing="0" border="0"><tr>
-                <td width="52" valign="middle">
-                  <div style="width:36px;height:36px;background:#eff6ff;border-radius:10px;text-align:center;line-height:36px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                  </div>
-                </td>
-                <td valign="middle">
-                  <div style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:3px;">E-mail</div>
-                  <div style="font-size:15.5px;font-weight:700;color:#1e3a5f;letter-spacing:0.3px;word-break:break-all;">${email}</div>
-                </td>
-              </tr></table>
-            </td>
-          </tr>
-        </table>
+      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:16px;padding:24px 28px;margin-bottom:40px;">
+        <p style="font-size:18px;color:#374151;margin:0;">✉️ <strong style="color:#166534;">E-mail de acesso:</strong> ${email}</p>
       </div>
-
-      <!-- CTA -->
-      <div style="text-align:center;margin:8px 0 32px;">
-        <a href="https://app.treend.com.br/login" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:16px 44px;border-radius:12px;letter-spacing:0.3px;box-shadow:0 4px 20px rgba(59,130,246,0.35);">
-          Acessar minha conta →
-        </a>
+      <div style="text-align:center;margin-bottom:36px;">
+        <a href="https://app.treend.com.br/login" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:20px;font-weight:700;text-decoration:none;padding:20px 48px;border-radius:14px;letter-spacing:0.2px;">Acessar minha conta →</a>
       </div>
-
-      <!-- Security Notice -->
-      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;margin-bottom:32px;">
-        <table cellpadding="0" cellspacing="0" border="0"><tr>
-          <td width="32" valign="top">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-          </td>
-          <td>
-            <p style="font-size:13px;color:#92400e;line-height:1.6;margin:0;">
-              Esqueceu sua senha? Sem problema! Na página de login, clique em
-              <strong style="color:#b45309;">"Esqueci minha senha"</strong> para redefinir e criar uma nova senha de forma rápida e segura.
-              Caso não tenha solicitado este cadastro, entre em contato conosco imediatamente.
-            </p>
-          </td>
-        </tr></table>
+      <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:16px;padding:24px 28px;margin-bottom:40px;">
+        <p style="font-size:18px;color:#92400e;margin:0;">⚠️ Esqueceu sua senha? Na página de login, clique em <strong style="color:#b45309;">"Esqueci minha senha"</strong> para redefinir.</p>
       </div>
-
-      <div style="height:1px;background:#e2e8f0;margin:0 0 28px;"></div>
-
-      <!-- Support -->
-      <div style="text-align:center;font-size:13.5px;color:#64748b;margin-bottom:8px;line-height:1.7;">
-        Dúvidas ou problemas? Nossa equipe está pronta para te ajudar.<br/>
-        Fale conosco em <a href="mailto:suporte@treend.com.br" style="color:#3b82f6;font-weight:600;text-decoration:none;">suporte@treend.com.br</a>
-      </div>
+      <p style="text-align:center;font-size:17px;color:#94a3b8;margin:0;">Dúvidas? Fale conosco em <a href="mailto:suporte@treend.com.br" style="color:#2563eb;font-weight:700;text-decoration:none;">suporte@treend.com.br</a></p>
     </div>
-
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
-      <tr><td align="center" style="padding:28px 48px;">
-        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="60" style="display:block;border:0;outline:none;height:auto;max-height:60px;margin-bottom:14px;" />
-        <div style="margin-bottom:14px;">
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Política de Privacidade</a>
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Termos de Uso</a>
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Central de Ajuda</a>
-        </div>
-        <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
-          © ${new Date().getFullYear()} Treend. Todos os direitos reservados.<br/>
-          Você está recebendo este e-mail porque realizou um cadastro em nosso sistema.
-        </div>
-      </td></tr>
-    </table>
-
+    <div style="background:linear-gradient(135deg,#2563eb 0%,#1a40c8 100%);padding:40px 40px 36px;text-align:center;">
+      <div style="font-family:'Inter',Arial,sans-serif;font-size:36px;font-weight:800;color:#ffffff;letter-spacing:-2px;line-height:1;margin-bottom:16px;">treend</div>
+      <p style="color:rgba(255,255,255,0.55);font-size:14px;margin-top:12px;">© ${new Date().getFullYear()} Treend. Todos os direitos reservados.</p>
+    </div>
   </div>
 </body>
 </html>`;
-
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {

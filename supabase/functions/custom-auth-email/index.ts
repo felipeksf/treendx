@@ -9,93 +9,30 @@ const corsHeaders = {
 function buildResetPasswordHtml(email: string, confirmationUrl: string) {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Treend – Redefinição de Senha</title>
-</head>
-<body style="margin:0;padding:0;background-color:#f0f4ff;font-family:'Plus Jakarta Sans',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
-  <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(59,130,246,0.12);">
-
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
-      <tr><td align="center" style="padding:28px 48px 20px;">
-        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="120" style="display:block;border:0;outline:none;height:auto;max-height:120px;" />
-        <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:8px;">
-          O Seu Guia Definitivo de Câmbio com IA
-        </div>
-      </td></tr>
-    </table>
-
-    <!-- Hero Strip -->
-    <div style="background:#eff6ff;border-bottom:1px solid #dbeafe;padding:28px 48px;">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
-        <td width="68" valign="middle">
-          <div style="width:52px;height:52px;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:14px;text-align:center;line-height:52px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-          </div>
-        </td>
-        <td valign="middle" style="padding-left:16px;">
-          <div style="font-size:17px;font-weight:700;color:#1e3a5f;line-height:1.3;">Redefinição de senha solicitada</div>
-          <div style="font-size:13.5px;color:#64748b;margin-top:3px;">Clique no botão abaixo para criar uma nova senha.</div>
-        </td>
-      </tr></table>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#eef2fb;font-family:'Inter',Arial,sans-serif;">
+  <div style="max-width:680px;margin:0 auto;border-radius:24px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.10);">
+    <div style="background:linear-gradient(135deg,#2563eb 0%,#1a40c8 100%);padding:48px 40px 40px;text-align:center;">
+      <div style="font-family:'Inter',Arial,sans-serif;font-size:48px;font-weight:800;color:#ffffff;letter-spacing:-2px;line-height:1;">treend</div>
+      <div style="color:rgba(255,255,255,0.75);font-size:18px;font-weight:500;margin-top:16px;letter-spacing:0.5px;">Redefinição de Senha</div>
     </div>
-
-    <!-- Body -->
-    <div style="padding:40px 48px 32px;">
-      <div style="font-size:22px;font-weight:700;color:#1e3a5f;margin-bottom:12px;">
-        Olá! 👋
-      </div>
-      <p style="font-size:15px;color:#475569;line-height:1.7;margin:0 0 32px;">
-        Recebemos uma solicitação para redefinir a senha da sua conta associada ao e-mail
-        <strong style="color:#1e3a5f;">${email}</strong>. Clique no botão abaixo para criar uma nova senha de acesso.
+    <div style="background:#ffffff;padding:52px 48px 48px;">
+      <h1 style="font-size:34px;font-weight:800;color:#1e293b;margin:0 0 20px;">Olá! 👋</h1>
+      <p style="font-size:20px;color:#475569;line-height:1.7;margin:0 0 36px;">
+        Recebemos uma solicitação para redefinir a senha da sua conta associada ao e-mail <strong style="color:#1e293b;">${email}</strong>. Clique no botão abaixo para criar uma nova senha de acesso.
       </p>
-
-      <!-- CTA -->
-      <div style="text-align:center;margin:8px 0 32px;">
-        <a href="${confirmationUrl}" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:16px 44px;border-radius:12px;letter-spacing:0.3px;box-shadow:0 4px 20px rgba(59,130,246,0.35);">
-          Redefinir minha senha →
-        </a>
+      <div style="text-align:center;margin-bottom:36px;">
+        <a href="${confirmationUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:20px;font-weight:700;text-decoration:none;padding:20px 48px;border-radius:14px;letter-spacing:0.2px;">Redefinir minha senha →</a>
       </div>
-
-      <!-- Security Notice -->
-      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;margin-bottom:32px;">
-        <table cellpadding="0" cellspacing="0" border="0"><tr>
-          <td width="32" valign="top">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-          </td>
-          <td>
-            <p style="font-size:13px;color:#92400e;line-height:1.6;margin:0;">
-              Este link expira em <strong style="color:#b45309;">1 hora</strong>. Se você não solicitou esta redefinição,
-              ignore este e-mail — sua senha permanecerá inalterada.
-            </p>
-          </td>
-        </tr></table>
+      <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:16px;padding:24px 28px;margin-bottom:40px;">
+        <p style="font-size:18px;color:#92400e;margin:0;">⚠️ Este link expira em <strong style="color:#b45309;">1 hora</strong>. Se você não solicitou esta redefinição, ignore este e-mail.</p>
       </div>
-
-      <div style="height:1px;background:#e2e8f0;margin:0 0 28px;"></div>
-
-      <!-- Support -->
-      <div style="text-align:center;font-size:13.5px;color:#64748b;margin-bottom:8px;line-height:1.7;">
-        Dúvidas ou problemas? Nossa equipe está pronta para te ajudar.<br/>
-        Fale conosco em <a href="mailto:suporte@treend.com.br" style="color:#3b82f6;font-weight:600;text-decoration:none;">suporte@treend.com.br</a>
-      </div>
+      <p style="text-align:center;font-size:17px;color:#94a3b8;margin:0;">Dúvidas? Fale conosco em <a href="mailto:suporte@treend.com.br" style="color:#2563eb;font-weight:700;text-decoration:none;">suporte@treend.com.br</a></p>
     </div>
-
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
-      <tr><td align="center" style="padding:28px 48px;">
-        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="60" style="display:block;border:0;outline:none;height:auto;max-height:60px;margin-bottom:14px;" />
-        <div style="margin-bottom:14px;">
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Política de Privacidade</a>
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Termos de Uso</a>
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Central de Ajuda</a>
-        </div>
-        <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
-          © ${new Date().getFullYear()} Treend. Todos os direitos reservados.
-        </div>
-      </td></tr>
-    </table>
-
+    <div style="background:linear-gradient(135deg,#2563eb 0%,#1a40c8 100%);padding:40px 40px 36px;text-align:center;">
+      <div style="font-family:'Inter',Arial,sans-serif;font-size:36px;font-weight:800;color:#ffffff;letter-spacing:-2px;line-height:1;margin-bottom:16px;">treend</div>
+      <p style="color:rgba(255,255,255,0.55);font-size:14px;margin-top:12px;">© ${new Date().getFullYear()} Treend. Todos os direitos reservados.</p>
+    </div>
   </div>
 </body>
 </html>`;
@@ -104,78 +41,27 @@ function buildResetPasswordHtml(email: string, confirmationUrl: string) {
 function buildConfirmationHtml(email: string, confirmationUrl: string) {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Treend – Confirme seu e-mail</title>
-</head>
-<body style="margin:0;padding:0;background-color:#f0f4ff;font-family:'Plus Jakarta Sans',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
-  <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(59,130,246,0.12);">
-
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
-      <tr><td align="center" style="padding:28px 48px 20px;">
-        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="120" style="display:block;border:0;outline:none;height:auto;max-height:120px;" />
-        <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:8px;">
-          O Seu Guia Definitivo de Câmbio com IA
-        </div>
-      </td></tr>
-    </table>
-
-    <!-- Hero Strip -->
-    <div style="background:#eff6ff;border-bottom:1px solid #dbeafe;padding:28px 48px;">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
-        <td width="68" valign="middle">
-          <div style="width:52px;height:52px;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:14px;text-align:center;line-height:52px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-        </td>
-        <td valign="middle" style="padding-left:16px;">
-          <div style="font-size:17px;font-weight:700;color:#1e3a5f;line-height:1.3;">Confirme seu e-mail</div>
-          <div style="font-size:13.5px;color:#64748b;margin-top:3px;">Um último passo para ativar sua conta.</div>
-        </td>
-      </tr></table>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#eef2fb;font-family:'Inter',Arial,sans-serif;">
+  <div style="max-width:680px;margin:0 auto;border-radius:24px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.10);">
+    <div style="background:linear-gradient(135deg,#2563eb 0%,#1a40c8 100%);padding:48px 40px 40px;text-align:center;">
+      <div style="font-family:'Inter',Arial,sans-serif;font-size:48px;font-weight:800;color:#ffffff;letter-spacing:-2px;line-height:1;">treend</div>
+      <div style="color:rgba(255,255,255,0.75);font-size:18px;font-weight:500;margin-top:16px;letter-spacing:0.5px;">Confirme seu E-mail</div>
     </div>
-
-    <!-- Body -->
-    <div style="padding:40px 48px 32px;">
-      <div style="font-size:22px;font-weight:700;color:#1e3a5f;margin-bottom:12px;">
-        Olá! 👋
-      </div>
-      <p style="font-size:15px;color:#475569;line-height:1.7;margin:0 0 32px;">
-        Obrigado por se cadastrar no Treend! Clique no botão abaixo para confirmar seu e-mail
-        <strong style="color:#1e3a5f;">${email}</strong> e ativar sua conta.
+    <div style="background:#ffffff;padding:52px 48px 48px;">
+      <h1 style="font-size:34px;font-weight:800;color:#1e293b;margin:0 0 20px;">Olá! 👋</h1>
+      <p style="font-size:20px;color:#475569;line-height:1.7;margin:0 0 36px;">
+        Obrigado por se cadastrar no Treend! Clique no botão abaixo para confirmar seu e-mail <strong style="color:#1e293b;">${email}</strong> e ativar sua conta.
       </p>
-
-      <!-- CTA -->
-      <div style="text-align:center;margin:8px 0 32px;">
-        <a href="${confirmationUrl}" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:16px 44px;border-radius:12px;letter-spacing:0.3px;box-shadow:0 4px 20px rgba(59,130,246,0.35);">
-          Confirmar meu e-mail →
-        </a>
+      <div style="text-align:center;margin-bottom:36px;">
+        <a href="${confirmationUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:20px;font-weight:700;text-decoration:none;padding:20px 48px;border-radius:14px;letter-spacing:0.2px;">Confirmar meu e-mail →</a>
       </div>
-
-      <div style="height:1px;background:#e2e8f0;margin:0 0 28px;"></div>
-
-      <!-- Support -->
-      <div style="text-align:center;font-size:13.5px;color:#64748b;margin-bottom:8px;line-height:1.7;">
-        Dúvidas ou problemas? Nossa equipe está pronta para te ajudar.<br/>
-        Fale conosco em <a href="mailto:suporte@treend.com.br" style="color:#3b82f6;font-weight:600;text-decoration:none;">suporte@treend.com.br</a>
-      </div>
+      <p style="text-align:center;font-size:17px;color:#94a3b8;margin:0;">Dúvidas? Fale conosco em <a href="mailto:suporte@treend.com.br" style="color:#2563eb;font-weight:700;text-decoration:none;">suporte@treend.com.br</a></p>
     </div>
-
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#2563eb" style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);">
-      <tr><td align="center" style="padding:28px 48px;">
-        <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" width="60" style="display:block;border:0;outline:none;height:auto;max-height:60px;margin-bottom:14px;" />
-        <div style="margin-bottom:14px;">
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Política de Privacidade</a>
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Termos de Uso</a>
-          <a href="#" style="font-size:12.5px;color:rgba(255,255,255,0.7);text-decoration:none;margin:0 10px;">Central de Ajuda</a>
-        </div>
-        <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
-          © ${new Date().getFullYear()} Treend. Todos os direitos reservados.
-        </div>
-      </td></tr>
-    </table>
-
+    <div style="background:linear-gradient(135deg,#2563eb 0%,#1a40c8 100%);padding:40px 40px 36px;text-align:center;">
+      <div style="font-family:'Inter',Arial,sans-serif;font-size:36px;font-weight:800;color:#ffffff;letter-spacing:-2px;line-height:1;margin-bottom:16px;">treend</div>
+      <p style="color:rgba(255,255,255,0.55);font-size:14px;margin-top:12px;">© ${new Date().getFullYear()} Treend. Todos os direitos reservados.</p>
+    </div>
   </div>
 </body>
 </html>`;
@@ -195,7 +81,6 @@ serve(async (req) => {
     const payload = await req.json();
     console.log("Auth hook payload type:", payload.type);
 
-    // Auth Hook sends: { user, email_data }
     const user = payload.user;
     const emailData = payload.email_data;
 
@@ -214,9 +99,6 @@ serve(async (req) => {
     let subject: string;
     let html: string;
 
-    // Build confirmation URL
-    // For recovery: use the token_hash with type=recovery
-    // For signup: use the token_hash with type=signup
     const siteUrl = Deno.env.get("SUPABASE_URL") || "https://khbkfcdpgrksrrpocdvb.supabase.co";
 
     if (emailActionType === "recovery") {
@@ -228,7 +110,6 @@ serve(async (req) => {
       subject = "Confirme seu e-mail – Treend";
       html = buildConfirmationHtml(email, confirmationUrl);
     } else {
-      // For other types, just pass through
       console.log("Unhandled email action type:", emailActionType);
       return new Response(JSON.stringify({}), {
         status: 200,
@@ -266,7 +147,6 @@ serve(async (req) => {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in custom-auth-email:", message);
-    // Return 200 even on error to not block auth flow
     return new Response(JSON.stringify({ error: message }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
