@@ -165,9 +165,10 @@ const HistoryPage = () => {
       if (wasDark) htmlEl.classList.remove("dark");
 
       el.classList.remove("space-y-5");
-      el.classList.add("space-y-2");
-      el.style.fontSize = "12px";
-      el.style.lineHeight = "1.35";
+      el.classList.add("space-y-1");
+      el.style.fontSize = "10px";
+      el.style.lineHeight = "1.25";
+      el.style.padding = "0";
 
       await new Promise((r) => setTimeout(r, 150));
 
@@ -179,10 +180,11 @@ const HistoryPage = () => {
       });
 
       // Restore original styles and theme
-      el.classList.remove("space-y-2");
+      el.classList.remove("space-y-1");
       el.classList.add("space-y-5");
       el.style.fontSize = "";
       el.style.lineHeight = "";
+      el.style.padding = "";
       if (wasDark) htmlEl.classList.add("dark");
 
       const imgData = canvas.toDataURL("image/png");
