@@ -10,10 +10,10 @@ interface NewsItem {
   link: string;
   pubDate: string;
   source: string;
-  currency: "USD" | "EUR" | "general";
+  currency: "USD" | "EUR" | "GBP" | "general";
 }
 
-function extractItems(xml: string, sourceName: string, currency: "USD" | "EUR" | "general"): NewsItem[] {
+function extractItems(xml: string, sourceName: string, currency: "USD" | "EUR" | "GBP" | "general"): NewsItem[] {
   const items: NewsItem[] = [];
   const itemRegex = /<item>([\s\S]*?)<\/item>/g;
   let match;
@@ -76,7 +76,7 @@ serve(async (req) => {
   }
 
   try {
-    const feeds: { url: string; name: string; currency: "USD" | "EUR" | "general" }[] = [
+    const feeds: { url: string; name: string; currency: "USD" | "EUR" | "GBP" | "general" }[] = [
       {
         url: 'https://news.google.com/rss/search?q=d%C3%B3lar+c%C3%A2mbio+real&hl=pt-BR&gl=BR&ceid=BR:pt-419',
         name: 'Google News - Dólar',
@@ -86,6 +86,11 @@ serve(async (req) => {
         url: 'https://news.google.com/rss/search?q=euro+c%C3%A2mbio+real+europeu&hl=pt-BR&gl=BR&ceid=BR:pt-419',
         name: 'Google News - Euro',
         currency: 'EUR',
+      },
+      {
+        url: 'https://news.google.com/rss/search?q=libra+esterlina+c%C3%A2mbio+real+brit%C3%A2nica&hl=pt-BR&gl=BR&ceid=BR:pt-419',
+        name: 'Google News - Libra',
+        currency: 'GBP',
       },
       {
         url: 'https://news.google.com/rss/search?q=mercado+financeiro+brasil+c%C3%A2mbio&hl=pt-BR&gl=BR&ceid=BR:pt-419',
