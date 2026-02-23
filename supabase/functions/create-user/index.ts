@@ -88,7 +88,7 @@ serve(async (req) => {
             from: "Treend <noreply@treend.com.br>",
             to: [email],
             subject: "Acesso liberado na Treend",
-            html: `<p>Olá ${firstName}, sua conta foi criada na Treend. Acesse <a href="https://treendx.lovable.app/login">aqui</a> com o email <strong>${email}</strong>. Sua senha temporária é: <strong>${userPassword}</strong>. Recomendamos alterar sua senha após o primeiro login.</p>`,
+            html: `<p>Olá ${firstName}, sua conta foi criada na Treend. Acesse <a href="https://app.treend.com.br/login">aqui</a> com o email <strong>${email}</strong>. Sua senha temporária é: <strong>${userPassword}</strong>. Recomendamos alterar sua senha após o primeiro login.</p>`,
           }),
         });
       }

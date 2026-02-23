@@ -59,7 +59,7 @@ function buildEventHtml(title: string, eventDate: string, description: string | 
 
       <!-- CTA -->
       <div style="text-align:center;margin:8px 0 32px;">
-        <a href="https://treendx.lovable.app/agenda" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:16px 44px;border-radius:12px;letter-spacing:0.3px;box-shadow:0 4px 20px rgba(59,130,246,0.35);">
+        <a href="https://app.treend.com.br/agenda" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:16px 44px;border-radius:12px;letter-spacing:0.3px;box-shadow:0 4px 20px rgba(59,130,246,0.35);">
           Ver na Agenda →
         </a>
       </div>
