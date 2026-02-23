@@ -9,6 +9,7 @@ import TrialBanner from "@/components/TrialBanner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import QuickConverter from "@/components/QuickConverter";
 
 type ProfileFilter = "all" | "importador" | "exportador" | "agente_turismo" | "freelancer";
 type Currency = "USD" | "EUR" | "GBP";
@@ -163,6 +164,9 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
+
+      {/* Quick Converter */}
+      <QuickConverter />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
