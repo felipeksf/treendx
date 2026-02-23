@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays, Trash2, FileDown, Eye, DollarSign, Target, BarChart3, Wallet, Activity, Percent, Users, Clock } from "lucide-react";
+import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays, Trash2, FileDown, Eye, DollarSign, Target, BarChart3, Wallet, Activity, Percent, Users, Clock, Mail, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -52,6 +52,8 @@ const HistoryPage = () => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [viewDecision, setViewDecision] = useState<any | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const { data: treendRateData } = useTreendRate();
   const treendFraction = treendRateData?.rateFraction ?? 0.008;
 
@@ -122,64 +124,202 @@ const HistoryPage = () => {
     }
   };
 
-  const handleDownloadPDF = useCallback(async (decision: typeof decisions[0]) => {
-    const { default: jsPDF } = await import("jspdf");
-    const doc = new jsPDF();
-    const sym = currencySymbol(decision.currency);
-    const flag = currencyFlag(decision.currency);
+  const getSimData = useCallback((d: any) => {
+    const rate = Number(d.rate);
+    const amount = Number(d.amount);
+    const savings = d.savings || 0;
+    const savedTreendRate = d.treend_rate ? Number(d.treend_rate) : rate * (1 - treendFraction);
+    const savedSpread = d.spread != null ? Number(d.spread) : 1.0;
+    const savedProfile = d.profile || "importador";
+    const savedOps = d.ops_per_month ? Number(d.ops_per_month) : 10;
+    const savedFreq = d.ops_frequency || "month";
+    const savedProjMonths = d.projection_months ? Number(d.projection_months) : 12;
+    const curBRL = amount * rate;
+    const trdBRL = amount * savedTreendRate;
+    const rateDiff = rate - savedTreendRate;
+    const rateDiffPct = rate > 0 ? (Math.abs(rateDiff) / rate) * 100 : 0;
+    const spreadCost = curBRL * (savedSpread / 100);
+    const profileLabels: Record<string, string> = {
+      importador: "Importador", exportador: "Exportador",
+      agente_turismo: "Agente de Turismo", turista: "Turista", freelancer: "Freelancer",
+    };
+    const freqLabels: Record<string, string> = { month: "Mensal", week: "Semanal", day: "Diário" };
+    return { rate, amount, savings, savedTreendRate, savedSpread, savedProfile, savedOps, savedFreq, savedProjMonths, curBRL, trdBRL, rateDiff, rateDiffPct, spreadCost, profileLabels, freqLabels };
+  }, [treendFraction]);
 
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text("Treend - Resumo da Simulação", 20, 25);
+  const handleDownloadPDF = useCallback(async (decision: any) => {
+    setDownloadingPDF(true);
+    try {
+      const { default: jsPDF } = await import("jspdf");
+      const doc = new jsPDF();
+      const sym = currencySymbol(decision.currency);
+      const flag = currencyFlag(decision.currency);
+      const s = getSimData(decision);
 
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(120);
-    doc.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, 20, 33);
-
-    doc.setDrawColor(200);
-    doc.line(20, 37, 190, 37);
-
-    doc.setTextColor(0);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text("Parâmetros", 20, 47);
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    const params = [
-      ["Moeda", `${flag} ${decision.currency}`],
-      ["Volume", `${sym} ${Number(decision.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
-      ["Taxa", Number(decision.rate).toFixed(4)],
-      ["Zona", decision.zone || "—"],
-      ["Data", formatDateBR(decision.created_at)],
-    ];
-
-    let y = 55;
-    params.forEach(([label, value]) => {
+      // Header
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, 0, 210, 40, "F");
+      doc.setFontSize(28);
       doc.setFont("helvetica", "bold");
-      doc.text(`${label}:`, 20, y);
+      doc.setTextColor(255);
+      doc.text("treend", 105, 22, { align: "center" });
+      doc.setFontSize(11);
       doc.setFont("helvetica", "normal");
-      doc.text(String(value), 60, y);
+      doc.text("Resumo da Simulação", 105, 32, { align: "center" });
+
+      doc.setTextColor(30, 41, 59);
+      let y = 55;
+
+      // Title
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${flag} Simulação — ${decision.currency}`, 20, y);
       y += 8;
-    });
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(148, 163, 184);
+      doc.text(formatDateBR(decision.created_at), 20, y);
+      y += 14;
 
-    y += 5;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("Resultado", 20, y);
-    y += 10;
+      // Parameters section
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("PARÂMETROS", 20, y);
+      y += 8;
 
-    doc.setFontSize(11);
-    const savings = decision.savings || 0;
-    const savingsLabel = savings >= 0 ? "Economia estimada" : "Custo adicional estimado";
-    doc.setFont("helvetica", "bold");
-    doc.text(`${savingsLabel}:`, 20, y);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${sym} ${Math.abs(savings).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 80, y);
+      doc.setFontSize(9);
+      const params = [
+        ["Moeda", `${flag} ${decision.currency}`],
+        ["Perfil", s.profileLabels[s.savedProfile] || s.savedProfile],
+        ["Volume", `${sym} ${s.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
+        ["Taxa no momento", s.rate.toFixed(4)],
+        ["Taxa Treend estimada", s.savedTreendRate.toFixed(4)],
+        ["Zona", decision.zone || "—"],
+        ["Spread bancário", `${s.savedSpread.toFixed(1)}%`],
+        ["Operações", `${s.savedOps} / ${s.freqLabels[s.savedFreq] || s.savedFreq}`],
+        ["Projeção", `${s.savedProjMonths} meses`],
+      ];
+      params.forEach(([label, value]) => {
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(148, 163, 184);
+        doc.text(String(label), 20, y);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(30, 41, 59);
+        doc.text(String(value), 100, y);
+        y += 7;
+      });
 
-    doc.save(`simulacao-treend-${decision.currency}-${formatDateBR(decision.created_at).replace(/\//g, "-")}.pdf`);
-  }, []);
+      y += 6;
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("RESULTADO DA SIMULAÇÃO", 20, y);
+      y += 8;
+
+      doc.setFontSize(9);
+      const results = [
+        ["Volume em BRL", `R$ ${s.curBRL.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
+        ["Volume com Treend", `R$ ${s.trdBRL.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
+        ["Diferença de taxa", `${s.rateDiff.toFixed(4)} (${s.rateDiffPct.toFixed(2)}%)`],
+        ["Custo do spread", `-R$ ${s.spreadCost.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
+      ];
+      results.forEach(([label, value]) => {
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(148, 163, 184);
+        doc.text(String(label), 20, y);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(30, 41, 59);
+        doc.text(String(value), 100, y);
+        y += 7;
+      });
+
+      // Economy highlight
+      y += 6;
+      const isPos = s.savings >= 0;
+      doc.setFillColor(isPos ? 240 : 254, isPos ? 253 : 242, isPos ? 244 : 242);
+      doc.roundedRect(20, y - 4, 170, 16, 4, 4, "F");
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(isPos ? 22 : 153, isPos ? 101 : 27, isPos ? 52 : 27);
+      doc.text(isPos ? "Economia estimada" : "Custo adicional estimado", 25, y + 5);
+      doc.text(`${isPos ? "+" : ""}${sym} ${s.savings.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 185, y + 5, { align: "right" });
+
+      // Projections
+      y += 24;
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("PROJEÇÕES", 20, y);
+      y += 8;
+      doc.setFontSize(9);
+      [
+        { label: "6 meses", value: s.savings * 6 },
+        { label: "12 meses", value: s.savings * 12 },
+        { label: "24 meses", value: s.savings * 24 },
+      ].forEach((proj) => {
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(148, 163, 184);
+        doc.text(proj.label, 20, y);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(proj.value >= 0 ? 22 : 153, proj.value >= 0 ? 101 : 27, proj.value >= 0 ? 52 : 27);
+        doc.text(`${sym} ${Math.abs(proj.value).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, 100, y);
+        y += 7;
+      });
+
+      // Footer
+      y += 10;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(148, 163, 184);
+      doc.text("Esta simulação é meramente ilustrativa. A decisão final é de responsabilidade do usuário.", 105, y, { align: "center" });
+
+      doc.save(`simulacao-treend-${decision.currency}-${formatDateBR(decision.created_at).replace(/\//g, "-")}.pdf`);
+    } finally {
+      setDownloadingPDF(false);
+    }
+  }, [getSimData]);
+
+  const handleSendEmail = useCallback(async (decision: any) => {
+    setSendingEmail(true);
+    try {
+      const s = getSimData(decision);
+      const { error } = await supabase.functions.invoke("send-simulation-email", {
+        body: {
+          currency: decision.currency,
+          profile: s.savedProfile,
+          volume: s.amount,
+          currentRate: s.rate,
+          treendRate: s.savedTreendRate,
+          opsPerMonth: s.savedOps,
+          opsFrequency: s.savedFreq,
+          bankSpread: s.savedSpread,
+          projectionMonths: s.savedProjMonths,
+          netMonth: s.savings,
+          netYear: s.savings * 12,
+          grossMonth: (s.rateDiffPct / 100) * s.curBRL,
+          spreadCost: s.spreadCost,
+          effectiveRate: s.rate * (1 + s.savedSpread / 100),
+          rateDiffPct: s.rateDiffPct,
+          netPct: s.rateDiffPct - s.savedSpread,
+          economiaMinusSpread: (s.rateDiffPct / 100) * s.curBRL - s.spreadCost,
+          overallHealth: "good",
+          zone: decision.zone || "",
+          date: formatDateBR(decision.created_at),
+          projections: [
+            { label: "6 meses", value: s.savings * 6 },
+            { label: "12 meses", value: s.savings * 12 },
+            { label: "24 meses", value: s.savings * 24 },
+          ],
+        },
+      });
+      if (error) throw error;
+      toast({ title: "E-mail enviado!", description: "Verifique sua caixa de entrada." });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar e-mail", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingEmail(false);
+    }
+  }, [getSimData, toast]);
 
 
   return (
@@ -308,31 +448,11 @@ const HistoryPage = () => {
             const d = viewDecision;
             const sym = currencySymbol(d.currency);
             const flag = currencyFlag(d.currency);
-            const rate = Number(d.rate);
-            const amount = Number(d.amount);
-            const savings = d.savings || 0;
-            const savedTreendRate = d.treend_rate ? Number(d.treend_rate) : rate * (1 - treendFraction);
-            const savedSpread = d.spread != null ? Number(d.spread) : 1.0;
-            const savedProfile = d.profile || "importador";
-            const savedOps = d.ops_per_month ? Number(d.ops_per_month) : 10;
-            const savedFreq = d.ops_frequency || "month";
-            const savedProjMonths = d.projection_months ? Number(d.projection_months) : 12;
-            const curBRL = amount * rate;
-            const trdBRL = amount * savedTreendRate;
-            const rateDiff = rate - savedTreendRate;
-            const rateDiffPct = rate > 0 ? (Math.abs(rateDiff) / rate) * 100 : 0;
-            const spreadCost = curBRL * (savedSpread / 100);
+            const s = getSimData(d);
+            const { rate, amount, savings, savedTreendRate, savedSpread, savedProfile, savedOps, savedFreq, savedProjMonths, curBRL, trdBRL, rateDiff, rateDiffPct, spreadCost, profileLabels, freqLabels } = s;
             const range = RATE_RANGES[d.currency] || RATE_RANGES.USD;
             const rawPct = ((rate - range.min) / (range.max - range.min)) * 100;
             const zoneInfo = getZoneLabel(rawPct);
-
-            const profileLabels: Record<string, string> = {
-              importador: "Importador", exportador: "Exportador",
-              agente_turismo: "Agente de Turismo", turista: "Turista", freelancer: "Freelancer",
-            };
-            const freqLabels: Record<string, string> = {
-              month: "Mensal", week: "Semanal", day: "Diário",
-            };
 
             return (
               <div className="space-y-5">
@@ -497,6 +617,17 @@ const HistoryPage = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-2 border-t border-border/30">
+                  <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs" onClick={() => handleDownloadPDF(d)} disabled={downloadingPDF}>
+                    {downloadingPDF ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+                    Baixar PDF
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs" onClick={() => handleSendEmail(d)} disabled={sendingEmail}>
+                    {sendingEmail ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />}
+                    Enviar por e-mail
+                  </Button>
                 </div>
               </div>
             );
