@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calculator, History, Newspaper, CalendarDays, HelpCircle, TrendingUp, TrendingDown, Activity, ArrowUpRight } from "lucide-react";
+import { Calculator, History, Newspaper, CalendarDays, HelpCircle, TrendingUp, TrendingDown, Activity, ArrowUpRight, Bookmark, BookmarkCheck } from "lucide-react";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
 import { useHeatmapScores } from "@/hooks/useHeatmap";
 import HeatmapBlock from "@/components/HeatmapBlock";
@@ -50,12 +50,45 @@ const FREQUENCY_OPTIONS: { value: Frequency; label: string }[] = [
   { value: "monthly", label: "1x ao mês" },
 ];
 
+const HEATMAP_PREF_KEY = "treend_heatmap_pref";
+
+interface HeatmapPref {
+  profileFilter: ProfileFilter;
+  currency: Currency;
+  frequency: Frequency;
+}
+
+const loadPref = (): HeatmapPref | null => {
+  try {
+    const raw = localStorage.getItem(HEATMAP_PREF_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+};
+
 const Dashboard = () => {
-  const [profileFilter, setProfileFilter] = useState<ProfileFilter>("all");
-  const [currency, setCurrency] = useState<Currency>("USD");
-  const [frequency, setFrequency] = useState<Frequency>("weekly");
+  const saved = loadPref();
+  const [profileFilter, setProfileFilter] = useState<ProfileFilter>(saved?.profileFilter ?? "all");
+  const [currency, setCurrency] = useState<Currency>(saved?.currency ?? "USD");
+  const [frequency, setFrequency] = useState<Frequency>(saved?.frequency ?? "weekly");
+  const [hasSavedPref, setHasSavedPref] = useState(!!saved);
   const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
   const { user, subscription } = useAuth();
+
+  const currentMatchesSaved = useMemo(() => {
+    if (!saved) return false;
+    return saved.profileFilter === profileFilter && saved.currency === currency && saved.frequency === frequency;
+  }, [profileFilter, currency, frequency, saved]);
+
+  const handleSavePref = () => {
+    const pref: HeatmapPref = { profileFilter, currency, frequency };
+    localStorage.setItem(HEATMAP_PREF_KEY, JSON.stringify(pref));
+    setHasSavedPref(true);
+  };
+
+  const handleRemovePref = () => {
+    localStorage.removeItem(HEATMAP_PREF_KEY);
+    setHasSavedPref(false);
+  };
 
   useEffect(() => {
     const fetchTrialDays = async () => {
@@ -252,6 +285,27 @@ const Dashboard = () => {
               </Tooltip>
             </TooltipProvider>
           </div>
+
+          {/* Save/Remove preference button */}
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={hasSavedPref && currentMatchesSaved ? handleRemovePref : handleSavePref}
+                  className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl border border-border bg-secondary/50 hover:bg-secondary transition-colors"
+                >
+                  {hasSavedPref && currentMatchesSaved ? (
+                    <BookmarkCheck className="h-4 w-4 text-primary" />
+                  ) : (
+                    <Bookmark className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                {hasSavedPref && currentMatchesSaved ? "Remover preferência salva" : "Salvar como preferência padrão"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
