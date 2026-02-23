@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
 import { useTreendRate } from "@/hooks/useTreendRate";
 import { Input } from "@/components/ui/input";
@@ -207,6 +207,8 @@ const loadPreset = (): CalcPreset | null => {
 };
 
 const CalculatorPage = () => {
+  const pageRef = useRef<HTMLDivElement>(null);
+  const [exportingPDF, setExportingPDF] = useState(false);
   const saved = loadPreset();
   const [currency, setCurrency] = useState(saved?.currency ?? "USD");
   const [monthlyVolume, setMonthlyVolume] = useState(saved?.monthlyVolume ?? "50000");
@@ -448,8 +450,50 @@ const CalculatorPage = () => {
   const healthLabels = { good: "Saudável", warning: "Atenção", bad: "Crítico" };
   const healthColors = { good: "bg-treend-success/10 text-treend-success border-treend-success/30", warning: "bg-treend-warning/10 text-treend-warning border-treend-warning/30", bad: "bg-treend-danger/10 text-treend-danger border-treend-danger/30" };
 
+  const handleExportFullPDF = useCallback(async () => {
+    if (!pageRef.current) return;
+    setExportingPDF(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const { default: jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(pageRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--background").trim()
+          ? `hsl(${getComputedStyle(document.documentElement).getPropertyValue("--background").trim()})`
+          : "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const imgWidth = 190;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pageHeight = 277;
+
+      const doc = new jsPDF("p", "mm", "a4");
+      let position = 10;
+      let heightLeft = imgHeight;
+
+      doc.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + 10;
+        doc.addPage();
+        doc.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      doc.save(`simulacao-treend-completa-${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (err) {
+      toast({ title: "Erro ao gerar PDF", description: "Tente novamente.", variant: "destructive" });
+    } finally {
+      setExportingPDF(false);
+    }
+  }, [toast]);
+
   return (
-    <div className="space-y-5 max-w-5xl mx-auto overflow-x-hidden">
+    <div ref={pageRef} className="space-y-5 max-w-5xl mx-auto overflow-x-hidden">
       {/* Input Card */}
       <div className="kpi-card p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -500,6 +544,10 @@ const CalculatorPage = () => {
             <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 text-xs">
               <RefreshCw className="h-3.5 w-3.5" />
               Resetar
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportFullPDF} disabled={exportingPDF} className="gap-1.5 text-xs">
+              {exportingPDF ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+              PDF
             </Button>
           </div>
         </div>
