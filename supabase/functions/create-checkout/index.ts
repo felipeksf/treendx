@@ -56,6 +56,12 @@ serve(async (req) => {
       mode: "subscription",
       subscription_data: {
         trial_period_days: 7,
+        metadata: {
+          user_id: user.id,
+        },
+      },
+      metadata: {
+        user_id: user.id,
       },
       success_url: `${req.headers.get("origin")}/dashboard?checkout=success`,
       cancel_url: `${req.headers.get("origin")}/pricing`,

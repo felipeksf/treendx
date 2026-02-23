@@ -35,41 +35,45 @@ serve(async (req) => {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+      const userId = session.metadata?.user_id;
       const customerEmail = session.customer_details?.email || session.customer_email;
-      logStep("Checkout completed", { email: customerEmail, customerId: session.customer });
+      logStep("Checkout completed", { userId, email: customerEmail, customerId: session.customer });
 
-      if (customerEmail) {
-        const supabaseClient = createClient(
-          Deno.env.get("SUPABASE_URL") ?? "",
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-          { auth: { persistSession: false } }
-        );
+      const supabaseClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        { auth: { persistSession: false } }
+      );
 
-        // Find user profile by email
+      // Prefer metadata user_id; fallback to email lookup
+      let matchedUserId = userId;
+      if (!matchedUserId && customerEmail) {
         const { data: users } = await supabaseClient.auth.admin.listUsers();
         const matchedUser = users?.users?.find(u => u.email === customerEmail);
+        matchedUserId = matchedUser?.id;
+        logStep("Fallback email lookup", { found: !!matchedUser });
+      }
 
-        if (matchedUser) {
-          // Update profile to active
-          await supabaseClient
-            .from("profiles")
-            .update({ subscription_status: "active" })
-            .eq("user_id", matchedUser.id);
-          logStep("Profile updated to active", { userId: matchedUser.id });
+      if (matchedUserId) {
+        await supabaseClient
+          .from("profiles")
+          .update({ subscription_status: "active" })
+          .eq("user_id", matchedUserId);
+        logStep("Profile updated to active", { userId: matchedUserId });
 
-          // Get user name for email
-          const { data: profile } = await supabaseClient
-            .from("profiles")
-            .select("full_name")
-            .eq("user_id", matchedUser.id)
-            .maybeSingle();
+        // Get user name for email
+        const { data: profile } = await supabaseClient
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", matchedUserId)
+          .maybeSingle();
 
-          // Send welcome/subscription confirmation email via existing edge function pattern
-          const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-          if (RESEND_API_KEY) {
-            const firstName = profile?.full_name?.split(" ")[0] || "usuário";
+        // Send confirmation email
+        const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+        if (RESEND_API_KEY && customerEmail) {
+          const firstName = profile?.full_name?.split(" ")[0] || "usuário";
 
-            const html = `<!DOCTYPE html>
+          const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
 <body style="margin:0;padding:0;background-color:#f0f4ff;font-family:'Plus Jakarta Sans',Arial,sans-serif;">
@@ -111,25 +115,24 @@ serve(async (req) => {
 </body>
 </html>`;
 
-            const res = await fetch("https://api.resend.com/emails", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${RESEND_API_KEY}`,
-              },
-              body: JSON.stringify({
-                from: "Treend <noreply@treend.com.br>",
-                to: [customerEmail],
-                subject: "🎉 Assinatura confirmada — Treend",
-                html,
-              }),
-            });
-            const emailData = await res.json();
-            logStep("Confirmation email sent", { ok: res.ok, id: emailData.id });
-          }
-        } else {
-          logStep("No matching Supabase user found for email", { email: customerEmail });
+          const res = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({
+              from: "Treend <noreply@treend.com.br>",
+              to: [customerEmail],
+              subject: "🎉 Assinatura confirmada — Treend",
+              html,
+            }),
+          });
+          const emailData = await res.json();
+          logStep("Confirmation email sent", { ok: res.ok, id: emailData.id });
         }
+      } else {
+        logStep("No matching user found", { email: customerEmail });
       }
     }
 
