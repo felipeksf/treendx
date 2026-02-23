@@ -1,4 +1,18 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "treend.com.br" }],
+      "destination": "https://treend-cambio.framer.website/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.treend.com.br" }],
+      "destination": "https://treend-cambio.framer.website/:path*",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ]
