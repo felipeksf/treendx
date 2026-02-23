@@ -3,11 +3,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays } from "lucide-react";
+import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const currencySymbol = (c: string) => c === "BRL" ? "R$" : c === "USD" ? "US$" : c === "GBP" ? "£" : c === "EUR" ? "€" : c;
 const currencyFlag = (c: string) => c === "USD" ? "🇺🇸" : c === "EUR" ? "🇪🇺" : c === "GBP" ? "🇬🇧" : c === "BRL" ? "🇧🇷" : "";
@@ -24,6 +29,7 @@ const HistoryPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [filterCurrency, setFilterCurrency] = useState("all");
+  const queryClient = useQueryClient();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -81,6 +87,17 @@ const HistoryPage = () => {
     link.download = `historico-treend-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase.from("user_decisions").delete().eq("id", id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["user-decisions", user?.id] });
+      toast({ title: "Registro excluído com sucesso" });
+    } catch (err: any) {
+      toast({ title: "Erro ao excluir", description: err.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -163,15 +180,34 @@ const HistoryPage = () => {
                   <p className="text-[11px] text-muted-foreground">{formatDateBR(h.created_at)} · Zona: {h.zone || "—"}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {(h.savings || 0) >= 0 ? (
-                  <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-                ) : (
-                  <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
-                )}
-                <span className={`text-sm font-semibold tabular-nums ${(h.savings || 0) >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
-                  {(h.savings || 0) >= 0 ? "+" : ""}{currencySymbol(h.currency)} {(h.savings || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1">
+                  {(h.savings || 0) >= 0 ? (
+                    <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
+                  ) : (
+                    <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
+                  )}
+                  <span className={`text-sm font-semibold tabular-nums ${(h.savings || 0) >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
+                    {(h.savings || 0) >= 0 ? "+" : ""}{currencySymbol(h.currency)} {(h.savings || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-treend-danger">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir registro</AlertDialogTitle>
+                      <AlertDialogDescription>Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(h.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           ))}
