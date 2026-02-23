@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays, Trash2 } from "lucide-react";
+import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays, Trash2, FileDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -100,6 +100,66 @@ const HistoryPage = () => {
     }
   };
 
+  const handleDownloadPDF = useCallback(async (decision: typeof decisions[0]) => {
+    const { default: jsPDF } = await import("jspdf");
+    const doc = new jsPDF();
+    const sym = currencySymbol(decision.currency);
+    const flag = currencyFlag(decision.currency);
+
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Treend - Resumo da Simulação", 20, 25);
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120);
+    doc.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, 20, 33);
+
+    doc.setDrawColor(200);
+    doc.line(20, 37, 190, 37);
+
+    doc.setTextColor(0);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Parâmetros", 20, 47);
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const params = [
+      ["Moeda", `${flag} ${decision.currency}`],
+      ["Volume", `${sym} ${Number(decision.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
+      ["Taxa", Number(decision.rate).toFixed(4)],
+      ["Zona", decision.zone || "—"],
+      ["Data", formatDateBR(decision.created_at)],
+    ];
+
+    let y = 55;
+    params.forEach(([label, value]) => {
+      doc.setFont("helvetica", "bold");
+      doc.text(`${label}:`, 20, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(String(value), 60, y);
+      y += 8;
+    });
+
+    y += 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Resultado", 20, y);
+    y += 10;
+
+    doc.setFontSize(11);
+    const savings = decision.savings || 0;
+    const savingsLabel = savings >= 0 ? "Economia estimada" : "Custo adicional estimado";
+    doc.setFont("helvetica", "bold");
+    doc.text(`${savingsLabel}:`, 20, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${sym} ${Math.abs(savings).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 80, y);
+
+    doc.save(`simulacao-treend-${decision.currency}-${formatDateBR(decision.created_at).replace(/\//g, "-")}.pdf`);
+  }, []);
+
+
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
       <div>
@@ -191,6 +251,9 @@ const HistoryPage = () => {
                     {(h.savings || 0) >= 0 ? "+" : ""}{currencySymbol(h.currency)} {(h.savings || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => handleDownloadPDF(h)} title="Baixar PDF">
+                  <FileDown className="h-3.5 w-3.5" />
+                </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-treend-danger">
