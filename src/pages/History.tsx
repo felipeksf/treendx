@@ -159,13 +159,17 @@ const HistoryPage = () => {
       const { default: html2canvas } = await import("html2canvas");
       const { default: jsPDF } = await import("jspdf");
 
-      // Temporarily compact spacing so everything fits one A4 page
+      // Temporarily compact spacing and force light mode for PDF
+      const htmlEl = document.documentElement;
+      const wasDark = htmlEl.classList.contains("dark");
+      if (wasDark) htmlEl.classList.remove("dark");
+
       el.classList.remove("space-y-5");
       el.classList.add("space-y-2");
       el.style.fontSize = "12px";
       el.style.lineHeight = "1.35";
 
-      await new Promise((r) => setTimeout(r, 100));
+      await new Promise((r) => setTimeout(r, 150));
 
       const canvas = await html2canvas(el, {
         scale: 2,
@@ -174,11 +178,12 @@ const HistoryPage = () => {
         logging: false,
       });
 
-      // Restore original styles
+      // Restore original styles and theme
       el.classList.remove("space-y-2");
       el.classList.add("space-y-5");
       el.style.fontSize = "";
       el.style.lineHeight = "";
+      if (wasDark) htmlEl.classList.add("dark");
 
       const imgData = canvas.toDataURL("image/png");
       const imgW = canvas.width;
