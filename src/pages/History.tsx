@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays, Trash2, FileDown, Eye, DollarSign, Target, BarChart3, Wallet, Activity } from "lucide-react";
+import { History as HistoryIcon, Download, TrendingDown, TrendingUp, CalendarDays, Trash2, FileDown, Eye, DollarSign, Target, BarChart3, Wallet, Activity, Percent, Users, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -311,16 +311,28 @@ const HistoryPage = () => {
             const rate = Number(d.rate);
             const amount = Number(d.amount);
             const savings = d.savings || 0;
-            const treendRate = rate * (1 - treendFraction);
+            const savedTreendRate = d.treend_rate ? Number(d.treend_rate) : rate * (1 - treendFraction);
+            const savedSpread = d.spread != null ? Number(d.spread) : 1.0;
+            const savedProfile = d.profile || "importador";
+            const savedOps = d.ops_per_month ? Number(d.ops_per_month) : 10;
+            const savedFreq = d.ops_frequency || "month";
+            const savedProjMonths = d.projection_months ? Number(d.projection_months) : 12;
             const curBRL = amount * rate;
-            const trdBRL = amount * treendRate;
-            const rateDiff = rate - treendRate;
+            const trdBRL = amount * savedTreendRate;
+            const rateDiff = rate - savedTreendRate;
             const rateDiffPct = rate > 0 ? (Math.abs(rateDiff) / rate) * 100 : 0;
-            const spreadCost = curBRL * 0.01;
-            const economiaSpread = (rateDiffPct / 100) * curBRL - spreadCost;
+            const spreadCost = curBRL * (savedSpread / 100);
             const range = RATE_RANGES[d.currency] || RATE_RANGES.USD;
             const rawPct = ((rate - range.min) / (range.max - range.min)) * 100;
             const zoneInfo = getZoneLabel(rawPct);
+
+            const profileLabels: Record<string, string> = {
+              importador: "Importador", exportador: "Exportador",
+              agente_turismo: "Agente de Turismo", turista: "Turista", freelancer: "Freelancer",
+            };
+            const freqLabels: Record<string, string> = {
+              month: "Mensal", week: "Semanal", day: "Diário",
+            };
 
             return (
               <div className="space-y-5">
@@ -360,7 +372,7 @@ const HistoryPage = () => {
                       </div>
                       <div>
                         <p className="text-[10px] text-muted-foreground">Taxa Treend estimada</p>
-                        <p className="text-sm font-bold tabular-nums text-treend-success">{treendRate.toFixed(4)}</p>
+                        <p className="text-sm font-bold tabular-nums text-treend-success">{savedTreendRate.toFixed(4)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -370,6 +382,45 @@ const HistoryPage = () => {
                       <div>
                         <p className="text-[10px] text-muted-foreground">Zona</p>
                         <p className={`text-sm font-bold ${zoneInfo.color}`}>{d.zone || zoneInfo.label}</p>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Extra params */}
+                  <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-border/30">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Users className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Perfil</p>
+                        <p className="text-sm font-bold">{profileLabels[savedProfile] || savedProfile}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Percent className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Spread bancário</p>
+                        <p className="text-sm font-bold tabular-nums">{savedSpread.toFixed(1)}%</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <BarChart3 className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Operações</p>
+                        <p className="text-sm font-bold tabular-nums">{savedOps} / {freqLabels[savedFreq] || savedFreq}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Clock className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Projeção</p>
+                        <p className="text-sm font-bold tabular-nums">{savedProjMonths} meses</p>
                       </div>
                     </div>
                   </div>
@@ -399,6 +450,13 @@ const HistoryPage = () => {
                         <span className="text-xs text-muted-foreground">Diferença de taxa</span>
                       </div>
                       <span className="text-sm font-bold tabular-nums">{rateDiff.toFixed(4)} ({rateDiffPct.toFixed(2)}%)</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-xl border border-border/40 p-3">
+                      <div className="flex items-center gap-2">
+                        <Percent className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Custo do spread ({savedSpread.toFixed(1)}%)</span>
+                      </div>
+                      <span className="text-sm font-bold tabular-nums text-treend-danger">-R$ {spreadCost.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                   </div>
                 </div>

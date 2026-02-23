@@ -337,8 +337,14 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          ops_frequency: string | null
+          ops_per_month: number | null
+          profile: string | null
+          projection_months: number | null
           rate: number
           savings: number | null
+          spread: number | null
+          treend_rate: number | null
           user_id: string
           zone: string | null
         }
@@ -347,8 +353,14 @@ export type Database = {
           created_at?: string
           currency: string
           id?: string
+          ops_frequency?: string | null
+          ops_per_month?: number | null
+          profile?: string | null
+          projection_months?: number | null
           rate: number
           savings?: number | null
+          spread?: number | null
+          treend_rate?: number | null
           user_id: string
           zone?: string | null
         }
@@ -357,8 +369,14 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          ops_frequency?: string | null
+          ops_per_month?: number | null
+          profile?: string | null
+          projection_months?: number | null
           rate?: number
           savings?: number | null
+          spread?: number | null
+          treend_rate?: number | null
           user_id?: string
           zone?: string | null
         }
