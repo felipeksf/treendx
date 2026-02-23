@@ -78,9 +78,9 @@ serve(async (req) => {
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
 <body style="margin:0;padding:0;background-color:#f0f4ff;font-family:'Plus Jakarta Sans',Arial,sans-serif;">
   <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(59,130,246,0.12);">
-    <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:28px 48px 20px;text-align:center;">
-      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:80px;width:auto;display:inline-block;" />
-      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:8px;">Assinatura Confirmada</div>
+    <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:36px 48px 24px;text-align:center;">
+      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:120px;width:auto;display:inline-block;background:transparent;border:none;" />
+      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-top:10px;">Assinatura Confirmada</div>
     </div>
     <div style="padding:40px 48px 32px;">
       <div style="font-size:22px;font-weight:700;color:#1e3a5f;margin-bottom:12px;">
@@ -106,7 +106,7 @@ serve(async (req) => {
       </div>
     </div>
     <div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%);padding:28px 48px;text-align:center;">
-      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:48px;width:auto;display:inline-block;margin-bottom:14px;" />
+      <img src="https://treendx.lovable.app/treend-logo-white.png" alt="Treend" style="height:60px;width:auto;display:inline-block;margin-bottom:14px;background:transparent;border:none;" />
       <div style="font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.6;">
         © ${new Date().getFullYear()} Treend. Todos os direitos reservados.
       </div>
