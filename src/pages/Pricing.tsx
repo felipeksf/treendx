@@ -15,11 +15,6 @@ const PricingPage = () => {
   const { toast } = useToast();
 
   const handleCheckout = async (planKey: "monthly" | "annual") => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
     setLoadingPlan(planKey);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
