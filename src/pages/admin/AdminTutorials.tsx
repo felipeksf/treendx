@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, GripVertical, Video, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Video, Copy, Upload, Youtube, FileVideo } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 import {
   DndContext,
   closestCenter,
@@ -44,12 +45,15 @@ interface Tutorial {
   id: string;
   title: string;
   description: string | null;
-  youtube_url: string;
+  youtube_url: string | null;
+  video_url: string | null;
   thumbnail_url: string | null;
   sort_order: number;
   admin_id: string;
   category: TutorialCategory;
 }
+
+type VideoSource = "youtube" | "upload";
 
 const extractYouTubeId = (url: string): string | null => {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([\w-]{11})/);
@@ -57,6 +61,9 @@ const extractYouTubeId = (url: string): string | null => {
 };
 
 const getCategoryLabel = (val: string) => CATEGORIES.find((c) => c.value === val)?.label ?? val;
+
+const sanitizeFileName = (name: string) =>
+  name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_");
 
 // Sortable tutorial row component
 const SortableTutorialRow = ({
@@ -79,7 +86,8 @@ const SortableTutorialRow = ({
     zIndex: isDragging ? 50 : undefined,
   };
 
-  const ytId = extractYouTubeId(tutorial.youtube_url);
+  const isUpload = !!tutorial.video_url;
+  const ytId = tutorial.youtube_url ? extractYouTubeId(tutorial.youtube_url) : null;
   const thumb = tutorial.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
 
   return (
@@ -87,9 +95,22 @@ const SortableTutorialRow = ({
       <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-0.5 touch-none">
         <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
       </button>
-      {thumb && <img src={thumb} alt={tutorial.title} className="w-20 h-12 rounded-lg object-cover shrink-0" loading="lazy" />}
+      {thumb ? (
+        <img src={thumb} alt={tutorial.title} className="w-20 h-12 rounded-lg object-cover shrink-0" loading="lazy" />
+      ) : isUpload ? (
+        <div className="w-20 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
+          <FileVideo className="h-5 w-5 text-muted-foreground" />
+        </div>
+      ) : null}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground truncate">{tutorial.title}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-semibold text-foreground truncate">{tutorial.title}</p>
+          {isUpload ? (
+            <Badge variant="outline" className="text-[9px] h-4 shrink-0"><Upload className="h-2.5 w-2.5 mr-0.5" />Upload</Badge>
+          ) : (
+            <Badge variant="outline" className="text-[9px] h-4 shrink-0"><Youtube className="h-2.5 w-2.5 mr-0.5" />YouTube</Badge>
+          )}
+        </div>
         {tutorial.description && <p className="text-[11px] text-muted-foreground truncate">{tutorial.description}</p>}
         <p className="text-[11px] text-muted-foreground mt-0.5">Ordem: {tutorial.sort_order}</p>
       </div>
@@ -114,7 +135,13 @@ const AdminTutorials = () => {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [videoSource, setVideoSource] = useState<VideoSource>("upload");
   const [form, setForm] = useState({ title: "", description: "", youtube_url: "", sort_order: "0", category: "introducao" as TutorialCategory });
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [existingVideoUrl, setExistingVideoUrl] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -172,19 +199,61 @@ const AdminTutorials = () => {
     reorderMutation.mutate(updates);
   };
 
+  const uploadVideo = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop() || "mp4";
+    const safeName = sanitizeFileName(file.name.replace(/\.[^.]+$/, ""));
+    const path = `${Date.now()}_${safeName}.${ext}`;
+
+    setIsUploading(true);
+    setUploadProgress(10);
+
+    const { error } = await supabase.storage
+      .from("tutorial-videos")
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+
+    if (error) throw error;
+
+    setUploadProgress(90);
+
+    const { data: urlData } = supabase.storage.from("tutorial-videos").getPublicUrl(path);
+    setUploadProgress(100);
+    setIsUploading(false);
+
+    return urlData.publicUrl;
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Not authenticated");
-      const ytId = extractYouTubeId(form.youtube_url);
+
+      let videoUrl: string | null = existingVideoUrl;
+      let youtubeUrl: string | null = null;
+      let thumbnailUrl: string | null = null;
+
+      if (videoSource === "upload") {
+        if (videoFile) {
+          videoUrl = await uploadVideo(videoFile);
+        }
+        if (!videoUrl) throw new Error("Selecione um arquivo de vídeo");
+      } else {
+        youtubeUrl = form.youtube_url.trim();
+        const ytId = extractYouTubeId(youtubeUrl);
+        if (!ytId) throw new Error("URL do YouTube inválida");
+        thumbnailUrl = `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+        videoUrl = null;
+      }
+
       const payload = {
         title: form.title.trim(),
         description: form.description.trim() || null,
-        youtube_url: form.youtube_url.trim(),
-        thumbnail_url: ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null,
+        youtube_url: youtubeUrl,
+        video_url: videoUrl,
+        thumbnail_url: thumbnailUrl,
         sort_order: parseInt(form.sort_order) || 0,
         category: form.category,
         admin_id: user.id,
       };
+
       if (editingId) {
         const { error } = await supabase.from("tutorials").update(payload).eq("id", editingId);
         if (error) throw error;
@@ -199,12 +268,21 @@ const AdminTutorials = () => {
       resetForm();
     },
     onError: (err: Error) => {
+      setIsUploading(false);
       toast({ title: "Erro", description: err.message, variant: "destructive" });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Also delete video file from storage if exists
+      const tutorial = tutorials.find((t) => t.id === id);
+      if (tutorial?.video_url) {
+        const path = tutorial.video_url.split("/tutorial-videos/")[1];
+        if (path) {
+          await supabase.storage.from("tutorial-videos").remove([path]);
+        }
+      }
       const { error } = await supabase.from("tutorials").delete().eq("id", id);
       if (error) throw error;
     },
@@ -221,6 +299,7 @@ const AdminTutorials = () => {
         title: `${t.title} (cópia)`,
         description: t.description,
         youtube_url: t.youtube_url,
+        video_url: t.video_url,
         thumbnail_url: t.thumbnail_url,
         sort_order: t.sort_order + 1,
         category: t.category,
@@ -241,15 +320,28 @@ const AdminTutorials = () => {
     setForm({ title: "", description: "", youtube_url: "", sort_order: "0", category: "introducao" });
     setEditingId(null);
     setDialogOpen(false);
+    setVideoFile(null);
+    setExistingVideoUrl(null);
+    setVideoSource("upload");
+    setUploadProgress(0);
+    setIsUploading(false);
   };
 
   const openEdit = (t: Tutorial) => {
-    setForm({ title: t.title, description: t.description || "", youtube_url: t.youtube_url, sort_order: String(t.sort_order), category: t.category || "introducao" });
+    const source: VideoSource = t.video_url ? "upload" : "youtube";
+    setForm({ title: t.title, description: t.description || "", youtube_url: t.youtube_url || "", sort_order: String(t.sort_order), category: t.category || "introducao" });
     setEditingId(t.id);
+    setVideoSource(source);
+    setExistingVideoUrl(t.video_url || null);
+    setVideoFile(null);
     setDialogOpen(true);
   };
 
-  const isValid = form.title.trim().length > 0 && extractYouTubeId(form.youtube_url) !== null;
+  const isValid = form.title.trim().length > 0 && (
+    videoSource === "upload"
+      ? !!(videoFile || existingVideoUrl)
+      : extractYouTubeId(form.youtube_url) !== null
+  );
 
   // Group tutorials by category
   const grouped = CATEGORIES.map((cat) => ({
@@ -293,18 +385,109 @@ const AdminTutorials = () => {
                 <Label className="text-xs">Título *</Label>
                 <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Ex: Como usar o Dashboard" className="h-9 text-sm" maxLength={200} />
               </div>
+
+              {/* Video source toggle */}
               <div className="space-y-1.5">
-                <Label className="text-xs">URL do YouTube *</Label>
-                <Input value={form.youtube_url} onChange={(e) => setForm((f) => ({ ...f, youtube_url: e.target.value }))} placeholder="https://www.youtube.com/watch?v=..." className="h-9 text-sm" />
-                {form.youtube_url && !extractYouTubeId(form.youtube_url) && (
-                  <p className="text-xs text-destructive">URL do YouTube inválida</p>
-                )}
-                {extractYouTubeId(form.youtube_url) && (
-                  <div className="aspect-video rounded-xl overflow-hidden bg-muted mt-2">
-                    <iframe src={`https://www.youtube.com/embed/${extractYouTubeId(form.youtube_url)}`} title="Preview" className="w-full h-full" allowFullScreen />
-                  </div>
-                )}
+                <Label className="text-xs">Fonte do vídeo *</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={videoSource === "upload" ? "default" : "outline"}
+                    className="flex-1 h-9 text-xs"
+                    onClick={() => setVideoSource("upload")}
+                  >
+                    <Upload className="mr-1.5 h-3.5 w-3.5" />
+                    Upload direto
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={videoSource === "youtube" ? "default" : "outline"}
+                    className="flex-1 h-9 text-xs"
+                    onClick={() => setVideoSource("youtube")}
+                  >
+                    <Youtube className="mr-1.5 h-3.5 w-3.5" />
+                    YouTube
+                  </Button>
+                </div>
               </div>
+
+              {videoSource === "upload" ? (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Arquivo de vídeo *</Label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 200 * 1024 * 1024) {
+                          toast({ title: "Arquivo muito grande", description: "O limite é 200MB por vídeo.", variant: "destructive" });
+                          return;
+                        }
+                        setVideoFile(file);
+                        setExistingVideoUrl(null);
+                      }
+                    }}
+                  />
+                  <div
+                    className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {videoFile ? (
+                      <div className="space-y-1">
+                        <FileVideo className="h-8 w-8 mx-auto text-primary" />
+                        <p className="text-sm font-medium text-foreground">{videoFile.name}</p>
+                        <p className="text-[11px] text-muted-foreground">{(videoFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                      </div>
+                    ) : existingVideoUrl ? (
+                      <div className="space-y-1">
+                        <FileVideo className="h-8 w-8 mx-auto text-primary" />
+                        <p className="text-sm font-medium text-foreground">Vídeo já enviado</p>
+                        <p className="text-[11px] text-muted-foreground">Clique para substituir</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Clique para selecionar um vídeo</p>
+                        <p className="text-[11px] text-muted-foreground">MP4, MOV, WEBM • Máx. 200MB</p>
+                      </div>
+                    )}
+                  </div>
+                  {isUploading && (
+                    <div className="space-y-1">
+                      <Progress value={uploadProgress} className="h-2" />
+                      <p className="text-[11px] text-muted-foreground text-center">Enviando vídeo... {uploadProgress}%</p>
+                    </div>
+                  )}
+                  {(videoFile || existingVideoUrl) && (
+                    <div className="aspect-video rounded-xl overflow-hidden bg-muted mt-2">
+                      <video
+                        src={videoFile ? URL.createObjectURL(videoFile) : existingVideoUrl!}
+                        controls
+                        className="w-full h-full"
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">URL do YouTube *</Label>
+                  <Input value={form.youtube_url} onChange={(e) => setForm((f) => ({ ...f, youtube_url: e.target.value }))} placeholder="https://www.youtube.com/watch?v=..." className="h-9 text-sm" />
+                  {form.youtube_url && !extractYouTubeId(form.youtube_url) && (
+                    <p className="text-xs text-destructive">URL do YouTube inválida</p>
+                  )}
+                  {extractYouTubeId(form.youtube_url) && (
+                    <div className="aspect-video rounded-xl overflow-hidden bg-muted mt-2">
+                      <iframe src={`https://www.youtube.com/embed/${extractYouTubeId(form.youtube_url)}`} title="Preview" className="w-full h-full" allowFullScreen />
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-1.5">
                 <Label className="text-xs">Descrição</Label>
                 <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Breve descrição do vídeo..." maxLength={500} rows={3} className="text-sm" />
@@ -314,8 +497,8 @@ const AdminTutorials = () => {
                 <Input type="number" value={form.sort_order} onChange={(e) => setForm((f) => ({ ...f, sort_order: e.target.value }))} min="0" className="h-9 text-sm" />
                 <p className="text-[11px] text-muted-foreground">Menor número = aparece primeiro dentro da categoria</p>
               </div>
-              <Button className="w-full" size="sm" onClick={() => saveMutation.mutate()} disabled={!isValid || saveMutation.isPending}>
-                {saveMutation.isPending ? "Salvando..." : editingId ? "Salvar alterações" : "Adicionar tutorial"}
+              <Button className="w-full" size="sm" onClick={() => saveMutation.mutate()} disabled={!isValid || saveMutation.isPending || isUploading}>
+                {isUploading ? "Enviando vídeo..." : saveMutation.isPending ? "Salvando..." : editingId ? "Salvar alterações" : "Adicionar tutorial"}
               </Button>
             </div>
           </DialogContent>

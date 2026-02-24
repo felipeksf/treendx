@@ -18,7 +18,8 @@ interface Tutorial {
   id: string;
   title: string;
   description: string | null;
-  youtube_url: string;
+  youtube_url: string | null;
+  video_url: string | null;
   thumbnail_url: string | null;
   sort_order: number;
   category: string;
@@ -53,6 +54,43 @@ const Tutorials = () => {
     tutorials: filtered.filter((t) => t.category === cat.value),
   })).filter((g) => g.tutorials.length > 0);
 
+  const renderPlayer = (tutorial: Tutorial) => {
+    if (tutorial.video_url) {
+      return (
+        <video
+          src={tutorial.video_url}
+          controls
+          autoPlay
+          className="w-full h-full"
+        />
+      );
+    }
+    if (tutorial.youtube_url) {
+      const ytId = extractYouTubeId(tutorial.youtube_url);
+      if (ytId) {
+        return (
+          <iframe
+            src={`https://www.youtube.com/embed/${ytId}?autoplay=1`}
+            title={tutorial.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full"
+          />
+        );
+      }
+    }
+    return null;
+  };
+
+  const getThumbnail = (tutorial: Tutorial) => {
+    if (tutorial.thumbnail_url) return tutorial.thumbnail_url;
+    if (tutorial.youtube_url) {
+      const ytId = extractYouTubeId(tutorial.youtube_url);
+      if (ytId) return `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+    }
+    return null;
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -69,14 +107,8 @@ const Tutorials = () => {
       {/* Selected video player */}
       {selectedVideo && (
         <div className="kpi-card overflow-hidden">
-          <div className="aspect-video w-full">
-            <iframe
-              src={`https://www.youtube.com/embed/${extractYouTubeId(selectedVideo.youtube_url)}?autoplay=1`}
-              title={selectedVideo.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full"
-            />
+          <div className="aspect-video w-full bg-black">
+            {renderPlayer(selectedVideo)}
           </div>
           <div className="p-5">
             <div className="flex items-center gap-2 mb-1.5">
@@ -115,12 +147,18 @@ const Tutorials = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {group.tutorials.map((tutorial) => {
-                  const ytId = extractYouTubeId(tutorial.youtube_url);
-                  const thumb = tutorial.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
+                  const thumb = getThumbnail(tutorial);
+                  const isUpload = !!tutorial.video_url;
                   return (
                     <div key={tutorial.id} className="kpi-card cursor-pointer group overflow-hidden" onClick={() => setSelectedVideo(tutorial)}>
                       <div className="relative aspect-video bg-muted overflow-hidden">
-                        {thumb && <img src={thumb} alt={tutorial.title} className="w-full h-full object-cover" loading="lazy" />}
+                        {thumb ? (
+                          <img src={thumb} alt={tutorial.title} className="w-full h-full object-cover" loading="lazy" />
+                        ) : isUpload ? (
+                          <div className="w-full h-full flex items-center justify-center bg-muted">
+                            <Play className="h-12 w-12 text-muted-foreground/50" />
+                          </div>
+                        ) : null}
                         <div className="absolute inset-0 bg-background/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                           <Play className="h-10 w-10 text-foreground fill-foreground" />
                         </div>
