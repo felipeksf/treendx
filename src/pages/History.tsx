@@ -426,11 +426,11 @@ const HistoryPage = () => {
               <div id="simulation-detail-content" className="space-y-5">
                 {/* PDF header: logo + date */}
                 <div className="flex flex-col items-center gap-1 pb-4 border-b border-border/30">
-                  <img src={treendLogo} alt="Treend" className="h-24 object-contain" />
+                  <img src={treendLogo} alt="Treend" className="h-48 object-contain" />
                   <p className="text-xs text-muted-foreground mt-1">{formatDateBR(d.created_at)}</p>
                 </div>
 
-                <DialogHeader className="mb-4">
+                <DialogHeader className="mb-8">
                   <DialogTitle className="flex items-center gap-2 text-lg">
                     <span className="text-xl">{flag}</span>
                     Simulação — {d.currency}
