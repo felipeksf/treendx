@@ -1,24 +1,11 @@
 {
-  "redirects": [
-    {
-      "source": "/:path(.*)",
-      "has": [{ "type": "host", "value": "www.treend.com.br" }],
-      "destination": "https://treend-cambio.framer.website/:path",
-      "permanent": false,
-      "statusCode": 302
-    },
-    {
-      "source": "/:path(.*)",
-      "has": [{ "type": "host", "value": "treend.com.br" }],
-      "destination": "https://treend-cambio.framer.website/:path",
-      "permanent": false,
-      "statusCode": 302
-    }
+  "source": "/:path(.*)",
+  "has": [
+    { "type": "host", "value": "treend.com.br" }
   ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "missing": [
+    { "type": "host", "value": "app.treend.com.br" }
+  ],
+  "destination": "https://treend-cambio.framer.website/:path",
+  "permanent": false
 }
