@@ -355,7 +355,7 @@ const CalculatorPage = () => {
     const netHealthStatus: "good" | "warning" | "bad" =
       netPct >= 0.1 ? "good" : netPct >= 0 ? "warning" : "bad";
     const volumeHealthStatus: "good" | "warning" | "bad" =
-      volume >= 50000 ? "good" : volume >= 10000 ? "warning" : "bad";
+      volume >= 2000 ? "good" : volume >= 1000 ? "warning" : "bad";
 
     const overallHealth =
       [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter(
@@ -834,7 +834,7 @@ const CalculatorPage = () => {
               label="Volume Mensal"
               value={fmt(volume, false, currency)}
               description="Este é o volume mensal projetado conforme as suas inserções na calculadora."
-              benchmark={`>= ${currency} 50K (ideal: 100K)`}
+              benchmark={`>= ${currency} 2K`}
               status="good"
             />
           </div>
