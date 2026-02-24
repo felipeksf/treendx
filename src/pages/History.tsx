@@ -423,7 +423,7 @@ const HistoryPage = () => {
             };
 
             return (
-              <div id="simulation-detail-content" className="space-y-5">
+              <div id="simulation-detail-content" className="space-y-5 border border-primary/30 rounded-2xl p-6">
                 {/* PDF header: logo + date */}
                 <div className="flex flex-col items-center gap-1 pb-4 border-b border-border/30">
                   <img src={treendLogo} alt="Treend" className="h-48 object-contain" />
