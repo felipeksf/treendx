@@ -401,7 +401,7 @@ const HistoryPage = () => {
             const netHealthStatus: "good" | "warning" | "bad" =
               netPct >= 0.1 ? "good" : netPct >= 0 ? "warning" : "bad";
             const volumeHealthStatus: "good" | "warning" | "bad" =
-              amount >= 50000 ? "good" : amount >= 10000 ? "warning" : "bad";
+              amount >= 2000 ? "good" : amount >= 1000 ? "warning" : "bad";
             const overallHealth =
               [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter(s => s === "good").length >= 3
                 ? "good"
@@ -619,7 +619,7 @@ const HistoryPage = () => {
                       {
                         label: "Volume Mensal", value: `${sym} ${amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, status: volumeHealthStatus,
                         description: "Volume mensal projetado.",
-                        benchmark: `>= ${sym} 50K (ideal: 100K)`,
+                        benchmark: `>= ${sym} 2K`,
                       },
                     ] as { label: string; value: string; status: "good" | "warning" | "bad"; description: string; benchmark: string }[]).map((item) => (
                       <div key={item.label} className={`rounded-xl border p-3 transition-all ${healthItemColors[item.status]}`}>
