@@ -56,51 +56,51 @@ function mapRsiToHeatmap(
 
   if (isImportadorGroup) {
     // Importador/Agente: sobrevenda (RSI baixo) é FAVORÁVEL → zona verde (x alto, y baixo)
-    if (rsi <= 30) {
-      // SOBREVENDA: zona MUITO verde — quanto menor RSI, mais verde
-      // RSI 0 → x=95,y=3 | RSI 30 → x=82,y=8
-      x = 82 + ((30 - rsi) / 30) * 13;
-      y = 3 + (rsi / 30) * 5;
-    } else if (rsi <= 45) {
+    if (rsi <= 25) {
+      // SOBREVENDA EXTREMA: zona MUITO verde
+      // RSI 0 → x=95,y=3 | RSI 25 → x=85,y=8
+      x = 85 + ((25 - rsi) / 25) * 10;
+      y = 3 + (rsi / 25) * 5;
+    } else if (rsi <= 40) {
       // Transição sobrevenda→neutro: zona amarelo-verde
-      x = 60 + ((45 - rsi) / 15) * 22; // RSI 45→x=60, RSI 30→x=82
-      y = 8 + ((rsi - 30) / 15) * 27; // RSI 30→y=8, RSI 45→y=35
-    } else if (rsi <= 55) {
-      // Neutro
-      x = 40 + ((55 - rsi) / 10) * 20; // RSI 55→x=40, RSI 45→x=60
-      y = 35 + ((rsi - 45) / 10) * 20; // RSI 45→y=35, RSI 55→y=55
-    } else if (rsi <= 70) {
+      x = 55 + ((40 - rsi) / 15) * 30; // RSI 40→x=55, RSI 25→x=85
+      y = 8 + ((rsi - 25) / 15) * 32;  // RSI 25→y=8, RSI 40→y=40
+    } else if (rsi <= 60) {
+      // Neutro: centro do heatmap
+      x = 35 + ((60 - rsi) / 20) * 20; // RSI 60→x=35, RSI 40→x=55
+      y = 40 + ((rsi - 40) / 20) * 20; // RSI 40→y=40, RSI 60→y=60
+    } else if (rsi <= 75) {
       // Transição neutro→sobrecompra (ruim para importador)
-      x = 15 + ((70 - rsi) / 15) * 25; // RSI 70→x=15, RSI 55→x=40
-      y = 55 + ((rsi - 55) / 15) * 25; // RSI 55→y=55, RSI 70→y=80
+      x = 12 + ((75 - rsi) / 15) * 23; // RSI 75→x=12, RSI 60→x=35
+      y = 60 + ((rsi - 60) / 15) * 22; // RSI 60→y=60, RSI 75→y=82
     } else {
       // Sobrecompra: zona vermelha
-      x = 5 + ((100 - rsi) / 30) * 10; // RSI 100→x=5, RSI 70→x=15
-      y = 80 + ((rsi - 70) / 30) * 15; // RSI 70→y=80, RSI 100→y=95
+      x = 5 + ((100 - rsi) / 25) * 7;  // RSI 100→x=5, RSI 75→x=12
+      y = 82 + ((rsi - 75) / 25) * 13; // RSI 75→y=82, RSI 100→y=95
     }
   } else {
     // Exportador/Freelancer: sobrecompra (RSI alto) é FAVORÁVEL → zona verde (x alto, y baixo)
-    if (rsi >= 70) {
-      // SOBRECOMPRA: zona MUITO verde — quanto maior RSI, mais verde
-      // RSI 100 → x=95,y=3 | RSI 70 → x=82,y=8
-      x = 82 + ((rsi - 70) / 30) * 13;
-      y = 3 + ((100 - rsi) / 30) * 5;
-    } else if (rsi >= 55) {
+    if (rsi >= 75) {
+      // SOBRECOMPRA EXTREMA: zona MUITO verde
+      // RSI 100 → x=95,y=3 | RSI 75 → x=85,y=8
+      x = 85 + ((rsi - 75) / 25) * 10;
+      y = 3 + ((100 - rsi) / 25) * 5;
+    } else if (rsi >= 60) {
       // Transição sobrecompra→neutro: zona amarelo-verde
-      x = 60 + ((rsi - 55) / 15) * 22; // RSI 55→x=60, RSI 70→x=82
-      y = 8 + ((70 - rsi) / 15) * 27; // RSI 70→y=8, RSI 55→y=35
-    } else if (rsi >= 45) {
-      // Neutro
-      x = 40 + ((rsi - 45) / 10) * 20; // RSI 45→x=40, RSI 55→x=60
-      y = 35 + ((55 - rsi) / 10) * 20; // RSI 55→y=35, RSI 45→y=55
-    } else if (rsi >= 30) {
+      x = 55 + ((rsi - 60) / 15) * 30; // RSI 60→x=55, RSI 75→x=85
+      y = 8 + ((75 - rsi) / 15) * 32;  // RSI 75→y=8, RSI 60→y=40
+    } else if (rsi >= 40) {
+      // Neutro: centro do heatmap
+      x = 35 + ((rsi - 40) / 20) * 20; // RSI 40→x=35, RSI 60→x=55
+      y = 40 + ((60 - rsi) / 20) * 20; // RSI 60→y=40, RSI 40→y=60
+    } else if (rsi >= 25) {
       // Transição neutro→sobrevenda (ruim para exportador)
-      x = 15 + ((rsi - 30) / 15) * 25; // RSI 30→x=15, RSI 45→x=40
-      y = 55 + ((45 - rsi) / 15) * 25; // RSI 45→y=55, RSI 30→y=80
+      x = 12 + ((rsi - 25) / 15) * 23; // RSI 25→x=12, RSI 40→x=35
+      y = 60 + ((40 - rsi) / 15) * 22; // RSI 40→y=60, RSI 25→y=82
     } else {
       // Sobrevenda: zona vermelha
-      x = 5 + (rsi / 30) * 10; // RSI 0→x=5, RSI 30→x=15
-      y = 80 + ((30 - rsi) / 30) * 15; // RSI 30→y=80, RSI 0→y=95
+      x = 5 + (rsi / 25) * 7;          // RSI 0→x=5, RSI 25→x=12
+      y = 82 + ((25 - rsi) / 25) * 13; // RSI 25→y=82, RSI 0→y=95
     }
   }
 
