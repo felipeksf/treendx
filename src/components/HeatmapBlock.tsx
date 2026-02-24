@@ -1,5 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { HelpCircle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HeatmapBlockProps {
@@ -40,6 +41,8 @@ const HeatmapBlock = ({
   compact = false,
   expanded = false,
 }: HeatmapBlockProps) => {
+  const { user } = useAuth();
+  const watermarkText = user?.email || "Treend";
   const heatColor = useMemo(() => getHeatColor(heatX, heatY), [heatX, heatY]);
   const zoneMessage = useMemo(() => getZoneMessage(heatX, heatY), [heatX, heatY]);
 
@@ -164,6 +167,17 @@ const HeatmapBlock = ({
                     border: `2px solid ${heatColor}`,
                   }}
                 />
+
+                {/* Watermark overlay */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
+                  <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 -rotate-[25deg] scale-125 opacity-[0.09]">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <span key={i} className="text-[11px] font-semibold text-white whitespace-nowrap tracking-wider">
+                        {watermarkText}
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Corner labels */}
                 <div className="absolute top-2 left-3 text-[9px] font-semibold text-white/70 drop-shadow-md select-none">●</div>
