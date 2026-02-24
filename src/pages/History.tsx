@@ -13,11 +13,11 @@ import { useTreendRate } from "@/hooks/useTreendRate";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from
+"@/components/ui/alert-dialog";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
+  Dialog, DialogContent, DialogHeader, DialogTitle } from
+"@/components/ui/dialog";
 
 const currencySymbol = (c: string) => c === "BRL" ? "R$" : c === "USD" ? "US$" : c === "GBP" ? "£" : c === "EUR" ? "€" : c;
 const currencyFlag = (c: string) => c === "USD" ? "🇺🇸" : c === "EUR" ? "🇪🇺" : c === "GBP" ? "🇬🇧" : c === "BRL" ? "🇧🇷" : "";
@@ -30,11 +30,11 @@ const formatDateBR = (dateStr: string) => {
   return `${day}/${month}/${year}`;
 };
 
-const RATE_RANGES: Record<string, { min: number; max: number }> = {
+const RATE_RANGES: Record<string, {min: number;max: number;}> = {
   USD: { min: 4.00, max: 6.50 },
   EUR: { min: 4.50, max: 7.00 },
   GBP: { min: 5.00, max: 8.00 },
-  BRL: { min: 0.15, max: 0.30 },
+  BRL: { min: 0.15, max: 0.30 }
 };
 
 const getZoneLabel = (pct: number) => {
@@ -62,15 +62,15 @@ const HistoryPage = () => {
     queryKey: ["user-decisions", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
-        .from("user_decisions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.
+      from("user_decisions").
+      select("*").
+      eq("user_id", user.id).
+      order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user
   });
 
   const filtered = useMemo(() => {
@@ -103,7 +103,7 @@ const HistoryPage = () => {
     }
     const header = "Data,Moeda,Volume,Taxa,Zona,Economia\n";
     const rows = filtered.map((h) =>
-      `${formatDateBR(h.created_at)},${h.currency},${h.amount},${h.rate},${h.zone || ""},${h.savings || 0}`
+    `${formatDateBR(h.created_at)},${h.currency},${h.amount},${h.rate},${h.zone || ""},${h.savings || 0}`
     ).join("\n");
     const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -138,11 +138,11 @@ const HistoryPage = () => {
     const curBRL = amount * rate;
     const trdBRL = amount * savedTreendRate;
     const rateDiff = rate - savedTreendRate;
-    const rateDiffPct = rate > 0 ? (Math.abs(rateDiff) / rate) * 100 : 0;
+    const rateDiffPct = rate > 0 ? Math.abs(rateDiff) / rate * 100 : 0;
     const spreadCost = curBRL * (savedSpread / 100);
     const profileLabels: Record<string, string> = {
       importador: "Importador", exportador: "Exportador",
-      agente_turismo: "Agente de Turismo", turista: "Turista", freelancer: "Freelancer",
+      agente_turismo: "Agente de Turismo", turista: "Turista", freelancer: "Freelancer"
     };
     const freqLabels: Record<string, string> = { month: "Mensal", week: "Semanal", day: "Diário" };
     return { rate, amount, savings, savedTreendRate, savedSpread, savedProfile, savedOps, savedFreq, savedProjMonths, curBRL, trdBRL, rateDiff, rateDiffPct, spreadCost, profileLabels, freqLabels };
@@ -177,7 +177,7 @@ const HistoryPage = () => {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
-        logging: false,
+        logging: false
       });
 
       // Restore original styles and theme
@@ -197,7 +197,7 @@ const HistoryPage = () => {
       const MARGIN = 10;
       const contentW = A4_W - MARGIN * 2;
       const maxH = A4_H - MARGIN * 2;
-      const naturalH = (imgH / imgW) * contentW;
+      const naturalH = imgH / imgW * contentW;
 
       let finalW = contentW;
       let finalH = naturalH;
@@ -234,21 +234,21 @@ const HistoryPage = () => {
           projectionMonths: s.savedProjMonths,
           netMonth: s.savings,
           netYear: s.savings * 12,
-          grossMonth: (s.rateDiffPct / 100) * s.curBRL,
+          grossMonth: s.rateDiffPct / 100 * s.curBRL,
           spreadCost: s.spreadCost,
           effectiveRate: s.rate * (1 + s.savedSpread / 100),
           rateDiffPct: s.rateDiffPct,
           netPct: s.rateDiffPct - s.savedSpread,
-          economiaMinusSpread: (s.rateDiffPct / 100) * s.curBRL - s.spreadCost,
+          economiaMinusSpread: s.rateDiffPct / 100 * s.curBRL - s.spreadCost,
           overallHealth: "good",
           zone: decision.zone || "",
           date: formatDateBR(decision.created_at),
           projections: [
-            { label: "6 meses", value: s.savings * 6 },
-            { label: "12 meses", value: s.savings * 12 },
-            { label: "24 meses", value: s.savings * 24 },
-          ],
-        },
+          { label: "6 meses", value: s.savings * 6 },
+          { label: "12 meses", value: s.savings * 12 },
+          { label: "24 meses", value: s.savings * 24 }]
+
+        }
       });
       if (error) throw error;
       toast({ title: "E-mail enviado!", description: "Verifique sua caixa de entrada." });
@@ -275,20 +275,20 @@ const HistoryPage = () => {
         </div>
         <div className="kpi-stat p-5">
           <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2 text-center">Economia acumulada</p>
-          {Object.keys(savingsByCurrency).length === 0 ? (
-            <p className="text-4xl font-bold text-foreground tabular-nums text-center">—</p>
-          ) : (
-            <div className="flex flex-col items-center gap-1.5">
-              {Object.entries(savingsByCurrency).map(([cur, total]) => (
-                <div key={cur} className="flex items-center gap-2">
+          {Object.keys(savingsByCurrency).length === 0 ?
+          <p className="text-4xl font-bold text-foreground tabular-nums text-center">—</p> :
+
+          <div className="flex flex-col items-center gap-1.5">
+              {Object.entries(savingsByCurrency).map(([cur, total]) =>
+            <div key={cur} className="flex items-center gap-2">
                   <span className="text-lg">{currencyFlag(cur)}</span>
                   <p className={`text-xl font-bold tabular-nums ${total >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
                     {currencySymbol(cur)} {total.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-              ))}
+            )}
             </div>
-          )}
+          }
         </div>
       </div>
 
@@ -321,14 +321,14 @@ const HistoryPage = () => {
       </div>
 
       {/* List */}
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground text-center py-8">Carregando...</p>
-      ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">Nenhuma decisão registrada ainda.</p>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map((h) => (
-            <div key={h.id} className="kpi-card p-4 flex items-center justify-between gap-4">
+      {isLoading ?
+      <p className="text-sm text-muted-foreground text-center py-8">Carregando...</p> :
+      filtered.length === 0 ?
+      <p className="text-sm text-muted-foreground text-center py-8">Nenhuma decisão registrada ainda.</p> :
+
+      <div className="space-y-2">
+          {filtered.map((h) =>
+        <div key={h.id} className="kpi-card p-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
                   <HistoryIcon className="h-4 w-4 text-primary" />
@@ -342,11 +342,11 @@ const HistoryPage = () => {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <div className="flex items-center gap-1">
-                  {(h.savings || 0) >= 0 ? (
-                    <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-                  ) : (
-                    <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
-                  )}
+                  {(h.savings || 0) >= 0 ?
+              <TrendingDown className="h-3.5 w-3.5 text-treend-success" /> :
+
+              <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
+              }
                   <span className={`text-sm font-semibold tabular-nums ${(h.savings || 0) >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
                     {(h.savings || 0) >= 0 ? "+" : ""}{currencySymbol(h.currency)} {(h.savings || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
@@ -376,9 +376,9 @@ const HistoryPage = () => {
                 </AlertDialog>
               </div>
             </div>
-          ))}
+        )}
         </div>
-      )}
+      }
       {/* Simulation Detail Modal */}
       <Dialog open={!!viewDecision} onOpenChange={(open) => !open && setViewDecision(null)}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -389,41 +389,41 @@ const HistoryPage = () => {
             const s = getSimData(d);
             const { rate, amount, savings, savedTreendRate, savedSpread, savedProfile, savedOps, savedFreq, savedProjMonths, curBRL, trdBRL, rateDiff, rateDiffPct, spreadCost, profileLabels, freqLabels } = s;
             const range = RATE_RANGES[d.currency] || RATE_RANGES.USD;
-            const rawPct = ((rate - range.min) / (range.max - range.min)) * 100;
+            const rawPct = (rate - range.min) / (range.max - range.min) * 100;
             const zoneInfo = getZoneLabel(rawPct);
 
             // Health computations (mirror Calculator logic)
-            const grossPct = rate > 0 ? (Math.abs(rateDiff) / rate) * 100 : 0;
+            const grossPct = rate > 0 ? Math.abs(rateDiff) / rate * 100 : 0;
             const netPct = grossPct - savedSpread;
             const savingsHealthStatus: "good" | "warning" | "bad" =
-              grossPct <= 0.8 && grossPct > 0 ? "good" : grossPct <= 1.2 ? "warning" : "bad";
+            grossPct <= 0.8 && grossPct > 0 ? "good" : grossPct <= 1.2 ? "warning" : "bad";
             const spreadHealthStatus: "good" | "warning" | "bad" =
-              savedSpread <= 0.5 ? "good" : savedSpread <= 1.2 ? "warning" : "bad";
+            savedSpread <= 0.5 ? "good" : savedSpread <= 1.2 ? "warning" : "bad";
             const netHealthStatus: "good" | "warning" | "bad" =
-              netPct >= 0.1 ? "good" : netPct >= 0 ? "warning" : "bad";
+            netPct >= 0.1 ? "good" : netPct >= 0 ? "warning" : "bad";
             const volumeHealthStatus: "good" | "warning" | "bad" =
-              amount >= 2000 ? "good" : amount >= 1000 ? "warning" : "bad";
+            amount >= 2000 ? "good" : amount >= 1000 ? "warning" : "bad";
             const overallHealth =
-              [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter(s => s === "good").length >= 3
-                ? "good"
-                : [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter(s => s === "bad").length >= 2
-                ? "bad"
-                : "warning";
+            [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter((s) => s === "good").length >= 3 ?
+            "good" :
+            [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter((s) => s === "bad").length >= 2 ?
+            "bad" :
+            "warning";
             const healthColors: Record<string, string> = {
               good: "text-treend-success border-treend-success/30 bg-treend-success/10",
               warning: "text-treend-warning border-treend-warning/30 bg-treend-warning/10",
-              bad: "text-treend-danger border-treend-danger/30 bg-treend-danger/10",
+              bad: "text-treend-danger border-treend-danger/30 bg-treend-danger/10"
             };
             const healthLabels: Record<string, string> = { good: "Saudável", warning: "Atenção", bad: "Crítico" };
             const dotColors: Record<string, string> = { good: "bg-treend-success", warning: "bg-treend-warning", bad: "bg-treend-danger" };
             const healthItemColors: Record<string, string> = {
               good: "text-treend-success border-treend-success/20 bg-treend-success/5",
               warning: "text-treend-warning border-treend-warning/20 bg-treend-warning/5",
-              bad: "text-treend-danger border-treend-danger/20 bg-treend-danger/5",
+              bad: "text-treend-danger border-treend-danger/20 bg-treend-danger/5"
             };
 
             return (
-              <div id="simulation-detail-content" className="space-y-5 border border-primary/30 rounded-2xl p-6">
+              <div id="simulation-detail-content" className="space-y-5 border border-primary/30 rounded-2xl p-6 px-[22px]">
                 {/* PDF header: logo + date */}
                 <div className="flex flex-col items-center gap-1 pb-4 border-b border-border/30">
                   <img src={treendLogo} alt="Treend" className="h-48 object-contain" />
@@ -559,11 +559,11 @@ const HistoryPage = () => {
                 <div className={`rounded-xl border p-4 ${savings >= 0 ? "border-treend-success/30 bg-treend-success/5" : "border-treend-danger/30 bg-treend-danger/5"}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {savings >= 0 ? (
-                        <TrendingDown className="h-5 w-5 text-treend-success" />
-                      ) : (
-                        <TrendingUp className="h-5 w-5 text-treend-danger" />
-                      )}
+                      {savings >= 0 ?
+                      <TrendingDown className="h-5 w-5 text-treend-success" /> :
+
+                      <TrendingUp className="h-5 w-5 text-treend-danger" />
+                      }
                       <span className="text-sm font-medium text-foreground">
                         {savings >= 0 ? "Economia estimada" : "Custo adicional estimado"}
                       </span>
@@ -579,17 +579,17 @@ const HistoryPage = () => {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Projeções</p>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { label: "6 meses", value: savings * 6 },
-                      { label: "12 meses", value: savings * 12 },
-                      { label: "24 meses", value: savings * 24 },
-                    ].map((proj) => (
-                      <div key={proj.label} className="text-center rounded-xl border border-border/40 p-3">
+                    { label: "6 meses", value: savings * 6 },
+                    { label: "12 meses", value: savings * 12 },
+                    { label: "24 meses", value: savings * 24 }].
+                    map((proj) =>
+                    <div key={proj.label} className="text-center rounded-xl border border-border/40 p-3">
                         <p className="text-[10px] text-muted-foreground mb-1">{proj.label}</p>
                         <p className={`text-sm font-bold tabular-nums ${proj.value >= 0 ? "text-treend-success" : "text-treend-danger"}`}>
                           {sym} {Math.abs(proj.value).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                         </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 
@@ -608,28 +608,28 @@ const HistoryPage = () => {
                   </div>
                   <div className="space-y-2">
                     {([
-                      {
-                        label: "Economia", value: `${grossPct.toFixed(2)}%`, status: savingsHealthStatus,
-                        description: savingsHealthStatus === "good" ? "Excelente diferencial cambial" : savingsHealthStatus === "warning" ? "Diferencial moderado" : "Diferencial insuficiente",
-                        benchmark: "<= 0,8% (ideal)",
-                      },
-                      {
-                        label: "Taxa de Spread", value: `${savedSpread.toFixed(2)}%`, status: spreadHealthStatus,
-                        description: spreadHealthStatus === "good" ? "Spread competitivo" : spreadHealthStatus === "warning" ? "Spread aceitável" : "Spread elevado",
-                        benchmark: "<= 1,2% (ideal: 0,5%)",
-                      },
-                      {
-                        label: "Economia Líquida", value: `${netPct.toFixed(2)}%`, status: netHealthStatus,
-                        description: netHealthStatus === "good" ? "Resultado líquido excelente" : netHealthStatus === "warning" ? "Margem apertada" : "Spread consome a economia",
-                        benchmark: ">= 0,1% (ideal)",
-                      },
-                      {
-                        label: "Volume Mensal", value: `${sym} ${amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, status: volumeHealthStatus,
-                        description: "Volume mensal projetado.",
-                        benchmark: `>= ${sym} 2K`,
-                      },
-                    ] as { label: string; value: string; status: "good" | "warning" | "bad"; description: string; benchmark: string }[]).map((item) => (
-                      <div key={item.label} className={`rounded-xl border p-3 transition-all ${healthItemColors[item.status]}`}>
+                    {
+                      label: "Economia", value: `${grossPct.toFixed(2)}%`, status: savingsHealthStatus,
+                      description: savingsHealthStatus === "good" ? "Excelente diferencial cambial" : savingsHealthStatus === "warning" ? "Diferencial moderado" : "Diferencial insuficiente",
+                      benchmark: "<= 0,8% (ideal)"
+                    },
+                    {
+                      label: "Taxa de Spread", value: `${savedSpread.toFixed(2)}%`, status: spreadHealthStatus,
+                      description: spreadHealthStatus === "good" ? "Spread competitivo" : spreadHealthStatus === "warning" ? "Spread aceitável" : "Spread elevado",
+                      benchmark: "<= 1,2% (ideal: 0,5%)"
+                    },
+                    {
+                      label: "Economia Líquida", value: `${netPct.toFixed(2)}%`, status: netHealthStatus,
+                      description: netHealthStatus === "good" ? "Resultado líquido excelente" : netHealthStatus === "warning" ? "Margem apertada" : "Spread consome a economia",
+                      benchmark: ">= 0,1% (ideal)"
+                    },
+                    {
+                      label: "Volume Mensal", value: `${sym} ${amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, status: volumeHealthStatus,
+                      description: "Volume mensal projetado.",
+                      benchmark: `>= ${sym} 2K`
+                    }] as
+                    {label: string;value: string;status: "good" | "warning" | "bad";description: string;benchmark: string;}[]).map((item) =>
+                    <div key={item.label} className={`rounded-xl border p-3 transition-all ${healthItemColors[item.status]}`}>
                         <div className="flex items-center justify-between mb-0.5">
                           <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${dotColors[item.status]}`} />
@@ -640,7 +640,7 @@ const HistoryPage = () => {
                         <p className="text-[10px] text-muted-foreground ml-4">{item.description}</p>
                         <p className="text-[9px] text-muted-foreground/70 ml-4 mt-0.5">Benchmark: {item.benchmark}</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 
@@ -655,13 +655,13 @@ const HistoryPage = () => {
                     Enviar por e-mail
                   </Button>
                 </div>
-              </div>
-            );
+              </div>);
+
           })()}
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default HistoryPage;
