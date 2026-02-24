@@ -432,7 +432,7 @@ const HistoryPage = () => {
                 </div>
 
                 <DialogHeader className="mb-8">
-                  <DialogTitle className="flex items-center gap-2 text-lg">
+                  <DialogTitle className="flex items-center justify-center gap-2 text-lg">
                     <span className="text-xl">{flag}</span>
                     Simulação — {d.currency}
                   </DialogTitle>
