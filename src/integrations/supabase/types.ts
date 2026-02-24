@@ -303,7 +303,8 @@ export type Database = {
           thumbnail_url: string | null
           title: string
           updated_at: string
-          youtube_url: string
+          video_url: string | null
+          youtube_url: string | null
         }
         Insert: {
           admin_id: string
@@ -315,7 +316,8 @@ export type Database = {
           thumbnail_url?: string | null
           title: string
           updated_at?: string
-          youtube_url: string
+          video_url?: string | null
+          youtube_url?: string | null
         }
         Update: {
           admin_id?: string
@@ -327,7 +329,8 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
-          youtube_url?: string
+          video_url?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
