@@ -175,7 +175,7 @@ const Dashboard = () => {
         ] as const).map(({ rate, flag, label, name }) => rate && (
           <div key={label} className="kpi-stat p-5">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-xs text-muted-foreground font-medium">{name}</p>
+              <p className="text-xs text-muted-foreground font-medium"><span className="mr-1">{flag}</span>{name}</p>
               <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${
                 rate.pctChange >= 0 
                   ? "text-treend-danger bg-treend-danger/10" 
