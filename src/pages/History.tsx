@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import treendLogo from "@/assets/treend-logo.png";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -423,12 +424,17 @@ const HistoryPage = () => {
 
             return (
               <div id="simulation-detail-content" className="space-y-5">
+                {/* PDF header: logo + date */}
+                <div className="flex flex-col items-center gap-1 pb-4 border-b border-border/30">
+                  <img src={treendLogo} alt="Treend" className="h-8 object-contain" />
+                  <p className="text-xs text-muted-foreground mt-1">{formatDateBR(d.created_at)}</p>
+                </div>
+
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-lg">
                     <span className="text-xl">{flag}</span>
                     Simulação — {d.currency}
                   </DialogTitle>
-                  <p className="text-xs text-muted-foreground">{formatDateBR(d.created_at)}</p>
                 </DialogHeader>
 
                 {/* Parameters */}
