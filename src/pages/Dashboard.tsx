@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import QuickConverter from "@/components/QuickConverter";
+import WelcomePopup from "@/components/WelcomePopup";
 
 type ProfileFilter = "all" | "importador" | "exportador" | "agente_turismo" | "freelancer";
 type Currency = "USD" | "EUR" | "GBP";
@@ -150,6 +151,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-5 max-w-6xl mx-auto">
+      <WelcomePopup />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
