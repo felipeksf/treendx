@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, GripVertical, Video, Copy, Upload, Youtube, FileVideo } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Video, Copy, Upload, Youtube, FileVideo, ImagePlus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -141,7 +141,11 @@ const AdminTutorials = () => {
   const [existingVideoUrl, setExistingVideoUrl] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [existingThumbnailUrl, setExistingThumbnailUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -222,13 +226,64 @@ const AdminTutorials = () => {
     return urlData.publicUrl;
   };
 
+  const processAndUploadThumbnail = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement("canvas");
+        const MAX_W = 640;
+        const MAX_H = 360;
+        let w = img.width;
+        let h = img.height;
+        if (w > MAX_W || h > MAX_H) {
+          const ratio = Math.min(MAX_W / w, MAX_H / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, w, h);
+
+        canvas.toBlob(async (blob) => {
+          if (!blob) { reject(new Error("Falha ao processar imagem")); return; }
+          const safeName = sanitizeFileName(file.name.replace(/\.[^.]+$/, ""));
+          const path = `thumbs/${Date.now()}_${safeName}.jpg`;
+          const { error } = await supabase.storage
+            .from("tutorial-videos")
+            .upload(path, blob, { contentType: "image/jpeg", cacheControl: "3600", upsert: false });
+          if (error) { reject(error); return; }
+          const { data: urlData } = supabase.storage.from("tutorial-videos").getPublicUrl(path);
+          resolve(urlData.publicUrl);
+        }, "image/jpeg", 0.85);
+      };
+      img.onerror = () => reject(new Error("Imagem inválida"));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleThumbnailSelect = useCallback((file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Imagem muito grande", description: "O limite é 5MB.", variant: "destructive" });
+      return;
+    }
+    setThumbnailFile(file);
+    setThumbnailPreview(URL.createObjectURL(file));
+    setExistingThumbnailUrl(null);
+  }, [toast]);
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Not authenticated");
 
       let videoUrl: string | null = existingVideoUrl;
       let youtubeUrl: string | null = null;
-      let thumbnailUrl: string | null = null;
+      let thumbnailUrl: string | null = existingThumbnailUrl;
+
+      // Upload custom thumbnail if provided
+      if (thumbnailFile) {
+        thumbnailUrl = await processAndUploadThumbnail(thumbnailFile);
+      }
 
       if (videoSource === "upload") {
         if (videoFile) {
@@ -239,7 +294,10 @@ const AdminTutorials = () => {
         youtubeUrl = form.youtube_url.trim();
         const ytId = extractYouTubeId(youtubeUrl);
         if (!ytId) throw new Error("URL do YouTube inválida");
-        thumbnailUrl = `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+        // Only use YouTube auto-thumb if no custom thumbnail
+        if (!thumbnailUrl) {
+          thumbnailUrl = `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+        }
         videoUrl = null;
       }
 
@@ -325,6 +383,9 @@ const AdminTutorials = () => {
     setVideoSource("upload");
     setUploadProgress(0);
     setIsUploading(false);
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
+    setExistingThumbnailUrl(null);
   };
 
   const openEdit = (t: Tutorial) => {
@@ -334,6 +395,9 @@ const AdminTutorials = () => {
     setVideoSource(source);
     setExistingVideoUrl(t.video_url || null);
     setVideoFile(null);
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
+    setExistingThumbnailUrl(t.thumbnail_url || null);
     setDialogOpen(true);
   };
 
@@ -487,6 +551,58 @@ const AdminTutorials = () => {
                   )}
                 </div>
               )}
+
+              {/* Thumbnail upload */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Thumbnail (opcional)</Label>
+                <input
+                  ref={thumbInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleThumbnailSelect(file);
+                  }}
+                />
+                {thumbnailPreview || existingThumbnailUrl ? (
+                  <div className="relative">
+                    <img
+                      src={thumbnailPreview || existingThumbnailUrl!}
+                      alt="Thumbnail"
+                      className="w-full aspect-video rounded-xl object-cover border border-border"
+                    />
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => thumbInputRef.current?.click()}
+                        className="p-1.5 rounded-lg bg-background/80 backdrop-blur text-foreground hover:bg-background transition-colors"
+                        title="Trocar thumbnail"
+                      >
+                        <ImagePlus className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setThumbnailFile(null); setThumbnailPreview(null); setExistingThumbnailUrl(null); }}
+                        className="p-1.5 rounded-lg bg-background/80 backdrop-blur text-destructive hover:bg-background transition-colors"
+                        title="Remover thumbnail"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => thumbInputRef.current?.click()}
+                    className="w-full border-2 border-dashed border-border rounded-xl p-4 text-center cursor-pointer hover:border-primary/50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Adicionar thumbnail • JPG, PNG • Máx. 5MB</span>
+                  </button>
+                )}
+                <p className="text-[11px] text-muted-foreground">Recomendado: 640×360px (16:9). A imagem será redimensionada automaticamente.</p>
+              </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs">Descrição</Label>
