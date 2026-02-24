@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, ArrowRight, Sparkles } from "lucide-react";
+import { PlayCircle, ArrowRight } from "lucide-react";
+import treendLogo from "@/assets/treend-logo.png";
 
 const STORAGE_KEY = "treend_welcome_seen";
 
@@ -34,10 +35,10 @@ const WelcomePopup = () => {
     <Dialog open={open} onOpenChange={(v) => { if (!v) dismiss(); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center sm:text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-            <Sparkles className="h-7 w-7 text-primary" />
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl">
+            <img src={treendLogo} alt="Treend" className="h-10 w-10 object-contain" />
           </div>
-          <DialogTitle className="text-xl">Bem-vindo ao Treend! 🎉</DialogTitle>
+          <DialogTitle className="text-xl">Bem-vindo à Treend! 🎉</DialogTitle>
           <DialogDescription className="text-sm mt-2 leading-relaxed">
             Para aproveitar ao máximo a plataforma, recomendamos que você assista às nossas aulas introdutórias na seção de <strong>Tutoriais</strong>.
           </DialogDescription>
