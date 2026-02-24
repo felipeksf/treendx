@@ -35,8 +35,8 @@ const WelcomePopup = () => {
     <Dialog open={open} onOpenChange={(v) => { if (!v) dismiss(); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center sm:text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl">
-            <img src={treendLogo} alt="Treend" className="h-10 w-10 object-contain" />
+          <div className="mx-auto mb-3 flex h-32 w-32 items-center justify-center rounded-2xl">
+            <img src={treendLogo} alt="Treend" className="h-30 w-30 object-contain" />
           </div>
           <DialogTitle className="text-xl">Bem-vindo à Treend! 🎉</DialogTitle>
           <DialogDescription className="text-sm mt-2 leading-relaxed">
