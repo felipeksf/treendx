@@ -427,7 +427,8 @@ const HistoryPage = () => {
                 {/* PDF header: logo + date */}
                 <div className="flex flex-col items-center gap-1 pb-4 border-b border-border/30">
                   <img src={treendLogo} alt="Treend" className="h-48 object-contain" />
-                  <p className="text-xs text-muted-foreground mt-1">{formatDateBR(d.created_at)}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">{user?.email}</p>
+                  <p className="text-xs text-muted-foreground">{formatDateBR(d.created_at)}</p>
                 </div>
 
                 <DialogHeader className="mb-8">
