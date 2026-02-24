@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -43,6 +43,28 @@ const HeatmapBlock = ({
   const heatColor = useMemo(() => getHeatColor(heatX, heatY), [heatX, heatY]);
   const zoneMessage = useMemo(() => getZoneMessage(heatX, heatY), [heatX, heatY]);
 
+  // Block PrintScreen / screenshot shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "PrintScreen" || (e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4" || e.key === "5"))) {
+        e.preventDefault();
+        navigator.clipboard?.writeText?.("");
+      }
+    };
+    const handleVisibilityChange = () => {
+      // Clear clipboard when user switches away (common PrintScreen flow)
+      if (document.hidden) {
+        navigator.clipboard?.writeText?.("").catch(() => {});
+      }
+    };
+    window.addEventListener("keyup", handleKeyDown);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("keyup", handleKeyDown);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   const gradientStyle = useMemo(() => ({
     background: `
       linear-gradient(to right, 
@@ -86,8 +108,8 @@ const HeatmapBlock = ({
         </div>
       </div>
 
-      {/* Heatmap visualization */}
-      <div className={`${expanded ? "px-6 pb-6" : "px-5 pb-5"}`}>
+      {/* Heatmap visualization — screenshot protected */}
+      <div className={`${expanded ? "px-6 pb-6" : "px-5 pb-5"} heatmap-protected`}>
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -118,9 +140,9 @@ const HeatmapBlock = ({
                   }}
                 />
 
-                {/* The heat point */}
+                {/* The heat point — pulsing */}
                 <div
-                  className={`absolute ${expanded ? "w-8 h-8" : "w-5 h-5"} rounded-full border-2 border-white/80 shadow-lg transition-all duration-500`}
+                  className={`absolute ${expanded ? "w-8 h-8" : "w-5 h-5"} rounded-full border-2 border-white/80 shadow-lg transition-all duration-500 animate-[heatpulse_2s_ease-in-out_infinite]`}
                   style={{
                     left: `${heatX}%`,
                     top: `${heatY}%`,
@@ -131,6 +153,17 @@ const HeatmapBlock = ({
                 >
                   <div className="absolute inset-1 rounded-full bg-white/30" />
                 </div>
+
+                {/* Ping ring */}
+                <div
+                  className={`absolute ${expanded ? "w-8 h-8" : "w-5 h-5"} rounded-full animate-[heatping_2s_ease-out_infinite]`}
+                  style={{
+                    left: `${heatX}%`,
+                    top: `${heatY}%`,
+                    transform: "translate(-50%, -50%)",
+                    border: `2px solid ${heatColor}`,
+                  }}
+                />
 
                 {/* Corner labels */}
                 <div className="absolute top-2 left-3 text-[9px] font-semibold text-white/70 drop-shadow-md select-none">●</div>
