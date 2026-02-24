@@ -391,6 +391,36 @@ const HistoryPage = () => {
             const rawPct = ((rate - range.min) / (range.max - range.min)) * 100;
             const zoneInfo = getZoneLabel(rawPct);
 
+            // Health computations (mirror Calculator logic)
+            const grossPct = rate > 0 ? (Math.abs(rateDiff) / rate) * 100 : 0;
+            const netPct = grossPct - savedSpread;
+            const savingsHealthStatus: "good" | "warning" | "bad" =
+              grossPct <= 0.8 && grossPct > 0 ? "good" : grossPct <= 1.2 ? "warning" : "bad";
+            const spreadHealthStatus: "good" | "warning" | "bad" =
+              savedSpread <= 0.5 ? "good" : savedSpread <= 1.2 ? "warning" : "bad";
+            const netHealthStatus: "good" | "warning" | "bad" =
+              netPct >= 0.1 ? "good" : netPct >= 0 ? "warning" : "bad";
+            const volumeHealthStatus: "good" | "warning" | "bad" =
+              amount >= 50000 ? "good" : amount >= 10000 ? "warning" : "bad";
+            const overallHealth =
+              [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter(s => s === "good").length >= 3
+                ? "good"
+                : [savingsHealthStatus, spreadHealthStatus, netHealthStatus, volumeHealthStatus].filter(s => s === "bad").length >= 2
+                ? "bad"
+                : "warning";
+            const healthColors: Record<string, string> = {
+              good: "text-treend-success border-treend-success/30 bg-treend-success/10",
+              warning: "text-treend-warning border-treend-warning/30 bg-treend-warning/10",
+              bad: "text-treend-danger border-treend-danger/30 bg-treend-danger/10",
+            };
+            const healthLabels: Record<string, string> = { good: "Saudável", warning: "Atenção", bad: "Crítico" };
+            const dotColors: Record<string, string> = { good: "bg-treend-success", warning: "bg-treend-warning", bad: "bg-treend-danger" };
+            const healthItemColors: Record<string, string> = {
+              good: "text-treend-success border-treend-success/20 bg-treend-success/5",
+              warning: "text-treend-warning border-treend-warning/20 bg-treend-warning/5",
+              bad: "text-treend-danger border-treend-danger/20 bg-treend-danger/5",
+            };
+
             return (
               <div id="simulation-detail-content" className="space-y-5">
                 <DialogHeader>
@@ -555,6 +585,58 @@ const HistoryPage = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Health Panel */}
+                <div className="kpi-stat p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+                      <Activity className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Saúde da Operação</span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${healthColors[overallHealth]}`}>
+                        {healthLabels[overallHealth]}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {([
+                      {
+                        label: "Economia", value: `${grossPct.toFixed(2)}%`, status: savingsHealthStatus,
+                        description: savingsHealthStatus === "good" ? "Excelente diferencial cambial" : savingsHealthStatus === "warning" ? "Diferencial moderado" : "Diferencial insuficiente",
+                        benchmark: "<= 0,8% (ideal)",
+                      },
+                      {
+                        label: "Taxa de Spread", value: `${savedSpread.toFixed(2)}%`, status: spreadHealthStatus,
+                        description: spreadHealthStatus === "good" ? "Spread competitivo" : spreadHealthStatus === "warning" ? "Spread aceitável" : "Spread elevado",
+                        benchmark: "<= 1,2% (ideal: 0,5%)",
+                      },
+                      {
+                        label: "Economia Líquida", value: `${netPct.toFixed(2)}%`, status: netHealthStatus,
+                        description: netHealthStatus === "good" ? "Resultado líquido excelente" : netHealthStatus === "warning" ? "Margem apertada" : "Spread consome a economia",
+                        benchmark: ">= 0,1% (ideal)",
+                      },
+                      {
+                        label: "Volume Mensal", value: `${sym} ${amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, status: volumeHealthStatus,
+                        description: "Volume mensal projetado.",
+                        benchmark: `>= ${sym} 50K (ideal: 100K)`,
+                      },
+                    ] as { label: string; value: string; status: "good" | "warning" | "bad"; description: string; benchmark: string }[]).map((item) => (
+                      <div key={item.label} className={`rounded-xl border p-3 transition-all ${healthItemColors[item.status]}`}>
+                        <div className="flex items-center justify-between mb-0.5">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${dotColors[item.status]}`} />
+                            <span className="text-xs font-semibold text-foreground">{item.label}</span>
+                          </div>
+                          <span className="text-xs font-bold tabular-nums text-foreground">{item.value}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground ml-4">{item.description}</p>
+                        <p className="text-[9px] text-muted-foreground/70 ml-4 mt-0.5">Benchmark: {item.benchmark}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Action buttons */}
                 <div className="flex gap-2 pt-2 border-t border-border/30" data-html2canvas-ignore="true">
                   <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs" onClick={() => handleDownloadPDF(d)} disabled={downloadingPDF}>
