@@ -137,7 +137,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, zone, size = "lg", inver
         {/* Score number - large centered */}
         <text
           x={cx}
-          y={cy + 32}
+          y={cy + 22}
           textAnchor="middle"
           style={{
             fill: needleColor,
