@@ -73,7 +73,7 @@ const HeatmapBlock = ({
     };
     if (scoreCambial >= 41) return {
       label: "Cenário Neutro",
-      action: "Aguarde ou opere parcialmente",
+      action: "Cenário de Probabilidade Neutra",
       confidence: "Moderada",
       confidenceColor: "hsl(var(--score-zone-3))",
       Icon: Minus,
