@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from "react";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, TrendingUp, TrendingDown, Minus, ShieldCheck, Target, AlertTriangle, XCircle, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ScoreGauge from "@/components/ScoreGauge";
@@ -52,13 +52,55 @@ const HeatmapBlock = ({
     return Math.round((heatX + (100 - heatY)) / 2);
   }, [heatX, heatY]);
 
-  const scoreLabel = useMemo(() => {
-    if (scoreCambial >= 81) return "Cenário Interessante";
-    if (scoreCambial >= 61) return "Cenário OK";
-    if (scoreCambial >= 41) return "Cenário Neutro";
-    if (scoreCambial >= 21) return "Cenário de Atenção";
-    return "Cenário Pessimista";
+  const scoreData = useMemo(() => {
+    if (scoreCambial >= 81) return {
+      label: "Cenário Interessante",
+      action: "Momento favorável para operar",
+      confidence: "Alta",
+      confidenceColor: "hsl(var(--score-zone-5))",
+      Icon: TrendingUp,
+      SignalIcon: Zap,
+      tip: "Condições de mercado alinhadas ao seu perfil. Considere aproveitar.",
+    };
+    if (scoreCambial >= 61) return {
+      label: "Cenário OK",
+      action: "Bom momento, avalie com calma",
+      confidence: "Moderada-Alta",
+      confidenceColor: "hsl(var(--score-zone-4))",
+      Icon: TrendingUp,
+      SignalIcon: ShieldCheck,
+      tip: "Cenário positivo, mas avalie volume e prazo antes de decidir.",
+    };
+    if (scoreCambial >= 41) return {
+      label: "Cenário Neutro",
+      action: "Aguarde ou opere parcialmente",
+      confidence: "Moderada",
+      confidenceColor: "hsl(var(--score-zone-3))",
+      Icon: Minus,
+      SignalIcon: Target,
+      tip: "Mercado sem tendência clara. Fracione operações se necessário.",
+    };
+    if (scoreCambial >= 21) return {
+      label: "Cenário de Atenção",
+      action: "Cautela — opere só se urgente",
+      confidence: "Baixa",
+      confidenceColor: "hsl(var(--score-zone-2))",
+      Icon: TrendingDown,
+      SignalIcon: AlertTriangle,
+      tip: "Pressão no câmbio. Evite grandes volumes neste momento.",
+    };
+    return {
+      label: "Cenário Pessimista",
+      action: "Evite operar agora",
+      confidence: "Muito Baixa",
+      confidenceColor: "hsl(var(--score-zone-1))",
+      Icon: TrendingDown,
+      SignalIcon: XCircle,
+      tip: "Condições desfavoráveis. Aguarde melhora nos indicadores.",
+    };
   }, [scoreCambial]);
+
+  const scoreLabel = scoreData.label;
 
   // Block PrintScreen / screenshot shortcuts
   useEffect(() => {
@@ -125,9 +167,31 @@ const HeatmapBlock = ({
         </div>
       </div>
 
-      {/* Score Cambial — dominant indicator */}
-      <div className={`${expanded ? "px-6" : "px-5"} pb-3 flex justify-center`}>
-        <ScoreGauge score={scoreCambial} zone={scoreLabel} size={expanded ? "lg" : "sm"} />
+      {/* Score Cambial — dominant indicator + assets */}
+      <div className={`${expanded ? "px-6" : "px-5"} pb-3`}>
+        <div className="flex items-center gap-4">
+          <div className="shrink-0">
+            <ScoreGauge score={scoreCambial} zone={scoreLabel} size={expanded ? "lg" : "sm"} />
+          </div>
+          <div className="flex-1 min-w-0 space-y-2.5">
+            {/* Recommendation */}
+            <div className="flex items-center gap-2">
+              <scoreData.Icon className="h-4 w-4 shrink-0" style={{ color: scoreData.confidenceColor }} />
+              <span className="text-sm font-semibold text-foreground leading-tight">{scoreData.action}</span>
+            </div>
+
+            {/* Confidence */}
+            <div className="flex items-center gap-2">
+              <scoreData.SignalIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">
+                Confiança: <span className="font-semibold" style={{ color: scoreData.confidenceColor }}>{scoreData.confidence}</span>
+              </span>
+            </div>
+
+            {/* Tip */}
+            <p className="text-[11px] text-muted-foreground/80 leading-relaxed">{scoreData.tip}</p>
+          </div>
+        </div>
       </div>
 
       {/* Heatmap visualization — screenshot protected */}
