@@ -121,7 +121,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, zone, size = "lg", inver
         {/* Needle - sleek triangular */}
         <line
           x1={cx}
-          y1={cy}
+          y1={cy - 4}
           x2={needleEnd.x}
           y2={needleEnd.y}
           style={{ stroke: "hsl(var(--foreground))" }}
@@ -137,7 +137,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, zone, size = "lg", inver
         {/* Score number - large centered */}
         <text
           x={cx}
-          y={cy + 22}
+          y={cy + 30}
           textAnchor="middle"
           style={{
             fill: needleColor,
