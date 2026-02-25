@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from "react";
-import { HelpCircle, TrendingUp, TrendingDown, Minus, ShieldCheck, Target, AlertTriangle, XCircle, Zap, Package, Truck, Plane, Laptop } from "lucide-react";
+import { HelpCircle, TrendingUp, TrendingDown, Minus, ShieldCheck, Target, AlertTriangle, XCircle, Zap, Package, Globe, Plane, Laptop } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ScoreGauge from "@/components/ScoreGauge";
@@ -17,7 +17,7 @@ interface HeatmapBlockProps {
 
 const PROFILE_ICONS: Record<string, React.ElementType> = {
   importador: Package,
-  exportador: Truck,
+  exportador: Globe,
   agente_turismo: Plane,
   freelancer: Laptop,
 };
