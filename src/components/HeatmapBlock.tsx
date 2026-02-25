@@ -91,7 +91,7 @@ const HeatmapBlock = ({
     };
     return {
       label: "Cenário Pessimista",
-      action: "Evite operar agora",
+      action: "Condições atuais não interesantes",
       confidence: "Muito Baixa",
       confidenceColor: "hsl(var(--score-zone-1))",
       Icon: TrendingDown,
