@@ -143,7 +143,7 @@ const HeatmapBlock = ({
 
   return (
     <div
-      className="kpi-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01]"
+      className="kpi-card overflow-visible transition-all duration-300 hover:shadow-xl hover:scale-[1.01]"
       style={{
         borderColor: scoreData.confidenceColor,
         borderWidth: "1.5px",
@@ -208,7 +208,6 @@ const HeatmapBlock = ({
             <TooltipTrigger asChild>
               <div
                 className="relative w-full rounded-2xl overflow-hidden cursor-crosshair transition-all duration-300"
-                style={{ ...gradientStyle, height: expanded ? "480px" : compact ? "120px" : "180px" }}
               >
                 {/* Grid overlay */}
                 <div className="absolute inset-0 opacity-[0.07]"
