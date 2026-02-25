@@ -10,6 +10,8 @@ interface HeatmapBlockProps {
   profileDescription: string;
   heatX: number;
   heatY: number;
+  volatilityPct?: number;
+  momentumVal?: number;
   updatedAt?: string | null;
   compact?: boolean;
   expanded?: boolean;
@@ -46,6 +48,8 @@ const HeatmapBlock = ({
   profileDescription,
   heatX,
   heatY,
+  volatilityPct,
+  momentumVal,
   updatedAt,
   compact = false,
   expanded = false,
@@ -59,15 +63,16 @@ const HeatmapBlock = ({
     return Math.round((heatX + (100 - heatY)) / 2);
   }, [heatX, heatY]);
 
-  // Simulated volatility & momentum from heatmap coordinates
+  // Use real values from DB, fallback to simulated
   const volatility = useMemo(() => {
+    if (volatilityPct !== undefined && volatilityPct !== 0) return volatilityPct.toFixed(1);
     return (Math.abs(heatX - 50) / 50 * 3 + 0.5).toFixed(1);
-  }, [heatX]);
+  }, [heatX, volatilityPct]);
 
   const momentum = useMemo(() => {
-    const val = ((heatX - 50) / 50 * 1.5);
+    const val = (momentumVal !== undefined && momentumVal !== 0) ? momentumVal : ((heatX - 50) / 50 * 1.5);
     return val >= 0 ? `+${val.toFixed(1)}` : val.toFixed(1);
-  }, [heatX]);
+  }, [heatX, momentumVal]);
 
   const scoreData = useMemo(() => {
     if (scoreCambial >= 81) return {
