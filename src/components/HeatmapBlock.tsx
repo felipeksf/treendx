@@ -208,6 +208,7 @@ const HeatmapBlock = ({
             <TooltipTrigger asChild>
               <div
                 className="relative w-full rounded-2xl overflow-hidden cursor-crosshair transition-all duration-300"
+                style={{ ...gradientStyle, height: expanded ? "480px" : compact ? "120px" : "180px" }}
               >
                 {/* Grid overlay */}
                 <div className="absolute inset-0 opacity-[0.07]"
