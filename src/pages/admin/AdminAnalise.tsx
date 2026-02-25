@@ -40,6 +40,8 @@ interface RsiAnalysis {
   confidence: "high" | "medium" | "low";
   analysis_summary: string;
   suggested_score: number;
+  volatility_pct: number;
+  momentum: number;
 }
 
 // Map RSI to heatmap position based on profile rules
@@ -233,6 +235,8 @@ const AdminAnalise = () => {
           frequency,
           heatX: finalX,
           heatY: finalY,
+          volatilityPct: analysis?.volatility_pct ?? 0,
+          momentum: analysis?.momentum ?? 0,
         });
       }
       toast({ title: "Heatmap publicado!", description: `${profilesToPublish.join(" + ")} atualizado(s)` });
@@ -386,7 +390,7 @@ const AdminAnalise = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div>
                 <p className="text-xs text-muted-foreground">RSI</p>
                 <p className="text-lg font-bold">{analysis.rsi_value}</p>
@@ -400,6 +404,16 @@ const AdminAnalise = () => {
               <div>
                 <p className="text-xs text-muted-foreground">Par</p>
                 <p className="text-sm font-medium">{analysis.currency_pair}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Volatilidade</p>
+                <p className="text-lg font-bold">{analysis.volatility_pct?.toFixed(1) ?? "—"}%</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Momentum</p>
+                <p className={`text-lg font-bold ${(analysis.momentum ?? 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  {analysis.momentum !== undefined ? (analysis.momentum >= 0 ? `+${analysis.momentum.toFixed(1)}` : analysis.momentum.toFixed(1)) : "—"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Confiança</p>

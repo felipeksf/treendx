@@ -135,6 +135,8 @@ const Dashboard = () => {
     return {
       heatX: score?.heat_x ?? 50,
       heatY: score?.heat_y ?? 50,
+      volatilityPct: (score as any)?.volatility_pct ?? 0,
+      momentumVal: (score as any)?.momentum ?? 0,
       updatedAt: score?.published_at
         ? new Date(score.published_at).toLocaleDateString("pt-BR", {
             day: "2-digit",
@@ -324,6 +326,8 @@ const Dashboard = () => {
               profileDescription={profile.description}
               heatX={data.heatX}
               heatY={data.heatY}
+              volatilityPct={data.volatilityPct}
+              momentumVal={data.momentumVal}
               updatedAt={data.updatedAt}
               expanded={isExpanded}
             />

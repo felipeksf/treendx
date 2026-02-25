@@ -37,19 +37,35 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert at reading exact numeric values from TradingView chart screenshots. Your ONLY job is to read the RSI number precisely.
+            content: `You are an expert at reading exact numeric values from TradingView chart screenshots. Your job is to read the RSI number precisely and also estimate volatility and momentum from the chart.
 
 CRITICAL INSTRUCTIONS:
 1. Look at the RSI indicator panel (usually at the bottom of the chart).
-2. In the RSI legend/header area (the text line above the RSI graph), there are multiple numbers. One of them is displayed in GREEN colored text.
-3. READ THAT GREEN NUMBER EXACTLY AS IT APPEARS — do not round, do not approximate, do not estimate from the line position. Copy the digits precisely (e.g., if it shows "34.59", report exactly 34.59).
+2. In the RSI legend/header area, there are multiple numbers. One is displayed in GREEN colored text.
+3. READ THAT GREEN NUMBER EXACTLY AS IT APPEARS — do not round, do not approximate.
 4. The green number is the CURRENT RSI value of the main RSI line.
-5. IGNORE all other numbers in the RSI panel that are NOT green (white, gray, purple, yellow numbers are NOT what we want).
-6. Do NOT estimate the RSI from the visual position of the line on the chart. READ THE NUMERIC TEXT in green.
+5. IGNORE all other numbers in the RSI panel that are NOT green.
+6. Do NOT estimate the RSI from the visual position of the line on the chart.
 7. Determine the zone: below 30 = oversold, above 70 = overbought, 30-70 = neutral.
 8. Identify the currency pair from the chart title (e.g., USD/BRL, EUR/BRL).
 
-ACCURACY IS PARAMOUNT. Read the green number digit by digit.
+VOLATILITY ESTIMATION:
+- Look at the candlestick chart body sizes and wicks in the recent candles (last ~20 candles).
+- If candles have large bodies and long wicks relative to the overall range, volatility is HIGH (3.0-5.0%).
+- If candles are moderate, volatility is MODERATE (1.5-3.0%).
+- If candles are small and compact, volatility is LOW (0.5-1.5%).
+- Also check if there's a Bollinger Band or ATR indicator visible and use its value if available.
+- Report volatility as a percentage (e.g. 2.4).
+
+MOMENTUM ESTIMATION:
+- Look at the direction and slope of the last 5-10 candles.
+- If price is clearly trending UP with consecutive higher closes, momentum is positive (+0.5 to +2.0).
+- If price is clearly trending DOWN with consecutive lower closes, momentum is negative (-2.0 to -0.5).
+- If price is sideways/choppy, momentum is near zero (-0.3 to +0.3).
+- Also consider the RSI direction: rising RSI = positive momentum, falling RSI = negative momentum.
+- Report as a signed number (e.g. +0.8 or -1.2).
+
+ACCURACY IS PARAMOUNT. Read the green RSI number digit by digit.
 
 You MUST respond using the provided tool function.`,
           },
@@ -58,7 +74,7 @@ You MUST respond using the provided tool function.`,
             content: [
               {
                 type: "text",
-                text: "Look at the RSI indicator legend at the bottom of this chart. There is a number displayed in GREEN text color — read that exact number digit by digit. Do NOT estimate from the line position. Report exactly the green numeric value you see. Also identify the currency pair and RSI zone.",
+                text: "Analyze this TradingView chart. Read the exact green RSI number, identify the currency pair and RSI zone. Also estimate the current volatility percentage and momentum from the candlestick patterns and indicators visible in the chart.",
               },
               {
                 type: "image_url",
@@ -72,7 +88,7 @@ You MUST respond using the provided tool function.`,
             type: "function",
             function: {
               name: "report_rsi_analysis",
-              description: "Report the RSI analysis results from the TradingView chart",
+              description: "Report the RSI analysis results including volatility and momentum from the TradingView chart",
               parameters: {
                 type: "object",
                 properties: {
@@ -96,14 +112,22 @@ You MUST respond using the provided tool function.`,
                   },
                   analysis_summary: {
                     type: "string",
-                    description: "Brief summary of the analysis in Portuguese (BR)",
+                    description: "Brief summary of the analysis in Portuguese (BR), including volatility and momentum observations",
                   },
                   suggested_score: {
                     type: "number",
                     description: "Suggested score 1-100. If RSI < 30 (oversold/cheap), suggest low score (10-30). If RSI > 70 (overbought/expensive), suggest high score (70-90). If neutral, suggest 40-60.",
                   },
+                  volatility_pct: {
+                    type: "number",
+                    description: "Estimated volatility as a percentage (e.g. 2.4 for 2.4%). Based on candlestick size, Bollinger Bands, or ATR if visible. Range typically 0.5 to 5.0.",
+                  },
+                  momentum: {
+                    type: "number",
+                    description: "Estimated momentum as a signed number (e.g. +0.8 or -1.2). Positive = upward trend, negative = downward trend. Range typically -2.0 to +2.0.",
+                  },
                 },
-                required: ["rsi_value", "rsi_zone", "currency_pair", "confidence", "analysis_summary", "suggested_score"],
+                required: ["rsi_value", "rsi_zone", "currency_pair", "confidence", "analysis_summary", "suggested_score", "volatility_pct", "momentum"],
                 additionalProperties: false,
               },
             },

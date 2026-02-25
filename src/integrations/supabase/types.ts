@@ -170,8 +170,10 @@ export type Database = {
           heat_y: number
           id: string
           is_accurate: boolean | null
+          momentum: number | null
           profile_type: string
           published_at: string
+          volatility_pct: number | null
         }
         Insert: {
           admin_id: string
@@ -182,8 +184,10 @@ export type Database = {
           heat_y: number
           id?: string
           is_accurate?: boolean | null
+          momentum?: number | null
           profile_type: string
           published_at?: string
+          volatility_pct?: number | null
         }
         Update: {
           admin_id?: string
@@ -194,8 +198,10 @@ export type Database = {
           heat_y?: number
           id?: string
           is_accurate?: boolean | null
+          momentum?: number | null
           profile_type?: string
           published_at?: string
+          volatility_pct?: number | null
         }
         Relationships: []
       }
@@ -208,9 +214,11 @@ export type Database = {
           heat_x: number
           heat_y: number
           id: string
+          momentum: number | null
           profile_type: string
           published_at: string
           updated_at: string
+          volatility_pct: number | null
         }
         Insert: {
           admin_id: string
@@ -220,9 +228,11 @@ export type Database = {
           heat_x?: number
           heat_y?: number
           id?: string
+          momentum?: number | null
           profile_type: string
           published_at?: string
           updated_at?: string
+          volatility_pct?: number | null
         }
         Update: {
           admin_id?: string
@@ -232,9 +242,11 @@ export type Database = {
           heat_x?: number
           heat_y?: number
           id?: string
+          momentum?: number | null
           profile_type?: string
           published_at?: string
           updated_at?: string
+          volatility_pct?: number | null
         }
         Relationships: []
       }

@@ -10,6 +10,8 @@ export interface HeatmapScore {
   frequency: string;
   heat_x: number;
   heat_y: number;
+  volatility_pct: number;
+  momentum: number;
   published_at: string;
   updated_at: string;
 }
@@ -22,6 +24,8 @@ export interface HeatmapHistoryItem {
   frequency: string;
   heat_x: number;
   heat_y: number;
+  volatility_pct: number;
+  momentum: number;
   is_accurate: boolean | null;
   published_at: string;
 }
@@ -66,16 +70,19 @@ export const usePublishHeatmap = () => {
       frequency,
       heatX,
       heatY,
+      volatilityPct = 0,
+      momentum = 0,
     }: {
       profileType: string;
       currency: string;
       frequency: string;
       heatX: number;
       heatY: number;
+      volatilityPct?: number;
+      momentum?: number;
     }) => {
       if (!user) throw new Error("Not authenticated");
 
-      // Upsert the score
       const { error: upsertError } = await supabase
         .from("heatmap_scores")
         .upsert(
@@ -86,13 +93,14 @@ export const usePublishHeatmap = () => {
             frequency,
             heat_x: heatX,
             heat_y: heatY,
+            volatility_pct: volatilityPct,
+            momentum,
             published_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: "profile_type,currency,frequency" }
         );
       if (upsertError) throw upsertError;
 
-      // Insert history
       const { error: histError } = await supabase
         .from("heatmap_history")
         .insert({
@@ -102,8 +110,10 @@ export const usePublishHeatmap = () => {
           frequency,
           heat_x: heatX,
           heat_y: heatY,
+          volatility_pct: volatilityPct,
+          momentum,
           published_at: new Date().toISOString(),
-        });
+        } as any);
       if (histError) throw histError;
     },
     onSuccess: () => {
