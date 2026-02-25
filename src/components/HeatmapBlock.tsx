@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from "react";
-import { HelpCircle, TrendingUp, TrendingDown, Minus, ShieldCheck, Target, AlertTriangle, XCircle, Zap } from "lucide-react";
+import { HelpCircle, TrendingUp, TrendingDown, Minus, ShieldCheck, Target, AlertTriangle, XCircle, Zap, Package, Truck, Plane, Laptop } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ScoreGauge from "@/components/ScoreGauge";
@@ -14,6 +14,13 @@ interface HeatmapBlockProps {
   compact?: boolean;
   expanded?: boolean;
 }
+
+const PROFILE_ICONS: Record<string, React.ElementType> = {
+  importador: Package,
+  exportador: Truck,
+  agente_turismo: Plane,
+  freelancer: Laptop,
+};
 
 const getHeatColor = (x: number, y: number): string => {
   const favorability = (x + y) / 2;
@@ -34,6 +41,7 @@ const getZoneMessage = (x: number, y: number): string => {
 };
 
 const HeatmapBlock = ({
+  profileType,
   profileLabel,
   profileDescription,
   heatX,
@@ -47,10 +55,19 @@ const HeatmapBlock = ({
   const heatColor = useMemo(() => getHeatColor(heatX, heatY), [heatX, heatY]);
   const zoneMessage = useMemo(() => getZoneMessage(heatX, heatY), [heatX, heatY]);
 
-  // Score Cambial: single dominant score 0-100
   const scoreCambial = useMemo(() => {
     return Math.round((heatX + (100 - heatY)) / 2);
   }, [heatX, heatY]);
+
+  // Simulated volatility & momentum from heatmap coordinates
+  const volatility = useMemo(() => {
+    return (Math.abs(heatX - 50) / 50 * 3 + 0.5).toFixed(1);
+  }, [heatX]);
+
+  const momentum = useMemo(() => {
+    const val = ((heatX - 50) / 50 * 1.5);
+    return val >= 0 ? `+${val.toFixed(1)}` : val.toFixed(1);
+  }, [heatX]);
 
   const scoreData = useMemo(() => {
     if (scoreCambial >= 81) return {
@@ -78,7 +95,7 @@ const HeatmapBlock = ({
       confidenceColor: "hsl(var(--score-zone-3))",
       Icon: Minus,
       SignalIcon: Target,
-      tip: "Mercado sem tendência clara. Fracione operações se necessário.",
+      tip: "Mercado sem tendência clara.\nFracione operações se necessário.",
     };
     if (scoreCambial >= 21) return {
       label: "Cenário de Atenção",
@@ -91,7 +108,7 @@ const HeatmapBlock = ({
     };
     return {
       label: "Cenário Pessimista",
-      action: "Condições atuais não interesantes",
+      action: "Condições atuais não interessantes",
       confidence: "Muito Baixa",
       confidenceColor: "hsl(var(--score-zone-1))",
       Icon: TrendingDown,
@@ -101,8 +118,8 @@ const HeatmapBlock = ({
   }, [scoreCambial]);
 
   const scoreLabel = scoreData.label;
+  const ProfileIcon = PROFILE_ICONS[profileType] || Package;
 
-  // Block PrintScreen / screenshot shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "PrintScreen" || (e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4" || e.key === "5"))) {
@@ -111,7 +128,6 @@ const HeatmapBlock = ({
       }
     };
     const handleVisibilityChange = () => {
-      // Clear clipboard when user switches away (common PrintScreen flow)
       if (document.hidden) {
         navigator.clipboard?.writeText?.("").catch(() => {});
       }
@@ -150,58 +166,89 @@ const HeatmapBlock = ({
         borderStyle: "solid",
       }}
     >
-      {/* Header */}
-      <div className={`${expanded ? "p-6 pb-4" : "p-5 pb-3"} flex items-start justify-between gap-2`}>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className={`${expanded ? "text-lg" : "text-base"} font-bold text-foreground tracking-tight`}>{profileLabel}</h3>
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help shrink-0" />
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[260px] text-xs">
-                  {profileDescription}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+      {/* Header — icon + name + confidence badge */}
+      <div className={`${expanded ? "p-6 pb-3" : "p-5 pb-3"} flex items-start justify-between gap-2`}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: `${scoreData.confidenceColor}20`, border: `1px solid ${scoreData.confidenceColor}40` }}
+          >
+            <ProfileIcon className="w-4 h-4" style={{ color: scoreData.confidenceColor }} />
           </div>
-          {updatedAt && (
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Atualizado em: {updatedAt}
-            </p>
-          )}
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h3 className={`${expanded ? "text-lg" : "text-base"} font-bold text-foreground tracking-tight`}>{profileLabel}</h3>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[260px] text-xs">
+                    {profileDescription}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            {updatedAt && (
+              <p className="text-[10px] text-muted-foreground tracking-wider uppercase mt-0.5">
+                Atualizado em: {updatedAt}
+              </p>
+            )}
+          </div>
         </div>
+        {/* Confidence badge */}
+        <span
+          className="shrink-0 text-[11px] font-semibold tracking-wide uppercase px-3 py-1 rounded-full border"
+          style={{
+            color: scoreData.confidenceColor,
+            borderColor: scoreData.confidenceColor,
+            backgroundColor: `${scoreData.confidenceColor}12`,
+          }}
+        >
+          ● {scoreData.confidence}
+        </span>
       </div>
 
-      {/* Score Cambial — dominant indicator + assets */}
+      {/* Score section — action label + gauge + metrics */}
       <div className={`${expanded ? "px-6" : "px-5"} pb-3`}>
-        <div className="flex items-center gap-4">
+        {/* Action recommendation */}
+        <div className="flex items-center gap-2 mb-3">
+          <scoreData.Icon className="h-4 w-4 shrink-0" style={{ color: scoreData.confidenceColor }} />
+          <span className="text-sm font-semibold text-foreground leading-tight">{scoreData.action}</span>
+        </div>
+        {/* Tip text */}
+        <p className="text-[11px] text-muted-foreground/80 leading-relaxed mb-4 whitespace-pre-line break-words">
+          {scoreData.tip}
+        </p>
+
+        {/* Gauge + KPI metrics row */}
+        <div className="flex items-end gap-4">
           <div className="shrink-0">
             <ScoreGauge score={scoreCambial} zone={scoreLabel} size={expanded ? "lg" : "sm"} />
           </div>
-          <div className="flex-1 min-w-0 space-y-2.5">
-            {/* Recommendation */}
-            <div className="flex items-center gap-2">
-              <scoreData.Icon className="h-4 w-4 shrink-0" style={{ color: scoreData.confidenceColor }} />
-              <span className="text-sm font-semibold text-foreground leading-tight">{scoreData.action}</span>
+          <div className="flex-1 grid grid-cols-3 gap-2 pb-2">
+            {/* Volatilidade */}
+            <div className="text-center">
+              <p className="text-sm sm:text-base font-bold text-foreground">{volatility}%</p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Volatilidade</p>
             </div>
-
-            {/* Confidence */}
-            <div className="flex items-center gap-2">
-              <scoreData.SignalIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">
-                Confiança: <span className="font-semibold" style={{ color: scoreData.confidenceColor }}>{scoreData.confidence}</span>
-              </span>
+            {/* Momentum */}
+            <div className="text-center">
+              <p className={`text-sm sm:text-base font-bold ${parseFloat(momentum) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                {momentum}
+              </p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Momentum</p>
             </div>
-
-            {/* Tip */}
-            <p className="text-[11px] text-muted-foreground/80 leading-relaxed">{scoreData.tip}</p>
+            {/* Score */}
+            <div className="text-center">
+              <p className="text-sm sm:text-base font-bold text-foreground">{scoreCambial}/100</p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Score</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Heatmap visualization — screenshot protected */}
+      {/* Heatmap visualization */}
       <div className={`${expanded ? "px-6 pb-6" : "px-5 pb-5"} heatmap-protected`}>
         <TooltipProvider delayDuration={100}>
           <Tooltip>
@@ -233,7 +280,7 @@ const HeatmapBlock = ({
                   }}
                 />
 
-                {/* The heat point — pulsing */}
+                {/* The heat point */}
                 <div
                   className={`absolute ${expanded ? "w-8 h-8" : "w-5 h-5"} rounded-full border-2 border-white/80 shadow-lg transition-all duration-500 animate-[heatpulse_2s_ease-in-out_infinite]`}
                   style={{
