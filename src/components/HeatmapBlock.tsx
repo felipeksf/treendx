@@ -55,7 +55,7 @@ const HeatmapBlock = ({
   const scoreData = useMemo(() => {
     if (scoreCambial >= 81) return {
       label: "Cenário Interessante",
-      action: "Ambiente atual de cautela",
+      action: "Zona com potencial",
       confidence: "Alta",
       confidenceColor: "hsl(var(--score-zone-5))",
       Icon: TrendingUp,
