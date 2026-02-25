@@ -82,9 +82,6 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
   const trackD = `M ${tStart.x} ${tStart.y} A ${r} ${r} 0 1 1 ${tEnd.x} ${tEnd.y}`;
 
   const fillAngleDeg = 180 - (animScore / 100) * 180;
-  const fEnd = arcPoint(fillAngleDeg, r);
-  const fillLargeArc = animScore > 50 ? 1 : 0;
-  const fillD = `M ${tStart.x} ${tStart.y} A ${r} ${r} 0 ${fillLargeArc} 1 ${fEnd.x} ${fEnd.y}`;
 
   const needleAngle = fillAngleDeg;
   const needleLen = r * 0.78;
@@ -94,14 +91,33 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
 
   const mainColor = scoreToColor(animScore);
 
+  // Build colored arc segments that follow the semicircle path correctly
+  const SEGMENT_COUNT = 40;
+  const fillSegments = [];
+  const maxFillPct = animScore / 100;
+  for (let i = 0; i < SEGMENT_COUNT; i++) {
+    const segPct = i / SEGMENT_COUNT;
+    const segPctEnd = (i + 1) / SEGMENT_COUNT;
+    if (segPct >= maxFillPct) break;
+    const clampEnd = Math.min(segPctEnd, maxFillPct);
+    const startAngle = 180 - segPct * 180;
+    const endAngle = 180 - clampEnd * 180;
+    const segStart = arcPoint(startAngle, r);
+    const segEnd = arcPoint(endAngle, r);
+    const midPct = (segPct + clampEnd) / 2;
+    const color = scoreToColor(midPct * 100);
+    fillSegments.push({
+      d: `M ${segStart.x} ${segStart.y} A ${r} ${r} 0 0 1 ${segEnd.x} ${segEnd.y}`,
+      color,
+    });
+  }
+
   const ticks = Array.from({ length: 9 }, (_, i) => {
     const angleDeg = 180 - (i / 8) * 180;
     const inner = arcPoint(angleDeg, r - trackThick * 0.9);
     const outer = arcPoint(angleDeg, r + trackThick * 0.4);
     return { inner, outer, i };
   });
-
-  const gradId = `gaugeGrad-${size}`;
 
   return (
     <div
@@ -121,12 +137,6 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
         overflow="visible"
       >
         <defs>
-          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#ff4444" />
-            <stop offset="50%" stopColor="#ffd600" />
-            <stop offset="100%" stopColor="#00e676" />
-          </linearGradient>
-
           <filter id="arcGlow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
             <feMerge>
@@ -171,17 +181,18 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
           strokeLinecap="round"
         />
 
-        {/* Colored fill arc */}
-        {animScore > 0 && (
+        {/* Colored fill arc — segmented for correct color mapping */}
+        {fillSegments.map((seg, i) => (
           <path
-            d={fillD}
+            key={i}
+            d={seg.d}
             fill="none"
-            stroke={`url(#${gradId})`}
+            stroke={seg.color}
             strokeWidth={trackThick}
-            strokeLinecap="round"
+            strokeLinecap={i === 0 ? "round" : "butt"}
             filter="url(#arcGlow)"
           />
-        )}
+        ))}
 
         {/* Tick marks */}
         {ticks.map(({ inner, outer, i }) => (
