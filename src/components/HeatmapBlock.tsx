@@ -142,7 +142,14 @@ const HeatmapBlock = ({
   }), []);
 
   return (
-    <div className="kpi-card overflow-hidden">
+    <div
+      className="kpi-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01]"
+      style={{
+        borderColor: scoreData.confidenceColor,
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+      }}
+    >
       {/* Header */}
       <div className={`${expanded ? "p-6 pb-4" : "p-5 pb-3"} flex items-start justify-between gap-2`}>
         <div className="flex-1 min-w-0">
