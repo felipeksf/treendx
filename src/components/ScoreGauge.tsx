@@ -52,7 +52,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, zone, size = "lg", inver
   const cx = 120, cy = 110;
   const outerR = 90;
   const innerR = 58;
-  const needleR = 64;
+  const needleR = 56;
   const clampedScore = Math.min(100, Math.max(0, score));
   const needleAngle = scoreToAngle(clampedScore);
   const needleEnd = polarToCartesian(cx, cy, needleR, needleAngle);
