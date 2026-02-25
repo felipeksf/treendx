@@ -1,160 +1,263 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface ScoreGaugeProps {
   score: number;
-  zone: string;
-  size?: "sm" | "lg";
-  inverted?: boolean;
+  label?: string;
+  size?: number;
 }
 
-const polarToCartesian = (cx: number, cy: number, r: number, angleDeg: number) => {
-  const rad = (angleDeg * Math.PI) / 180;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-};
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
 
-const describeArc = (cx: number, cy: number, r: number, startAngle: number, endAngle: number) => {
-  const start = polarToCartesian(cx, cy, r, startAngle);
-  const end = polarToCartesian(cx, cy, r, endAngle);
-  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
-  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y}`;
-};
+function scoreToColor(score: number): string {
+  const stops = [
+    { pos: 0, r: 255, g: 50, b: 50 },
+    { pos: 50, r: 255, g: 210, b: 0 },
+    { pos: 100, r: 0, g: 230, b: 118 },
+  ];
+  const t = Math.max(0, Math.min(100, score));
+  let a = stops[0], b = stops[1];
+  if (t > 50) { a = stops[1]; b = stops[2]; }
+  const pct = t <= 50 ? t / 50 : (t - 50) / 50;
+  const r = Math.round(lerp(a.r, b.r, pct));
+  const g = Math.round(lerp(a.g, b.g, pct));
+  const bl = Math.round(lerp(a.b, b.b, pct));
+  return `rgb(${r},${g},${bl})`;
+}
 
-const GAUGE_START = 180;
-const GAUGE_SWEEP = 180;
+function getScoreColor(score: number): string {
+  if (score >= 65) return "#00e676";
+  if (score >= 35) return "#ffd600";
+  return "#ff4444";
+}
 
-const ZONES = [
-  { start: 0, end: 20, color: "hsl(var(--score-zone-1))", invertedColor: "hsl(var(--score-zone-5))" },
-  { start: 20, end: 40, color: "hsl(var(--score-zone-2))", invertedColor: "hsl(var(--score-zone-4))" },
-  { start: 40, end: 60, color: "hsl(var(--score-zone-3))", invertedColor: "hsl(var(--score-zone-3))" },
-  { start: 60, end: 80, color: "hsl(var(--score-zone-4))", invertedColor: "hsl(var(--score-zone-2))" },
-  { start: 80, end: 100, color: "hsl(var(--score-zone-5))", invertedColor: "hsl(var(--score-zone-1))" },
-];
+export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
+  score,
+  label = "CENÁRIO NEUTRO",
+  size = 260,
+}) => {
+  const [displayScore, setDisplayScore] = useState(0);
+  const [animScore, setAnimScore] = useState(0);
+  const raf = useRef<number | null>(null);
 
-const scoreToAngle = (s: number) => GAUGE_START + (s / 100) * GAUGE_SWEEP;
+  useEffect(() => {
+    const start = animScore;
+    const end = score;
+    const duration = 1600;
+    const startTime = performance.now();
 
-const getZoneColor = (score: number, inverted = false) => {
-  if (inverted) {
-    if (score <= 20) return "hsl(var(--score-zone-5))";
-    if (score <= 40) return "hsl(var(--score-zone-4))";
-    if (score <= 60) return "hsl(var(--score-zone-3))";
-    if (score <= 80) return "hsl(var(--score-zone-2))";
-    return "hsl(var(--score-zone-1))";
-  }
-  if (score <= 20) return "hsl(var(--score-zone-1))";
-  if (score <= 40) return "hsl(var(--score-zone-2))";
-  if (score <= 60) return "hsl(var(--score-zone-3))";
-  if (score <= 80) return "hsl(var(--score-zone-4))";
-  return "hsl(var(--score-zone-5))";
-};
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const current = start + (end - start) * ease;
+      setDisplayScore(Math.round(current));
+      setAnimScore(current);
+      if (progress < 1) {
+        raf.current = requestAnimationFrame(tick);
+      }
+    };
 
-const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, zone, size = "lg", inverted = false }) => {
-  const cx = 120, cy = 115;
-  const outerR = 95;
-  const innerR = 60;
-  const needleR = 58;
-  const clampedScore = Math.min(100, Math.max(0, score));
-  const needleAngle = scoreToAngle(clampedScore);
-  const needleEnd = polarToCartesian(cx, cy, needleR, needleAngle);
-  const needleColor = getZoneColor(score, inverted);
-  const sizeClass = size === "lg" ? "w-44" : "w-28";
+    raf.current = requestAnimationFrame(tick);
+    return () => { if (raf.current) cancelAnimationFrame(raf.current); };
+  }, [score]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const W = size;
+  const H = size * 0.62;
+  const cx = W / 2;
+  const cy = H * 0.88;
+  const R = W * 0.42;
+  const trackThick = W * 0.055;
+  const r = R - trackThick / 2;
+
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const arcPoint = (angle: number, radius: number) => ({
+    x: cx + radius * Math.cos(toRad(angle)),
+    y: cy + radius * Math.sin(toRad(angle)),
+  });
+
+  const tStart = arcPoint(180, r);
+  const tEnd = arcPoint(0, r);
+  const trackD = `M ${tStart.x} ${tStart.y} A ${r} ${r} 0 1 1 ${tEnd.x} ${tEnd.y}`;
+
+  const fillAngleDeg = 180 - (animScore / 100) * 180;
+  const fEnd = arcPoint(fillAngleDeg, r);
+  const fillLargeArc = animScore > 50 ? 1 : 0;
+  const fillD = `M ${tStart.x} ${tStart.y} A ${r} ${r} 0 ${fillLargeArc} 1 ${fEnd.x} ${fEnd.y}`;
+
+  const needleAngle = fillAngleDeg;
+  const needleLen = r * 0.78;
+  const nEnd = arcPoint(needleAngle, needleLen);
+  const nBase1 = arcPoint(needleAngle + 90, W * 0.012);
+  const nBase2 = arcPoint(needleAngle - 90, W * 0.012);
+
+  const mainColor = scoreToColor(animScore);
+
+  const ticks = Array.from({ length: 9 }, (_, i) => {
+    const angleDeg = 180 - (i / 8) * 180;
+    const inner = arcPoint(angleDeg, r - trackThick * 0.9);
+    const outer = arcPoint(angleDeg, r + trackThick * 0.4);
+    return { inner, outer, i };
+  });
+
+  const gradId = `gaugeGrad-${size}`;
 
   return (
-    <div className="flex flex-col items-center">
-      <svg viewBox="0 0 240 145" className={`${sizeClass} h-auto`}>
+    <div
+      style={{
+        width: W,
+        position: "relative",
+        display: "inline-flex",
+        flexDirection: "column",
+        alignItems: "center",
+        userSelect: "none",
+      }}
+    >
+      <svg
+        width={W}
+        height={H}
+        viewBox={`0 0 ${W} ${H}`}
+        overflow="visible"
+      >
         <defs>
-          <filter id="needleShadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="hsl(0 0% 0%)" floodOpacity="0.3" />
+          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ff4444" />
+            <stop offset="50%" stopColor="#ffd600" />
+            <stop offset="100%" stopColor="#00e676" />
+          </linearGradient>
+
+          <filter id="arcGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
-          <filter id="gaugeShadow" x="-10%" y="-10%" width="120%" height="120%">
-            <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="hsl(0 0% 0%)" floodOpacity="0.25" />
+
+          <filter id="numGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          <filter id="needleGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
         </defs>
 
-        {/* Background track */}
+        {/* Background arc glow */}
         <path
-          d={describeArc(cx, cy, (outerR + innerR) / 2, GAUGE_START, GAUGE_START + GAUGE_SWEEP)}
+          d={trackD}
           fill="none"
-          style={{ stroke: "hsl(var(--muted))" }}
-          strokeWidth={outerR - innerR}
-          strokeLinecap="butt"
-          opacity={0.4}
+          stroke={mainColor}
+          strokeWidth={trackThick * 3}
+          strokeLinecap="round"
+          opacity={0.06}
         />
 
-        {/* Colored zone segments */}
-        {ZONES.map((z, i) => {
-          const gapDeg = 0.8;
-          const startA = scoreToAngle(z.start) + gapDeg;
-          const endA = scoreToAngle(z.end) - gapDeg;
-          return (
-            <path
-              key={i}
-              d={describeArc(cx, cy, (outerR + innerR) / 2, startA, endA)}
-              fill="none"
-              style={{ stroke: inverted ? z.invertedColor : z.color }}
-              strokeWidth={outerR - innerR}
-              strokeLinecap="round"
-              filter="url(#gaugeShadow)"
-            />
-          );
-        })}
+        {/* Track dark base */}
+        <path
+          d={trackD}
+          fill="none"
+          stroke="rgba(255,255,255,0.07)"
+          strokeWidth={trackThick}
+          strokeLinecap="round"
+        />
+
+        {/* Colored fill arc */}
+        {animScore > 0 && (
+          <path
+            d={fillD}
+            fill="none"
+            stroke={`url(#${gradId})`}
+            strokeWidth={trackThick}
+            strokeLinecap="round"
+            filter="url(#arcGlow)"
+          />
+        )}
+
+        {/* Tick marks */}
+        {ticks.map(({ inner, outer, i }) => (
+          <line
+            key={i}
+            x1={inner.x} y1={inner.y}
+            x2={outer.x} y2={outer.y}
+            stroke="rgba(255,255,255,0.2)"
+            strokeWidth={i === 0 || i === 4 || i === 8 ? 1.5 : 0.8}
+          />
+        ))}
+
+        {/* Needle shadow */}
+        <polygon
+          points={`${nEnd.x},${nEnd.y} ${nBase1.x},${nBase1.y} ${nBase2.x},${nBase2.y}`}
+          fill="rgba(0,0,0,0.4)"
+          transform="translate(2,3)"
+          filter="url(#needleGlow)"
+        />
 
         {/* Needle */}
-        <line
-          x1={cx}
-          y1={cy}
-          x2={needleEnd.x}
-          y2={needleEnd.y}
-          style={{ stroke: "hsl(var(--foreground))" }}
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          filter="url(#needleShadow)"
+        <polygon
+          points={`${nEnd.x},${nEnd.y} ${nBase1.x},${nBase1.y} ${nBase2.x},${nBase2.y}`}
+          fill="white"
+          filter="url(#needleGlow)"
         />
 
-        {/* Needle hub */}
-        <circle cx={cx} cy={cy} r={5} style={{ fill: "hsl(var(--foreground))" }} />
-        <circle cx={cx} cy={cy} r={2.5} style={{ fill: "hsl(var(--background))" }} />
-
-        {/* Score number — large, centered above baseline */}
-        <text
-          x={cx}
-          y={cy - 12}
-          textAnchor="middle"
-          style={{
-            fill: needleColor,
-            fontSize: "42px",
-            fontWeight: 800,
-            fontFamily: "Space Grotesk, sans-serif",
-          }}
-        >
-          {score}
-        </text>
-
-        {/* Zone label — overlapping bottom of arc */}
-        <rect
-          x={cx - 60}
-          y={cy + 2}
-          width={120}
-          height={18}
-          rx={4}
-          style={{ fill: `${needleColor}` }}
-          opacity={0.9}
+        {/* Needle center cap */}
+        <circle
+          cx={cx} cy={cy}
+          r={W * 0.022}
+          fill="white"
+          style={{ filter: "drop-shadow(0 0 4px rgba(255,255,255,0.8))" }}
         />
+        <circle
+          cx={cx} cy={cy}
+          r={W * 0.012}
+          fill={mainColor}
+        />
+
+        {/* Score number */}
         <text
           x={cx}
-          y={cy + 15}
+          y={cy - R * 0.28}
           textAnchor="middle"
-          style={{
-            fill: "hsl(var(--background))",
-            fontSize: "10px",
-            fontWeight: 700,
-            fontFamily: "Space Grotesk, sans-serif",
-            letterSpacing: "1.5px",
-            textTransform: "uppercase" as const,
-          }}
+          dominantBaseline="auto"
+          fill={mainColor}
+          fontSize={W * 0.22}
+          fontWeight="800"
+          fontFamily="'Space Grotesk', 'JetBrains Mono', monospace"
+          filter="url(#numGlow)"
+          style={{ letterSpacing: "-2px" }}
         >
-          {zone}
+          {displayScore}
         </text>
       </svg>
+
+      {/* Label below */}
+      <div
+        style={{
+          marginTop: -H * 0.12,
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontSize: W * 0.048,
+          fontWeight: 700,
+          letterSpacing: "0.15em",
+          textTransform: "uppercase",
+          color: "rgba(180,190,210,0.55)",
+          textAlign: "center",
+          lineHeight: 1.2,
+          pointerEvents: "none",
+          maxWidth: W,
+          wordBreak: "break-word",
+        }}
+      >
+        {label}
+      </div>
     </div>
   );
 };

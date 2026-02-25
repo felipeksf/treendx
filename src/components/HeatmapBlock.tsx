@@ -224,7 +224,7 @@ const HeatmapBlock = ({
         {/* Gauge + KPI metrics row */}
         <div className="flex items-end gap-4">
           <div className="shrink-0">
-            <ScoreGauge score={scoreCambial} zone={scoreLabel} size={expanded ? "lg" : "sm"} />
+            <ScoreGauge score={scoreCambial} label={scoreLabel} size={expanded ? 200 : 140} />
           </div>
           <div className="flex-1 grid grid-cols-3 gap-2 pb-2">
             {/* Volatilidade */}
