@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Check, X, Send, HelpCircle } from "lucide-react";
+import { Check, X, Send, HelpCircle, CalendarDays } from "lucide-react";
 import { useHeatmapScores, useHeatmapHistory, usePublishHeatmap, useToggleAccurate } from "@/hooks/useHeatmap";
 import HeatmapEditor from "@/components/HeatmapEditor";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +43,20 @@ const AdminHeatmap = () => {
 
   // Local editable state for each profile's heatmap
   const [localValues, setLocalValues] = useState<Record<string, { x: number; y: number }>>({});
+  const [histDateFrom, setHistDateFrom] = useState("");
+  const [histDateTo, setHistDateTo] = useState("");
+
+  const filteredHistory = useMemo(() => {
+    if (!history) return [];
+    let result = history;
+    if (histDateFrom) {
+      result = result.filter((h) => h.published_at.slice(0, 10) >= histDateFrom);
+    }
+    if (histDateTo) {
+      result = result.filter((h) => h.published_at.slice(0, 10) <= histDateTo);
+    }
+    return result;
+  }, [history, histDateFrom, histDateTo]);
 
   const getValues = (profileKey: string) => {
     const local = localValues[`${profileKey}-${currency}-${frequency}`];
@@ -223,6 +239,17 @@ const AdminHeatmap = () => {
       {history && history.length > 0 && (
         <div className="rounded-2xl bg-card border border-border/40 p-4 space-y-3">
           <h3 className="text-sm font-bold text-foreground">Histórico de Atualizações</h3>
+          <div className="flex items-end gap-3 flex-wrap">
+            <div className="space-y-1.5">
+              <Label className="text-xs flex items-center gap-1"><CalendarDays className="h-3 w-3" /> De</Label>
+              <Input type="date" value={histDateFrom} onChange={(e) => setHistDateFrom(e.target.value)} className="h-9 w-36 text-xs bg-secondary/50 border-border rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Até</Label>
+              <Input type="date" value={histDateTo} onChange={(e) => setHistDateTo(e.target.value)} className="h-9 w-36 text-xs bg-secondary/50 border-border rounded-xl" />
+            </div>
+            <span className="text-[11px] text-muted-foreground pb-2">{filteredHistory.length} registro(s)</span>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
@@ -236,7 +263,7 @@ const AdminHeatmap = () => {
                 </tr>
               </thead>
               <tbody>
-                {history.map((item) => {
+                {filteredHistory.map((item) => {
                   const date = new Date(item.published_at);
                   return (
                     <tr key={item.id} className="border-b border-border/20 hover:bg-muted/30 transition-colors">

@@ -2,6 +2,7 @@ import { useMemo, useEffect } from "react";
 import { HelpCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import ScoreGauge from "@/components/ScoreGauge";
 
 interface HeatmapBlockProps {
   profileType: string;
@@ -45,6 +46,19 @@ const HeatmapBlock = ({
   const watermarkText = user?.email || "Treend";
   const heatColor = useMemo(() => getHeatColor(heatX, heatY), [heatX, heatY]);
   const zoneMessage = useMemo(() => getZoneMessage(heatX, heatY), [heatX, heatY]);
+
+  // Score Cambial: single dominant score 0-100
+  const scoreCambial = useMemo(() => {
+    return Math.round((heatX + (100 - heatY)) / 2);
+  }, [heatX, heatY]);
+
+  const scoreLabel = useMemo(() => {
+    if (scoreCambial >= 81) return "Cenário Interessante";
+    if (scoreCambial >= 61) return "Cenário OK";
+    if (scoreCambial >= 41) return "Cenário Neutro";
+    if (scoreCambial >= 21) return "Cenário de Atenção";
+    return "Cenário Pessimista";
+  }, [scoreCambial]);
 
   // Block PrintScreen / screenshot shortcuts
   useEffect(() => {
@@ -109,6 +123,11 @@ const HeatmapBlock = ({
             </p>
           )}
         </div>
+      </div>
+
+      {/* Score Cambial — dominant indicator */}
+      <div className={`${expanded ? "px-6" : "px-5"} pb-3 flex justify-center`}>
+        <ScoreGauge score={scoreCambial} zone={scoreLabel} size={expanded ? "lg" : "sm"} />
       </div>
 
       {/* Heatmap visualization — screenshot protected */}
