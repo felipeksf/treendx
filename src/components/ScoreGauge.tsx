@@ -66,20 +66,21 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
   const W = size;
   const H = size * 0.62;
   const cx = W / 2;
-  const cy = H * 0.88;
+  const cy = H * 0.92;
   const R = W * 0.42;
   const trackThick = W * 0.055;
   const r = R - trackThick / 2;
 
   const toRad = (deg: number) => (deg * Math.PI) / 180;
+  // Flip y so arc curves UPWARD
   const arcPoint = (angle: number, radius: number) => ({
     x: cx + radius * Math.cos(toRad(angle)),
-    y: cy + radius * Math.sin(toRad(angle)),
+    y: cy - radius * Math.sin(toRad(angle)),
   });
 
   const tStart = arcPoint(180, r);
   const tEnd = arcPoint(0, r);
-  const trackD = `M ${tStart.x} ${tStart.y} A ${r} ${r} 0 1 1 ${tEnd.x} ${tEnd.y}`;
+  const trackD = `M ${tStart.x} ${tStart.y} A ${r} ${r} 0 1 0 ${tEnd.x} ${tEnd.y}`;
 
   const fillAngleDeg = 180 - (animScore / 100) * 180;
 
@@ -104,7 +105,7 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
     const midPct = (segPct + segPctEnd) / 2;
     const color = scoreToColor(midPct * 100);
     arcSegments.push({
-      d: `M ${segStart.x} ${segStart.y} A ${r} ${r} 0 0 1 ${segEnd.x} ${segEnd.y}`,
+      d: `M ${segStart.x} ${segStart.y} A ${r} ${r} 0 0 0 ${segEnd.x} ${segEnd.y}`,
       color,
     });
   }
@@ -233,7 +234,7 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
         {/* Score number */}
         <text
           x={cx}
-          y={cy - R * 0.28}
+          y={cy - R * 0.12}
           textAnchor="middle"
           dominantBaseline="auto"
           fill={mainColor}
