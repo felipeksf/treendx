@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import treendLogo from "@/assets/treend-logo.png";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
 import { useTreendRate } from "@/hooks/useTreendRate";
 import { Input } from "@/components/ui/input";
@@ -231,7 +232,7 @@ const CalculatorPage = () => {
   const [scenarioCurrency, setScenarioCurrency] = useState(saved?.currency ?? "USD");
   const [scenarioPeriod, setScenarioPeriod] = useState<"day" | "week" | "month" | "operation">("month");
   const [impactCurrency, setImpactCurrency] = useState("BRL");
-  const [evolutionCurrency, setEvolutionCurrency] = useState("BRL");
+  const [evolutionCurrency, setEvolutionCurrency] = useState(saved?.currency ?? "USD");
 
   const handleSavePreset = () => {
     const preset: CalcPreset = { currency, monthlyVolume, opsPerMonth, opsFrequency, bankSpread, projectionMonths, profile };
@@ -296,6 +297,7 @@ const CalculatorPage = () => {
     const prefLower = ["importador", "agente_turismo", "turista"].includes(profile);
     setTreendRate((prefLower ? liveRate * (1 - treendFraction) : liveRate * (1 + treendFraction)).toFixed(4));
     setScenarioCurrency(val);
+    setEvolutionCurrency(val);
   };
 
   const handleReset = () => {
@@ -433,8 +435,13 @@ const CalculatorPage = () => {
     const rawPct = ((sRate - scenarioRange.min) / range) * 100;
     const zonePct = prefersLower ? rawPct : 100 - rawPct;
 
-    return { periodVolume, sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, treendImpactAbs, treendIsBetter, treendDiffPct, zonePct };
-  }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower, treendFraction]);
+    // Scenario-based spread calculations for dynamic cards
+    const scenarioSpreadCost = sBRL * (spread / 100);
+    const scenarioEconWithTreend = treendSaving - scenarioSpreadCost;
+    const scenarioEconWithoutTreend = -scenarioSpreadCost;
+
+    return { periodVolume, sBRL, currentBRL, diffVsCurrent, diffPct, isBetter, impactAbs, treendSaving, treendImpactAbs, treendIsBetter, treendDiffPct, zonePct, scenarioSpreadCost, scenarioEconWithTreend, scenarioEconWithoutTreend };
+  }, [sliderRate, volume, scenarioLiveRate, scenarioRange, prefersLower, treendFraction, spread]);
 
   const getZoneLabel = (pct: number) => {
     if (pct <= 20) return { label: "Zona muito interessante", color: "text-treend-success" };
@@ -1024,27 +1031,27 @@ const CalculatorPage = () => {
             </p>
           </div>
 
-          {/* Card 2: Economia com a Treend = same as main "Economia" block */}
-          <div className="rounded-xl bg-treend-success/5 border border-treend-success/20 p-3 text-center">
+          {/* Card 2: Economia com a Treend - dynamic based on slider */}
+          <div className={`rounded-xl p-3 text-center ${scenario.scenarioEconWithTreend > 0 ? "bg-treend-success/5 border border-treend-success/20" : "bg-treend-danger/5 border border-treend-danger/20"}`}>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
               Economia {scenarioPeriodVolumeLabel} com a Treend
             </p>
             <div className="flex items-center justify-center gap-1">
-              {metrics.economiaMinusSpread > 0 ? (
+              {scenario.scenarioEconWithTreend > 0 ? (
                 <TrendingDown className="h-3.5 w-3.5 text-treend-success" />
-              ) : metrics.economiaMinusSpread === 0 ? null : (
+              ) : scenario.scenarioEconWithTreend === 0 ? null : (
                 <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
               )}
-              <p className={`text-base font-bold tabular-nums ${metrics.economiaMinusSpread > 0 ? "text-treend-success" : metrics.economiaMinusSpread === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
-                {fmtFull(Math.abs(metrics.economiaMinusSpread), currency)}
+              <p className={`text-base font-bold tabular-nums ${scenario.scenarioEconWithTreend > 0 ? "text-treend-success" : scenario.scenarioEconWithTreend === 0 ? "text-muted-foreground" : "text-treend-danger"}`}>
+                {fmtFull(Math.abs(scenario.scenarioEconWithTreend), currency)}
               </p>
             </div>
-            <span className="text-[10px] text-treend-success">
+            <span className={`text-[10px] ${scenario.scenarioEconWithTreend > 0 ? "text-treend-success" : "text-muted-foreground"}`}>
               Quanto você economizaria com a Treend
             </span>
           </div>
 
-          {/* Card 3: Economia sem a Treend = volume × taxa atual − spread% */}
+          {/* Card 3: Economia sem a Treend - dynamic based on slider */}
           <div className="rounded-xl bg-muted/40 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -1055,27 +1062,18 @@ const CalculatorPage = () => {
                   <HelpCircle className="h-3 w-3 text-muted-foreground/60 cursor-help shrink-0" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[260px] text-xs">
-                  Volume × taxa atual − spread configurado. Quanto você economizaria sem o diferencial Treend.
+                  Volume × cotação simulada × spread. Custo do spread sem o diferencial Treend.
                 </TooltipContent>
               </Tooltip>
             </div>
             <div className="flex items-center justify-center gap-1">
-              {(() => {
-                const volBRL = volume * curRate;
-                const econSemTreend = volBRL * (spread / 100);
-                const isPos = econSemTreend > 0;
-                return (
-                  <>
-                    <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
-                    <p className="text-base font-bold tabular-nums text-treend-danger">
-                      -{fmtFull(econSemTreend, currency)}
-                    </p>
-                  </>
-                );
-              })()}
+              <TrendingUp className="h-3.5 w-3.5 text-treend-danger" />
+              <p className="text-base font-bold tabular-nums text-treend-danger">
+                -{fmtFull(scenario.scenarioSpreadCost, currency)}
+              </p>
             </div>
             <span className="text-[10px] text-muted-foreground">
-              Volume × taxa atual − spread
+              Volume × cotação simulada × spread
             </span>
           </div>
         </div>
@@ -1485,13 +1483,26 @@ const CalculatorPage = () => {
 
               const dateStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 
+              // Health data for PDF
+              const grossPct = curRate > 0 ? Math.abs(rateDiff) / curRate * 100 : 0;
+              const netPct = grossPct - spread;
+              const savingsHs = grossPct <= 0.8 && grossPct > 0 ? "good" : grossPct <= 1.2 ? "warning" : "bad";
+              const spreadHs = spread <= 0.5 ? "good" : spread <= 1.2 ? "warning" : "bad";
+              const netHs = netPct >= 0.1 ? "good" : netPct >= 0 ? "warning" : "bad";
+              const volHs = volume >= 2000 ? "good" : volume >= 1000 ? "warning" : "bad";
+              const overallHs = [savingsHs, spreadHs, netHs, volHs].filter(s => s === "good").length >= 3 ? "good" : [savingsHs, spreadHs, netHs, volHs].filter(s => s === "bad").length >= 2 ? "bad" : "warning";
+              const hsColors: Record<string, string> = { good: "#22c55e", warning: "#eab308", bad: "#ef4444" };
+              const hsLabels: Record<string, string> = { good: "Saudável", warning: "Atenção", bad: "Crítico" };
+
               container.innerHTML = `
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <div>
-                    <div style="display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;">
-                      <span style="font-size:18px;">${flag}</span> Simulação — ${currency}
-                    </div>
-                    <p style="font-size:10px;color:#94a3b8;margin-top:2px;">${dateStr}</p>
+                <div style="border:1px solid #e2e8f0;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding-bottom:12px;border-bottom:1px solid #e2e8f030;">
+                    <img src="${treendLogo}" style="height:120px;object-fit:contain;" />
+                    <p style="font-size:10px;color:#94a3b8;">${user?.email || ""}</p>
+                    <p style="font-size:10px;color:#94a3b8;">${dateStr}</p>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:700;margin:8px 0;">
+                    <span style="font-size:18px;">${flag}</span> Simulação — ${currency}
                   </div>
 
                   <div style="background:#f8fafc;border-radius:10px;padding:12px;">
@@ -1571,6 +1582,31 @@ const CalculatorPage = () => {
                           <p style="font-size:12px;font-weight:700;color:${p.value >= 0 ? '#22c55e' : '#ef4444'};">
                             ${sym} ${Math.abs(p.value).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                           </p>
+                        </div>
+                      `).join("")}
+                    </div>
+                  </div>
+
+                  <div style="background:#f8fafc;border-radius:10px;padding:12px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                      <span style="font-size:9px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Saúde da Operação</span>
+                      <span style="font-size:8px;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid ${hsColors[overallHs]}30;background:${hsColors[overallHs]}10;color:${hsColors[overallHs]};">
+                        ${hsLabels[overallHs]}
+                      </span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                      ${[
+                        { label: "Economia", value: `${grossPct.toFixed(2)}%`, status: savingsHs },
+                        { label: "Taxa de Spread", value: `${spread.toFixed(2)}%`, status: spreadHs },
+                        { label: "Economia Líquida", value: `${netPct.toFixed(2)}%`, status: netHs },
+                        { label: "Volume Mensal", value: `${sym} ${volume.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, status: volHs },
+                      ].map(h => `
+                        <div style="border:1px solid ${hsColors[h.status]}20;background:${hsColors[h.status]}05;border-radius:8px;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="width:6px;height:6px;border-radius:50%;background:${hsColors[h.status]};"></div>
+                            <span style="font-size:10px;font-weight:600;color:#1e293b;">${h.label}</span>
+                          </div>
+                          <span style="font-size:10px;font-weight:700;color:#1e293b;">${h.value}</span>
                         </div>
                       `).join("")}
                     </div>
