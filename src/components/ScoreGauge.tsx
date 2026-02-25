@@ -91,22 +91,19 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
 
   const mainColor = scoreToColor(animScore);
 
-  // Build colored arc segments that follow the semicircle path correctly
+  // Build colored arc segments covering the FULL semicircle (always visible)
   const SEGMENT_COUNT = 40;
-  const fillSegments = [];
-  const maxFillPct = animScore / 100;
+  const arcSegments = [];
   for (let i = 0; i < SEGMENT_COUNT; i++) {
     const segPct = i / SEGMENT_COUNT;
     const segPctEnd = (i + 1) / SEGMENT_COUNT;
-    if (segPct >= maxFillPct) break;
-    const clampEnd = Math.min(segPctEnd, maxFillPct);
     const startAngle = 180 - segPct * 180;
-    const endAngle = 180 - clampEnd * 180;
+    const endAngle = 180 - segPctEnd * 180;
     const segStart = arcPoint(startAngle, r);
     const segEnd = arcPoint(endAngle, r);
-    const midPct = (segPct + clampEnd) / 2;
+    const midPct = (segPct + segPctEnd) / 2;
     const color = scoreToColor(midPct * 100);
-    fillSegments.push({
+    arcSegments.push({
       d: `M ${segStart.x} ${segStart.y} A ${r} ${r} 0 0 1 ${segEnd.x} ${segEnd.y}`,
       color,
     });
@@ -182,14 +179,14 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
         />
 
         {/* Colored fill arc — segmented for correct color mapping */}
-        {fillSegments.map((seg, i) => (
+        {arcSegments.map((seg, i) => (
           <path
             key={i}
             d={seg.d}
             fill="none"
             stroke={seg.color}
             strokeWidth={trackThick}
-            strokeLinecap={i === 0 ? "round" : "butt"}
+            strokeLinecap={i === 0 || i === SEGMENT_COUNT - 1 ? "round" : "butt"}
             filter="url(#arcGlow)"
           />
         ))}
