@@ -179,7 +179,7 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
           strokeLinecap="round"
         />
 
-        {/* Colored fill arc — segmented for correct color mapping */}
+        {/* Colored arc — crisp segments */}
         {arcSegments.map((seg, i) => (
           <path
             key={i}
@@ -188,7 +188,6 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
             stroke={seg.color}
             strokeWidth={trackThick}
             strokeLinecap={i === 0 || i === SEGMENT_COUNT - 1 ? "round" : "butt"}
-            filter="url(#arcGlow)"
           />
         ))}
 
